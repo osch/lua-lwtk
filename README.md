@@ -1,5 +1,6 @@
 # lwtk - Lua Widget Toolkit
 [![Licence](http://img.shields.io/badge/Licence-MIT-brightgreen.svg)](LICENSE)
+[![Install](https://img.shields.io/badge/Install-LuaRocks-brightgreen.svg)](https://luarocks.org/modules/osch/lwtk)
 
 This toolkit provides a foundation for building cross platform GUI widgets in
 Lua on top of [LPugl]. For now only the cairo drawing backend is supported. 
