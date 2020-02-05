@@ -3,6 +3,7 @@ local lwtk = require("lwtk")
 local Application = lwtk.Application
 local Group       = lwtk.Group
 local Widget      = lwtk.Widget
+local Border      = lwtk.Border
 local Color       = lwtk.Color
 local newClass    = lwtk.newClass
 local fillRect    = lwtk.draw.fillRect
@@ -47,6 +48,13 @@ do
         end
     end
 end
+local MyGroup = newClass("MyGroup", Group)
+do
+    function MyGroup:onDraw(ctx)
+        local w, h = self:getSize()
+        fillRect(ctx, self:getStyleParam("Color"), 0, 0, w, h)
+    end    
+end
 
 local app = Application("example01.lua")
 
@@ -56,32 +64,63 @@ app:setStyle {
     { "HoverTransitionSeconds:hover",     0.20 },
     { "PressedTransitionSeconds:pressed", 0.20 },
     
+    { "Color:*",                   Color"f9f9fa" },
+    { "TextColor:*",               Color"000000" },
     { "TextSize:*",                13            },
     { "TextOffset:*",               0            },
     { "TextOffset:pressed+hover",   1            },
+    { "BorderWidth:*",             10            },
+    { "Color@Border:*",            Color"ff0000" },
     
-    { "Color:*",                   Color"f9f9fa" },
-    { "TextColor:*",               Color"000000" },
-
+    { "Color@MyGroup:*",                Color"e1e1ff" },
     { "Color@MyButton:*",               Color"e1e1e2" },
     { "Color@MyButton:hover",           Color"c9c9ca" },
     { "Color@MyButton:pressed",         Color"c9c9ca" },
     { "Color@MyButton:pressed+hover",   Color"b1b1b2" },
 }
 
+local counter = 0
+
 local win = app:newWindow {
     title = "example01",
     Group {
+        id = "g0",
         MyButton {
+            id = "b1",
             frame = {  10, 10, 100, 30 },
             text  = "OK",
             onClicked = function() print("Button Clicked") end
         },
         MyButton {
+            id = "b2",
             frame = { 120, 10, 100, 30 },
             text  = "Exit",
-            onClicked = function() app:close() end
+            onClicked = function(self) 
+                            self:getRoot():close()
+                            --app:close() 
+                        end
+        },
+        MyGroup {
+            id = "g1",
+            frame = {  10, 80, 200, 100 },
+            MyButton {
+                id = "b3",
+                frame = { -40, -10, 100, 30 },
+                text = "test",
+                onClicked = function(self)
+                                counter = counter + 1
+                                self:getRoot().child.b1:setText("Clicked "..counter) 
+                            end
+            }
+        },
+        Border {
+            frame = { 230, 80, 200, 100 },
+            MyButton {
+                frame = { -40, -10, 100, 30 },
+                text = "test",
+            }
         }
+        
     }
 }
 

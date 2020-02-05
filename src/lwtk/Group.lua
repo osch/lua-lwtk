@@ -45,6 +45,14 @@ function Group:addChild(child)
     return child
 end
 
+function Group:_setRoot(root)
+    for _, child in ipairs(self) do
+        child:_setRoot(root)
+    end
+    Super._setRoot(self, root)
+end
+
+
 function Group:_processChanges(x0, y0, cx, cy, cw, ch, damagedArea)
     Super._processChanges(self, x0, y0, cx, cy, cw, ch, damagedArea)
     local x, y, w, h = x0 + self.x, y0 + self.y, self.w, self.h

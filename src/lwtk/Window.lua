@@ -13,6 +13,7 @@ Window.color = true
 
 local getParent      = lwtk.get.parent
 local getStyleParams = lwtk.get.styleParams
+local getRoot        = lwtk.get.root
 
 
 function Window.newClass(className, baseClass)
@@ -22,6 +23,7 @@ function Window.newClass(className, baseClass)
 end
 
 function Window:new(app, initParms)
+    getRoot[self] = self
     self.getCurrentTime  = app.getCurrentTime
     self.setTimer        = app.setTimer
     getParent[self]      = app
@@ -34,12 +36,16 @@ function Window:new(app, initParms)
     self.mouseEntered = false
     app:_addWindow(self)
     if initParms then
+        local childList = {}
         for i = 1, #initParms do
-            local c = initParms[i]
-            self:addChild(c)
+            childList[i] = initParms[i]
             initParms[i] = nil
         end
         self:setAttributes(initParms)
+        for i = 1, #childList do
+            local c = childList[i]
+            self:addChild(c)
+        end
     end
 end
 

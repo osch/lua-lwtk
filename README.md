@@ -65,9 +65,10 @@ future.
                 ctx:select_font_face("sans-serif", "normal", "normal")
                 ctx:set_font_size(self:getStyleParam("TextSize"))
                 local ext = ctx:text_extents(self.text)
+                local offs = self:getStyleParam("TextOffset")
                 local tx = (w - ext.width)/2
                 local ty = (h - ext.height)/2 + ext.height
-                ctx:move_to(math.floor(tx+0.5), math.floor(ty+0.5))
+                ctx:move_to(offs + math.floor(tx+0.5), offs + math.floor(ty+0.5)) -- sharper text
                 ctx:show_text(self.text)
             end
         end
@@ -79,18 +80,21 @@ future.
         { "*TransitionSeconds:*",             0.05 },
         { "HoverTransitionSeconds:",          0.20 },
         { "HoverTransitionSeconds:hover",     0.20 },
+        { "PressedTransitionSeconds:pressed", 0.20 },
+        
+        { "TextSize:*",                13            },
+        { "TextOffset:*",               0            },
+        { "TextOffset:pressed+hover",   1            },
         
         { "Color:*",                   Color"f9f9fa" },
-        { "TextSize:*",                13            },
-        { "TextSize:pressed+hover",    11.5            },
         { "TextColor:*",               Color"000000" },
-        
+    
         { "Color@MyButton:*",               Color"e1e1e2" },
         { "Color@MyButton:hover",           Color"c9c9ca" },
         { "Color@MyButton:pressed",         Color"c9c9ca" },
         { "Color@MyButton:pressed+hover",   Color"b1b1b2" },
     }
-
+    
     local win = app:newWindow {
         title = "example01",
         Group {
@@ -106,8 +110,9 @@ future.
             }
         }
     }
-
+    
     win:show()
+    
     app:runEventLoop()
     ```
 

@@ -11,7 +11,7 @@ local intersectRects      = Rect.intersectRects
 local roundRect           = Rect.round
 
 local getParent       = lwtk.get.parent
-local getWidgetParent = lwtk.get.widgetParent
+local getRoot         = lwtk.get.root
 
 Widget:implement(Animateable)
 
@@ -56,13 +56,21 @@ function Widget:getCurrentTime()
     return rslt
 end
 
+function Widget:_setRoot(root)
+    getRoot[self] = root
+    local initParams = self.initParams
+    if initParams then
+        self:setAttributes(initParams)
+        self.initParams = nil
+    end
+end
+
 function Widget:_setParent(parent)
     assert(not getParent[self], "widget was already added to parent")
     getParent[self] = parent
-    local attrs = self.initParams
-    if attrs then
-        self:setAttributes(attrs)
-        self.initParams = nil
+    local root = getRoot[parent]
+    if root then
+        self:_setRoot(root)
     end
     if self.hasChanges then
         local w = parent
@@ -80,32 +88,8 @@ function Widget:getParent()
     return getParent[self]
 end
 
-local function widgetParent(self)
-    local p = getWidgetParent[self]
-    if not p then
-        p = getParent[self]
-        if p then
-            if p:is(Application) then 
-                getWidgetParent[self] = false
-                p = false
-            else
-                getWidgetParent[self] = p 
-            end
-        end
-    end
-    return p
-end
-
 function Widget:getRoot()
-    local p = widgetParent(self)
-    while p do
-        local pp = widgetParent(p)
-        if not pp then
-            return p
-        else
-            p = pp
-        end
-    end
+    return getRoot[self]
 end
 
 function Widget:_setFrame(newX, newY, newW, newH)
@@ -134,7 +118,8 @@ function Widget:_setFrame(newX, newY, newW, newH)
     end
 end
 
-function Widget:setFrame(x, y, w, h)
+function Widget:setFrame(...)
+    local x, y, w, h = ...
     if type(x) == "number" then
         self:_setFrame(roundRect(x, y, w, h))
     else
