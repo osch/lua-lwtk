@@ -24,7 +24,7 @@ function Group:new(initParams)
     end
     Super.new(self, initParams)
     for i = 1, #childList do
-        self:newChild(childList[i])
+        self:addChild(childList[i])
     end
 end
 
@@ -38,7 +38,7 @@ function Group:_clearChildLookup()
     end
 end
 
-function Group:newChild(child)
+function Group:addChild(child)
     self[#self + 1] = child
     child:_setParent(self)
     self:_clearChildLookup()
@@ -93,22 +93,49 @@ local function processMouseMove(self, entered, mx, my)
     self.mouseY = my
     local bChild = self.mouseButtonChild
     if bChild then
-        local x, y, w, h = bChild.x, bChild.y, bChild.w, bChild.h
-        if     x <= mx and mx < x + w 
-           and y <= my and my < y + h 
-        then
-            if self.mouseHoverChild == bChild then
-                bChild:_processMouseMove(mx - bChild.x, my - bChild.y)
+        if bChild ~= self then
+            local x, y, w, h =  bChild.x, bChild.y, bChild.w, bChild.h
+            if     x <= mx and mx < x + w 
+               and y <= my and my < y + h 
+               and 0 <= mx and mx < self.w
+               and 0 <= my and my < self.h
+            then
+                if self.mouseHoverChild == bChild then
+                    bChild:_processMouseMove(mx - x, my - y)
+                else
+                    self.mouseHoverChild = bChild
+                    bChild:_processMouseEnter(mx - x, my - y)
+                end
             else
-                self.mouseHoverChild = bChild
-                bChild:_processMouseEnter(mx - bChild.x, my - bChild.y)
+                if self.mouseHoverChild == bChild then
+                    self.mouseHoverChild = nil
+                    bChild:_processMouseLeave(mx - x, my - y)
+                else
+                    bChild:_processMouseMove(mx - y, my - y)
+                end
             end
         else
-            if self.mouseHoverChild == bChild then
-                self.mouseHoverChild = nil
-                bChild:_processMouseLeave(mx - bChild.x, my - bChild.y)
+            if     0 <= mx and mx < self.w
+               and 0 <= my and my < self.h
+            then
+                if self.mouseHoverChild == self then
+                    call("onMouseMove", self, mx, my)
+                else
+                    self.mouseHoverChild = self
+                    local onMouseEnter = self.onMouseEnter
+                    if onMouseEnter then
+                        onMouseEnter(self, mx, my)
+                    else
+                        call("onMouseMove", self, mx, my)
+                    end
+                end
             else
-                bChild:_processMouseMove(mx - bChild.x, my - bChild.y)
+                if self.mouseHoverChild == self then
+                    self.mouseHoverChild = nil
+                    self:_processMouseLeave(mx, my)
+                else
+                    call("onMouseMove", self, mx, my)
+                end
             end
         end
     else
@@ -179,7 +206,11 @@ function Group:_processMouseLeave(mx, my)
     self.mouseY = my
     local bChild = self.mouseButtonChild
     if bChild then
-        bChild:_processMouseLeave(mx - bChild.x, my - bChild.y)
+        if bChild ~= self then
+            bChild:_processMouseLeave(mx - bChild.x, my - bChild.y)
+        else
+            call("onMouseLeave", self, mx, my)
+        end
     else
         local hChild = self.mouseHoverChild
         if hChild then
@@ -187,7 +218,7 @@ function Group:_processMouseLeave(mx, my)
             if hChild ~= self then
                 hChild:_processMouseLeave(mx - hChild.x, my - hChild.y)
             else
-                call("onMouseLeave", hChild, my, my)
+                call("onMouseLeave", hChild, mx, my)
             end
         end
     end
@@ -198,17 +229,17 @@ function Group:_processMouseDown(mx, my, button, modState)
     self.mouseY = my
     local bChild = self.mouseButtonChild
     if bChild then
-        local handled = bChild:_processMouseDown(mx - bChild.x, my - bChild.y,
-                                                 button, modState)
-        if handled then
-            self.mouseChildButtons[button] = true
+        self.mouseChildButtons[button] = true
+        if self ~= bChild then
+            return bChild:_processMouseDown(mx - bChild.x, my - bChild.y,
+                                            button, modState)
+        else
+            return call("onMouseDown", self, mx, my, button, modState)
         end
-        return handled
     else
         local onMouseDown = self.onMouseDown
         if onMouseDown then
-            onMouseDown(self, mx, my, button, modState)
-            return true
+            return onMouseDown(self, mx, my, button, modState)
         else
             for i = #self, 1, -1 do
                 local child = self[i]
@@ -217,16 +248,15 @@ function Group:_processMouseDown(mx, my, button, modState)
                     if     x <= mx and mx < x + w
                        and y <= my and my < y + h
                     then
-                        if child:_processMouseDown(mx - x, my - y, button, modState) then
-                            self.mouseChildButtons[button] = true
-                            self.mouseButtonChild = child
-                            return true
-                        else
-                            return false
-                        end
+                        self.mouseButtonChild = child
+                        self.mouseChildButtons[button] = true
+                        return child:_processMouseDown(mx - x, my - y, button, modState)
                     end
                 end
             end
+            self.mouseButtonChild = self
+            self.mouseChildButtons[button] = true
+            return call("onMouseDown", self, mx, my, button, modState)
         end
     end
 end
@@ -244,7 +274,11 @@ function Group:_processMouseUp(mx, my, button, modState)
     if bChild then
         local buttons = self.mouseChildButtons
         buttons[button] = false
-        bChild:_processMouseUp(mx - bChild.x, my - bChild.y, button, modState)
+        if self ~= bChild then
+            bChild:_processMouseUp(mx - bChild.x, my - bChild.y, button, modState)
+        else
+            call("onMouseUp", self, mx, my, button, modState)
+        end
         if not hasButtons(buttons) then
             self.mouseButtonChild = nil
         end

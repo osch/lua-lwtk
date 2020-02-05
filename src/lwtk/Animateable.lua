@@ -18,9 +18,9 @@ function Animateable:changeState(name, flag)
     flag = flag and true or false
     local oldFlag = self.state[name]
     if oldFlag ~= flag then
+        local duration = self:getStyleParam(name.."TransitionSeconds") or 0
         self:setState(name, flag)
         local trans = self.animationTransitions[name]
-        local duration = self:getStyleParam(name.."TransitionSeconds") or 0
         if duration > 0 then
             if not trans then
                 trans = Transition()

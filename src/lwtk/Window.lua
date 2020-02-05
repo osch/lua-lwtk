@@ -36,14 +36,14 @@ function Window:new(app, initParms)
     if initParms then
         for i = 1, #initParms do
             local c = initParms[i]
-            self:newChild(c)
+            self:addChild(c)
             initParms[i] = nil
         end
         self:setAttributes(initParms)
     end
 end
 
-function Window:newChild(child)
+function Window:addChild(child)
     assert(not self[1], "Window can only have one child widget")
     self[1] = child
     child:_setParent(self)

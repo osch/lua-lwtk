@@ -1,5 +1,6 @@
 local lwtk = require"lwtk"
 
+local Application = lwtk.Application
 local call        = lwtk.call
 local Rect        = lwtk.Rect
 local Super       = lwtk.Object
@@ -9,7 +10,8 @@ local Widget      = lwtk.newClass("lwtk.Widget", Super)
 local intersectRects      = Rect.intersectRects
 local roundRect           = Rect.round
 
-local getParent = lwtk.get.parent
+local getParent       = lwtk.get.parent
+local getWidgetParent = lwtk.get.widgetParent
 
 Widget:implement(Animateable)
 
@@ -76,6 +78,34 @@ end
 
 function Widget:getParent()
     return getParent[self]
+end
+
+local function widgetParent(self)
+    local p = getWidgetParent[self]
+    if not p then
+        p = getParent[self]
+        if p then
+            if p:is(Application) then 
+                getWidgetParent[self] = false
+                p = false
+            else
+                getWidgetParent[self] = p 
+            end
+        end
+    end
+    return p
+end
+
+function Widget:getRoot()
+    local p = widgetParent(self)
+    while p do
+        local pp = widgetParent(p)
+        if not pp then
+            return p
+        else
+            p = pp
+        end
+    end
 end
 
 function Widget:_setFrame(newX, newY, newW, newH)
