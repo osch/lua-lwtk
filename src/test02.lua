@@ -123,6 +123,7 @@ local win = app:newWindow {
             id = "g2",
             frame = { 230, 80, 200, 100 },
             MyButton {
+                id = "b4",
                 frame = { -40, -10, 100, 30 },
                 text = "test",
             }

@@ -111,7 +111,7 @@ local function processMouseMove(self, entered, mx, my)
                     self.mouseHoverChild = nil
                     bChild:_processMouseLeave(mx - x, my - y)
                 else
-                    bChild:_processMouseMove(mx - y, my - y)
+                    bChild:_processMouseMove(mx - x, my - y)
                 end
             end
         else
