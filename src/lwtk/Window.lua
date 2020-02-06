@@ -13,6 +13,7 @@ Window.color = true
 
 local getParent      = lwtk.get.parent
 local getStyleParams = lwtk.get.styleParams
+local getApp         = lwtk.get.app
 local getRoot        = lwtk.get.root
 
 
@@ -23,6 +24,7 @@ function Window.newClass(className, baseClass)
 end
 
 function Window:new(app, initParms)
+    getApp[self]  = app
     getRoot[self] = self
     self.getCurrentTime  = app.getCurrentTime
     self.setTimer        = app.setTimer
@@ -89,11 +91,13 @@ end
 function Window:_handleConfigure(x, y, w, h)
     self.x = x
     self.y = y
-    self.w = w
-    self.h = h
-    local child = self[1]
-    if child then
-        child:_setFrame(0, 0, w, h)
+    if self.w ~= w or self.h ~= h then
+        self.w = w
+        self.h = h
+        local child = self[1]
+        if child then
+            child:_setFrame(0, 0, w, h)
+        end
     end
 end
 

@@ -10,8 +10,9 @@ local Widget      = lwtk.newClass("lwtk.Widget", Super)
 local intersectRects      = Rect.intersectRects
 local roundRect           = Rect.round
 
-local getParent       = lwtk.get.parent
+local getApp          = lwtk.get.app
 local getRoot         = lwtk.get.root
+local getParent       = lwtk.get.parent
 
 Widget:implement(Animateable)
 
@@ -23,6 +24,8 @@ end
 
 function Widget:new(initParams)
     Animateable.new(self)
+    getApp[self]  = false
+    getRoot[self] = self
     self.state = {}
     self.visible = true
     self.x = 0
@@ -37,8 +40,8 @@ function Widget:new(initParams)
             initParams.id = nil
         end
         assert(initParams[1] == nil, "child objects are not supported")
+        self:setAttributes(initParams)
     end
-    self.initParams = initParams
 end
 
 function Widget:setTimer(seconds, func, ...)
@@ -56,22 +59,24 @@ function Widget:getCurrentTime()
     return rslt
 end
 
-function Widget:_setRoot(root)
+local function setAppAndRoot(self, app, root)
+    if app then
+        getApp[self] = app
+    end
     getRoot[self] = root
-    local initParams = self.initParams
-    if initParams then
-        self:setAttributes(initParams)
-        self.initParams = nil
+    for _, child in ipairs(self) do
+        setAppAndRoot(child, app, root)
+    end 
+    if app then
+        call("onLayout", self, self.w, self.h)
     end
 end
 
 function Widget:_setParent(parent)
     assert(not getParent[self], "widget was already added to parent")
     getParent[self] = parent
-    local root = getRoot[parent]
-    if root then
-        self:_setRoot(root)
-    end
+    setAppAndRoot(self, getApp[parent],
+                        getRoot[parent])
     if self.hasChanges then
         local w = parent
         repeat
@@ -115,6 +120,9 @@ function Widget:_setFrame(newX, newY, newW, newH)
         self.y = newY
         self.w = newW
         self.h = newH
+        if getApp[self] then
+            call("onLayout", self, newW, newH)
+        end
     end
 end
 

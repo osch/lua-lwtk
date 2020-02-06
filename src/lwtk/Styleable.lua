@@ -29,7 +29,6 @@ function Styleable:setStyle(styleRules)
     local rules = {}
     for i, r in ipairs(styleRules) do
         rules[i] = { toPattern(r[1], r[2]) }
-        print("RULE", rules[i][1], "->", rules[i][2])
     end
     self.styleRules = rules
 end
@@ -41,6 +40,7 @@ function Styleable:getStyleParams()
         local parent = getParent[self]
         if parent then
             styleParams = parent:getStyleParams()
+            getStyleParams[self] = styleParams
         end
     end
     return styleParams

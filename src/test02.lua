@@ -109,11 +109,18 @@ local win = app:newWindow {
                 text = "test",
                 onClicked = function(self)
                                 counter = counter + 1
-                                self:getRoot().child.b1:setText("Clicked "..counter) 
+                                local root = self:getRoot()
+                                root.child.b1:setText("Clicked "..counter) 
+                                local g2 = root.child.g2
+                                local x, y, w, h = g2:getFrame()
+                                g2:setFrame(x + 5, y, w + 5, h)
+                                local x, y, w, h = self:getFrame()
+                                self:setFrame(x + 2, y + 2, w, h)
                             end
             }
         },
         Border {
+            id = "g2",
             frame = { 230, 80, 200, 100 },
             MyButton {
                 frame = { -40, -10, 100, 30 },

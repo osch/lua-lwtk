@@ -20,12 +20,11 @@ function Border:addChild(child)
     end
 end
 
-function Border:_setFrame(newX, newY, newW, newH)
-    Super._setFrame(self, newX, newY, newW, newH)
+function Border:onLayout(w, h)
     local child = self[1]
     if child then
-        local w = self:getStyleParam("BorderWidth") or 0
-        child:setFrame(w, w, newW - 2*w, newH - 2*w)
+        local b = self:getStyleParam("BorderWidth") or 0
+        child:setFrame(b, b, w - 2*b, h - 2*b)
     end
 end
 
