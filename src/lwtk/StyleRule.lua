@@ -32,7 +32,7 @@ function StyleRule.toPattern(patternString, value)
         return sub(patternString, 2), checkValue(patternString, value)
     else
         local p = lower(patternString)
-        local invalidChar = match(p, "[^a-zA-Z0-9_*@:+]")
+        local invalidChar = match(p, "[^a-zA-Z0-9_*@:+()]")
         if invalidChar then
             errorf("Error in style rule pattern %q: invalid character %q", patternString, invalidChar)
         end
@@ -52,9 +52,10 @@ function StyleRule.toPattern(patternString, value)
         if paramName == "" then
             errorf("Invalid style rule pattern %q: parameter name is empty", patternString)
         end
-        if find(paramName, "%+") then
+        local invalid = match(paramName, "[+()]")
+        if invalid then
             errorf("Invalid style rule pattern %q: parameter name contains invalid character %q", 
-                   patternString, "+")
+                   patternString, invalid)
         end
         paramName = gsub(paramName, "%*", ".*")
         if classPath then
@@ -62,6 +63,8 @@ function StyleRule.toPattern(patternString, value)
                 errorf("Invalid style rule pattern %q: class name contains invalid character %q", 
                        patternString, "+")
             end
+            classPath = gsub(classPath, "%*", ".*")
+            classPath = gsub(classPath, "[()]", "%%%0")
             classPath = ".*<"..classPath..">.*"
         else
             classPath = ".*"

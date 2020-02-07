@@ -50,7 +50,6 @@ build = {
         ["lwtk.errorf"]            = "src/lwtk/errorf.lua",
         ["lwtk.get"]               = "src/lwtk/get.lua",
         ["lwtk.newClass"]          = "src/lwtk/newClass.lua",
-        ["lwtk.newWrapperClass"]   = "src/lwtk/newWrapperClass.lua",
         ["lwtk.type"]              = "src/lwtk/type.lua",
         ["lwtk.vivid"]             = "src/lwtk/vivid.lua",
         -- MODULES END

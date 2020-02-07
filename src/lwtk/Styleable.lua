@@ -13,7 +13,7 @@ local Styleable = lwtk.newClass("lwtk.Styleable")
 
 function Styleable.initClass(mixinClass, newClass)
     local className = newClass.__name
-    local m = match(className, "^lwtk%.(.*)$")
+    local m = match(className, "^.*%.([^.]*)$")
     className = m or className
     newClass.styleSelectorClassPath = (newClass.styleSelectorClassPath or "").."<"..lower(className)..">"
     return newClass

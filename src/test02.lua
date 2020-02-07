@@ -70,8 +70,13 @@ app:setStyle {
     { "TextSize:*",                13            },
     { "TextOffset:*",               0            },
     { "TextOffset:pressed+hover",   1            },
-    { "BorderWidth:*",             10            },
-    { "Color@Border:*",            Color"ff0000" },
+
+    { "BorderWidth:*",                       10  },
+    { "BorderWidth@*MyGroup*:*",              3  },
+    { "BorderWidth@Bordered(MyButton):*",     1  },
+
+    { "Color@Border:*",                 Color"ff0000" },
+    { "Color@Bordered*:*",              Color"0000ff" },
     
     { "Color@MyGroup:*",                Color"e1e1ff" },
     { "Color@MyButton:*",               Color"e1e1e2" },
@@ -101,7 +106,7 @@ local win = app:newWindow {
                             --app:close() 
                         end
         },
-        MyGroup {
+        Bordered(MyGroup) {
             id = "g1",
             frame = {  10, 80, 200, 100 },
             MyButton {
