@@ -195,7 +195,7 @@ function Widget:_processMouseEnter(x, y)
     call("onMouseEnter", self, x, y)
 end
 
-function Widget:_processMouseMove(x, y)
+function Widget:_processMouseMove(mouseEntered, x, y)
     call("onMouseMove", self, x, y)
 end
 
@@ -211,7 +211,7 @@ function Widget:_processMouseDown(mx, my, button, modState)
     end
 end
 
-function Widget:_processMouseUp(mx, my, button, modState)
+function Widget:_processMouseUp(mouseEntered, mx, my, button, modState)
     call("onMouseUp", self, mx, my, button, modState)
 end
 

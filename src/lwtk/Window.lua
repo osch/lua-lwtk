@@ -137,10 +137,9 @@ end
 function Window:_handleMouseMove(mx, my)
     self.mouseX = mx
     self.mouseY = my
-    self.mouseEntered = true
     local child = self[1]
     if child and child.visible then
-        child:_processMouseMove(mx, my)
+        child:_processMouseMove(self.mouseEntered, mx, my)
     end
 end
 
@@ -168,7 +167,7 @@ function Window:_handleMouseUp(mx, my, button, modState)
     self.mouseY = my
     local child = self[1]
     if child and child.visible then
-        child:_processMouseUp(mx, my, button, modState)
+        child:_processMouseUp(self.mouseEntered, mx, my, button, modState)
     end
 end
 
