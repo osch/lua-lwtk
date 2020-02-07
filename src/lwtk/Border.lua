@@ -14,10 +14,6 @@ function Border:addChild(child)
         errorf("object of type %s can only have one child", Border)
     end
     Super.addChild(self, child)
-    if child then
-        local w = self:getStyleParam("BorderWidth") or 0
-        child:setFrame(w, w, self.w - 2*w, self.h - 2*w)
-    end
 end
 
 function Border:onLayout(w, h)

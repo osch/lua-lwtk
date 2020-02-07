@@ -44,4 +44,12 @@ assert(g1.child.b2:getRoot() == g2)
 assert(g1.child.b2:getRoot() == g2)
 assert(g2.child.b2:getRoot() == g2)
 
+local BorderedButton = lwtk.Bordered(lwtk.Button)
+assert(tostring(BorderedButton) == "lwtk.Bordered(lwtk.Button)")
+assert(tostring(BorderedButton()):match("^lwtk.Bordered%(lwtk.Button%)%: [x0-9A-Fa-f]+$"))
+
+local BorderedButton2 = lwtk.newWrapperClass("BorderedButton", lwtk.Button, lwtk.Border, { "frame" })
+assert(tostring(BorderedButton2) == "BorderedButton")
+assert(tostring(BorderedButton2()):match("^BorderedButton%: [x0-9A-Fa-f]+$"))
+
 print("OK.")

@@ -1,6 +1,7 @@
 local lwtk = require"lwtk"
 
-local Class = lwtk.Class
+local Class      = lwtk.Class
+local getWrapper = lwtk.get.wrapper
 
 local ChildLookup = {}
 ChildLookup.__name = "lwtk.ChildLookup"
@@ -32,6 +33,7 @@ function ChildLookup.__index(self, id)
         end
     end
     if found ~= nil then
+        found = getWrapper[found] or found
         self[0] = true
         self[id] = found
     end

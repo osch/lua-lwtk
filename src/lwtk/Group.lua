@@ -10,7 +10,8 @@ local Group       = lwtk.newClass("lwtk.Group", Super)
 
 local intersectRects      = Rect.intersectRects
 
-local getParent = lwtk.get.parent
+local getParent        = lwtk.get.parent
+local getWrappedParent = lwtk.get.wrappedParent
     
 function Group:new(initParams)
     self.child = ChildLookup(self)
@@ -39,8 +40,9 @@ function Group:_clearChildLookup()
 end
 
 function Group:addChild(child)
-    self[#self + 1] = child
-    child:_setParent(self)
+    local myChild = getWrappedParent[child] or child
+    self[#self + 1] = myChild
+    myChild:_setParent(self)
     self:_clearChildLookup()
     return child
 end

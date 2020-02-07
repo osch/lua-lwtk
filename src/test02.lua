@@ -4,6 +4,7 @@ local Application = lwtk.Application
 local Group       = lwtk.Group
 local Widget      = lwtk.Widget
 local Border      = lwtk.Border
+local Bordered    = lwtk.Bordered
 local Color       = lwtk.Color
 local newClass    = lwtk.newClass
 local fillRect    = lwtk.draw.fillRect
@@ -116,6 +117,9 @@ local win = app:newWindow {
                                 g2:setFrame(x + 5, y, w + 5, h)
                                 local x, y, w, h = self:getFrame()
                                 self:setFrame(x + 2, y + 2, w, h)
+                                local b5 = root.child.b5
+                                local x, y, w, h = b5:getFrame()
+                                b5:setFrame(x, y + 5, w + 5, h)
                             end
             }
         },
@@ -127,8 +131,12 @@ local win = app:newWindow {
                 frame = { -40, -10, 100, 30 },
                 text = "test",
             }
+        },
+        Bordered(MyButton) {
+            id = "b5",
+            frame = { 440, 80, 100, 50 },
+            text = "test",
         }
-        
     }
 }
 

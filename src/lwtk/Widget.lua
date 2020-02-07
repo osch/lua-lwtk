@@ -72,6 +72,7 @@ local function setAppAndRoot(self, app, root)
     end
 end
 
+
 function Widget:_setParent(parent)
     assert(not getParent[self], "widget was already added to parent")
     getParent[self] = parent
