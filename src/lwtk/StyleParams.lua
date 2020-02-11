@@ -17,7 +17,7 @@ end
 function StyleParams:setStyleRules(ruleList)
     local rules = {}
     for i, rule in ipairs(ruleList) do
-        rules[i] = { toPattern(rule[1], rule[2]) }
+        rules[i] = toPattern(rule)
     end
     self.ruleList = rules
     self.cache = {}
@@ -27,7 +27,7 @@ function StyleParams:addStyleRules(ruleList)
     local rules = self.rules
     local n = #rules
     for i, rule in ipairs(ruleList) do
-        rules[n + i] = { toPattern(rule[1], rule[2]) }
+        rules[n + i] = toPattern(rule[1])
     end
     self.cache = {}
 end
@@ -40,8 +40,16 @@ function StyleParams:getStyleParam(parName, classSelectorPath, stateSelectorPath
     local selector = lower(parName).."@"..classSelectorPath..":"..lower(stateSelectorPath)
     local context
     local function evalRule(rule, cache)
-        if match(selector, rule[1]) then
-            local param = rule[2]
+        local n = #rule
+        local matched = false
+        for i = n - 1, 1, -1 do
+            if match(selector, rule[i]) then
+                matched = true
+                break
+            end
+        end
+        if matched then
+            local param = rule[n]
             if type(param) == "function" then
                 if not context then
                     context = StyleRuleContext(self, classSelectorPath, stateSelectorPath, localStyleRules)

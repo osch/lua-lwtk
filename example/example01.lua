@@ -64,8 +64,8 @@ app:setStyle {
     { "TextColor:*",               Color"000000" },
 
     { "Color@MyButton:*",               Color"e1e1e2" },
-    { "Color@MyButton:hover",           Color"c9c9ca" },
-    { "Color@MyButton:pressed",         Color"c9c9ca" },
+    { "Color@MyButton:hover",
+      "Color@MyButton:pressed",         Color"c9c9ca" },
     { "Color@MyButton:pressed+hover",   Color"b1b1b2" },
 }
 
