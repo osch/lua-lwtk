@@ -2,6 +2,8 @@ local lwtk   = require"lwtk"
 
 local match  = string.match
 local lower  = string.lower
+local errorf = lwtk.errorf
+local type   = lwtk.type
 
 local TypeRule         = lwtk.TypeRule
 local StyleRule        = lwtk.StyleRule
@@ -49,7 +51,7 @@ function StyleParams:setStyleRules(ruleList)
         rules[i] = toStylePattern(rule, typeList)
     end
     self.ruleList = rules
-    self.cache = {}
+    self:clearCache()
 end
 
 function StyleParams:addStyleRules(ruleList)
@@ -59,15 +61,55 @@ function StyleParams:addStyleRules(ruleList)
     for i, rule in ipairs(ruleList) do
         rules[n + i] = toStylePattern(rule[i], typeList)
     end
-    self.cache = {}
+    self:clearCache()
 end
 
 function StyleParams:clearCache()
     self.cache = {}
+    self.animatable = {}
+    self.scalable   = {}
+end
+
+local function findTypeRule(self, parName)
+    local lowerName = lower(parName)
+    local typeList = self.typeList
+    for i = #typeList, 1, -1 do
+        local rule = typeList[i]
+        for j = #rule-1, 1, -1 do
+            if match(lowerName, rule[j]) then
+                self.animatable[parName] = rule.ANIMATABLE and true or false
+                self.scalable[parName]   = rule.SCALABLE   and true or false
+                return rule
+            end
+        end
+    end
+
+end
+
+
+function StyleParams:isAnimatable(parName)
+    local result = self.animatable[parName]
+    if result == nil then
+        findTypeRule(self, parName)
+        return self.animatable[parName]
+    else
+        return result
+    end
+end
+
+function StyleParams:isScalable(parName)
+    local result = self.scalable[parName]
+    if result == nil then
+        findTypeRule(self, parName)
+        return self.scalable[parName]
+    else
+        return result
+    end
 end
 
 function StyleParams:getStyleParam(parName, classSelectorPath, stateSelectorPath, localStyleRules)
     local selector = lower(parName).."@"..classSelectorPath..":"..lower(stateSelectorPath)
+    local typeRule
     local context
     local function evalRule(rule, cache)
         local n = #rule
@@ -85,6 +127,16 @@ function StyleParams:getStyleParam(parName, classSelectorPath, stateSelectorPath
                     context = StyleRuleContext(self, classSelectorPath, stateSelectorPath, localStyleRules)
                 end
                 param = param(context)
+            end
+            if not typeRule then
+                typeRule = findTypeRule(self, parName)
+                if not typeRule then
+                    errorf("Cannot deduce type for style parameter name %q", parName)
+                end
+            end
+            if type(param) ~= typeRule[#typeRule] then
+                errorf("Type mismatch for style parameter %q: expected %q but given %q", 
+                      parName, tostring(typeRule[#typeRule]), type(param))
             end
             cache[selector] = param
             return param

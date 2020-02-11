@@ -26,25 +26,15 @@ function Styleable:setState(name, flag)
 end
 
 function Styleable:setStyle(styleRules)
+    local typeList = getStyleParams[self].typeList
     local rules = {}
     for i, r in ipairs(styleRules) do
-        rules[i] = toPattern(r, self:getStyleParams().typeList)
+        rules[i] = toPattern(r, typeList)
     end
     self.styleRules = rules
 end
 
 
-function Styleable:getStyleParams()
-    local styleParams = getStyleParams[self]
-    if not styleParams then
-        local parent = getParent[self]
-        if parent then
-            styleParams = parent:getStyleParams()
-            getStyleParams[self] = styleParams
-        end
-    end
-    return styleParams
-end
 
 function Styleable:getStateStyleSelectorPath()
     local path = self.stateStyleSelectorPath
@@ -72,7 +62,7 @@ end
 local getStateStyleSelectorPath = Styleable.getStateStyleSelectorPath
 
 function Styleable:getStyleParam(paramName)
-    local styleParams = self:getStyleParams()
+    local styleParams = getStyleParams[self]
     if styleParams then
         local statePath = getStateStyleSelectorPath(self)
         return styleParams:getStyleParam(paramName, self.styleSelectorClassPath, statePath, self.styleRules)

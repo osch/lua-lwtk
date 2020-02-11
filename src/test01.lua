@@ -88,7 +88,7 @@ local win1 = app:newWindow {
             id = "mb2",
             frame = { 150, 10, 100, 30 },
             style = {
-                { "Color",  Color"0000aa" },
+                { "Color:",  Color"0000aa" },
               --{ "Color:hover", Color"00aa00" }
             }
         },

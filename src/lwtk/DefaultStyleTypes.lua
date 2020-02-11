@@ -2,16 +2,19 @@ local lwtk = require"lwtk"
 
 local TypeRule = lwtk.TypeRule
 
-local SCALED   = TypeRule.SCALED
-local ANIMATED = TypeRule.ANIMATED
+local SCALABLE   = TypeRule.SCALABLE
+local ANIMATABLE = TypeRule.ANIMATABLE
 
 local function DefaultStyleTypes()
     return {
         { "*Seconds", "number" },
-        { "*Color",   "lwtk.Color", ANIMATED },
+        
+        { "*Color",   "lwtk.Color", ANIMATABLE },
+        
         { "*Size",
           "*Offset",
-          "*Width",   "number",     SCALED, ANIMATED },
+          "*Width",
+          "*Height",  "number",     SCALABLE, ANIMATABLE },
     }
 end
 return DefaultStyleTypes

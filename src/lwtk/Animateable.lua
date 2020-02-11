@@ -5,20 +5,23 @@ local Transition  = lwtk.Transition
 local Super       = lwtk.Styleable
 local Animateable = lwtk.newClass("lwtk.Animateable", Super)
 
+local getStyleParams = lwtk.get.styleParams
+
 function Animateable:new()
     Super.new(self)
     self.animationTransitions = {}
     self.animationValues      = {}
     self.animationActive      = false
     self.animationTimer       = false
-    self.isAnimateable        = {}
 end
+
+local getStyleParam = Super.getStyleParam
 
 function Animateable:changeState(name, flag)
     flag = flag and true or false
     local oldFlag = self.state[name]
     if oldFlag ~= flag then
-        local duration = self:getStyleParam(name.."TransitionSeconds") or 0
+        local duration = getStyleParam(self, name.."TransitionSeconds") or 0
         self:setState(name, flag)
         local trans = self.animationTransitions[name]
         if duration > 0 then
@@ -52,16 +55,9 @@ end
 function Animateable:getStyleParam(paramName)
     local value = self.animationValues[paramName]
     if value == nil then
-        value = Super.getStyleParam(self, paramName)
+        value = getStyleParam(self, paramName)
         if value ~= nil then
-            local animateable = self.isAnimateable[paramName]
-            if animateable == nil then
-                local t = type(value)
-                animateable =     t ~= "string"
-                              and t ~= "boolean"
-                              and not paramName:match("Seconds$")
-                self.isAnimateable[paramName] = animateable
-            end
+            local animateable = getStyleParams[self].animatable[paramName]
             if animateable then
                 self.animationValues[paramName] = value
             end
@@ -87,7 +83,7 @@ function Animateable:updateAnimation()
     end
     self.isAnimationActive = hasActive
     for paramName, currentValue in pairs(values) do
-        local targetValue = Super.getStyleParam(self, paramName)
+        local targetValue = getStyleParam(self, paramName)
         if targetValue ~= currentValue then
             local value
             local count = 0

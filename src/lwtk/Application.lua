@@ -5,11 +5,13 @@ local Timer       = lwtk.Timer
 local Window      = lwtk.Window
 local Application = lwtk.newClass("lwtk.Application")
 
+local getStyleParams  = lwtk.get.styleParams
+
 function Application:new(appName, styleRules)
 
+    getStyleParams[self] = lwtk.StyleParams(lwtk.DefaultStyleTypes(),
+                                            styleRules or lwtk.DefaultStyleRules())
     self.appName       = appName
-    self.styleParams   = lwtk.StyleParams(lwtk.DefaultStyleTypes(),
-                                          styleRules or lwtk.DefaultStyleRules())
     self.windows       = {}
     self.damageReports = nil
     self.world         = lpugl.newWorld(appName)
@@ -24,15 +26,11 @@ function Application:close()
 end
 
 function Application:setStyle(styleRules) 
-    self.styleParams:setStyleRules(styleRules)
+    getStyleParams[self]:setStyleRules(styleRules)
 end
 
 function Application:addStyle(styleRules) 
-    self.styleParams:addStyleRules(styleRules)
-end
-
-function Application:getStyleParams()
-    return self.styleParams
+    getStyleParams[self]:addStyleRules(styleRules)
 end
 
 function Application:newWindow(attributes)

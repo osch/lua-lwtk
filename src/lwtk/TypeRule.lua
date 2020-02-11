@@ -12,7 +12,7 @@ local errorf = lwtk.errorf
 
 local TypeRule = {}
 
-local attributes = { "SCALED", "ANIMATED" }
+local attributes = { "SCALABLE", "ANIMATABLE" }
 
 local toAttrName = {}
 

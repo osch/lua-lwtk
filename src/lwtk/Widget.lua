@@ -13,6 +13,7 @@ local roundRect           = Rect.round
 local getApp          = lwtk.get.app
 local getRoot         = lwtk.get.root
 local getParent       = lwtk.get.parent
+local getStyleParams  = lwtk.get.styleParams
 
 Widget:implement(Animateable)
 
@@ -39,6 +40,11 @@ function Widget:new(initParams)
             self.id = id
             initParams.id = nil
         end
+        local style = initParams.style
+        if style then
+            initParams.style = nil
+            self.style = style
+        end
         assert(initParams[1] == nil, "child objects are not supported")
         self:setAttributes(initParams)
     end
@@ -60,10 +66,15 @@ function Widget:getCurrentTime()
 end
 
 local function setAppAndRoot(self, app, root)
+    getRoot[self] = root
     if app then
         getApp[self] = app
+        local style = self.style
+        if style then
+            self.style = nil
+            self:setStyle(style)
+        end
     end
-    getRoot[self] = root
     for _, child in ipairs(self) do
         setAppAndRoot(child, app, root)
     end 
@@ -72,10 +83,22 @@ local function setAppAndRoot(self, app, root)
     end
 end
 
+local function setStyleParams(self, styleParams)
+    getStyleParams[self] = styleParams
+    for _, child in ipairs(self) do
+        setStyleParams(child, styleParams)
+    end
+end
 
 function Widget:_setParent(parent)
     assert(not getParent[self], "widget was already added to parent")
     getParent[self] = parent
+    if not getStyleParams[self] then
+        local styleParams = getStyleParams[parent] or getStyleParams[app]
+        if styleParams then
+            setStyleParams(self, styleParams)
+        end
+    end
     setAppAndRoot(self, getApp[parent],
                         getRoot[parent])
     if self.hasChanges then

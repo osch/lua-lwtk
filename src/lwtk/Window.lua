@@ -33,7 +33,7 @@ function Window:new(app, initParms)
     self.getCurrentTime  = app.getCurrentTime
     self.setTimer        = app.setTimer
     getParent[self]      = app
-    getStyleParams[self] = app:getStyleParams()
+    getStyleParams[self] = getStyleParams[app]
     self.child = ChildLookup(self)
     self.view  = app.world:newView { resizable = true }
     self.view:setEventFunc(app.eventFunc, self)
