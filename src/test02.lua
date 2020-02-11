@@ -144,7 +144,7 @@ local win = app:newWindow {
         }
     }
 }
-
+--win:setSize(400,300)
 win:show()
 
 app:runEventLoop()

@@ -26,6 +26,10 @@ end
 function Window:new(app, initParms)
     getApp[self]  = app
     getRoot[self] = self
+    self.x = 0
+    self.y = 0
+    self.w = 1
+    self.h = 1
     self.getCurrentTime  = app.getCurrentTime
     self.setTimer        = app.setTimer
     getParent[self]      = app
@@ -60,6 +64,15 @@ function Window:addChild(child)
         child:_setFrame(0, 0, self.w, self.h)
     end
     return child
+end
+
+function Window:setSize(...)
+    local arg1, arg2 = ...
+    if arg2 then
+        self.view:setSize(arg1, arg2)
+    else
+        self.view:setSize(arg1[1], arg1[2])
+    end
 end
 
 function Window:setTitle(title)
