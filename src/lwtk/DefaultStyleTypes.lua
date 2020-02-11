@@ -10,7 +10,8 @@ local function DefaultStyleTypes()
         { "*Seconds", "number" },
         { "*Color",   "lwtk.Color", ANIMATED },
         { "*Size",
-          "*Offset",  "number",     SCALED, ANIMATED },
+          "*Offset",
+          "*Width",   "number",     SCALED, ANIMATED },
     }
 end
 return DefaultStyleTypes

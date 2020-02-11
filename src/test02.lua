@@ -60,26 +60,26 @@ end
 local app = Application("example01.lua")
 
 app:setStyle {
-    { "*TransitionSeconds:*",             0.05 },
+    { "*TransitionSeconds",               0.05 },
     { "HoverTransitionSeconds:",          0.20 },
     { "HoverTransitionSeconds:hover",     0.20 },
     { "PressedTransitionSeconds:pressed", 0.20 },
     
-    { "Color:*",                   Color"f9f9fa" },
-    { "TextColor:*",               Color"000000" },
-    { "TextSize:*",                13            },
-    { "TextOffset:*",               0            },
+    { "Color",                     Color"f9f9fa" },
+    { "TextColor",                 Color"000000" },
+    { "TextSize",                  13            },
+    { "TextOffset",                 0            },
     { "TextOffset:pressed+hover",   1            },
 
-    { "BorderWidth:*",                       10  },
-    { "BorderWidth@*MyGroup*:*",              3  },
-    { "BorderWidth@Bordered(MyButton):*",     1  },
+    { "BorderWidth",                         10  },
+    { "BorderWidth@*MyGroup*",                3  },
+    { "BorderWidth@Bordered(MyButton)",       1  },
 
-    { "Color@Border:*",                 Color"ff0000" },
-    { "Color@Bordered*:*",              Color"0000ff" },
+    { "Color@Border",                   Color"ff0000" },
+    { "Color@Bordered*",                Color"0000ff" },
     
-    { "Color@MyGroup:*",                Color"e1e1ff" },
-    { "Color@MyButton:*",               Color"e1e1e2" },
+    { "Color@MyGroup",                  Color"e1e1ff" },
+    { "Color@MyButton",                 Color"e1e1e2" },
     { "Color@MyButton:hover",           Color"c9c9ca" },
     { "Color@MyButton:pressed",         Color"c9c9ca" },
     { "Color@MyButton:pressed+hover",   Color"b1b1b2" },

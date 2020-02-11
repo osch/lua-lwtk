@@ -76,39 +76,43 @@ function StyleRule.toPattern(rule, typeList)
         else
             classPath = ".*"
         end
-        if statePath and #statePath > 0 then
-            local stateNames = {}
-            local hasWildcard = false
-            for statePattern, sep in gmatch(statePath, "([^+]*)(%+?)") do
-                if statePattern == "" then
-                    if sep == "+" then
-                        errorf("Invalid style rule pattern %q: contains empty state name", patternString)
+        if statePath then
+            if  #statePath > 0 then
+                local stateNames = {}
+                local hasWildcard = false
+                for statePattern, sep in gmatch(statePath, "([^+]*)(%+?)") do
+                    if statePattern == "" then
+                        if sep == "+" then
+                            errorf("Invalid style rule pattern %q: contains empty state name", patternString)
+                        end
+                    elseif find(statePattern, "^%*+$") then
+                        hasWildcard = true
+                    elseif find(statePattern, "%*") then
+                        errorf("Invalid style rule pattern %q: state name must not contain wildcard %q",
+                               patternString, "*")
+                    else
+                        stateNames[#stateNames + 1] = statePattern
                     end
-                elseif find(statePattern, "^%*+$") then
-                    hasWildcard = true
-                elseif find(statePattern, "%*") then
-                    errorf("Invalid style rule pattern %q: state name must not contain wildcard %q",
-                           patternString, "*")
-                else
-                    stateNames[#stateNames + 1] = statePattern
                 end
-            end
-            sort(stateNames)
-            if hasWildcard then
-                if #stateNames > 0 then
-                    statePath = ".*<"..concat(stateNames, ">.*<")..">.*"
+                sort(stateNames)
+                if hasWildcard then
+                    if #stateNames > 0 then
+                        statePath = ".*<"..concat(stateNames, ">.*<")..">.*"
+                    else
+                        statePath = ".*"
+                    end
                 else
-                    statePath = ".*"
+                    if #stateNames > 0 then
+                        statePath = "<"..concat(stateNames, "><")..">"
+                    else
+                        statePath = ""
+                    end
                 end
             else
-                if #stateNames > 0 then
-                    statePath = "<"..concat(stateNames, "><")..">"
-                else
-                    statePath = ""
-                end
+                statePath = ""
             end
         else
-            statePath = ""
+            statePath =".*"
         end
         result[i] = "^"..paramName.."@"..classPath..":"..statePath.."$"
         local t = checkValue(patternString, paramName, value, typeList)
