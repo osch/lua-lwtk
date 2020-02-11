@@ -36,7 +36,7 @@ local function newWrapperClass(className, WrappedChildClass, WrappingParentClass
     local shortWrappedName  = shortName(WrappedChildClass.__name)
     local selectorFrag      = format("%s(%s)", shortWrapperName, shortWrappedName)
     
-    local WrapperClass = newClass(format("%s(%s)", className, WrappedChildClass))
+    local WrapperClass = newClass(format("%s(%s)", className, tostring(WrappedChildClass)))
 
     WrappedChildClass   = cloneClass(WrappedChildClass, selectorFrag)
     WrappingParentClass = cloneClass(WrappingParentClass, selectorFrag)
