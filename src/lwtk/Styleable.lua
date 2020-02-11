@@ -28,7 +28,7 @@ end
 function Styleable:setStyle(styleRules)
     local rules = {}
     for i, r in ipairs(styleRules) do
-        rules[i] = { toPattern(r[1], r[2]) }
+        rules[i] = toPattern(r, self:getStyleParams().typeList)
     end
     self.styleRules = rules
 end

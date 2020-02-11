@@ -12,7 +12,7 @@ local get      = lwtk.StyleParamRef.get
 local lighten  = lwtk.StyleParamRef.lighten
 local saturate = lwtk.StyleParamRef.saturate
 
-local styleParams = lwtk.StyleParams {
+local styleParams = lwtk.StyleParams(lwtk.DefaultStyleTypes(), {
     { "backgroundColor:*",                   Color"ffffff" },
     
     { "textColor:*",                         Color"000000" },
@@ -25,7 +25,7 @@ local styleParams = lwtk.StyleParams {
     { "borderColor@PushButton:active+*",get"textColor" },
     { "borderColor@PushButton:hover+*", lighten(0.2, get"textColor") },
     { "borderColor@PushButton:hover2+*", saturate(0.5, get"textColor") }
-}
+})
 
 local selector = "textColor@<Widget><Button><PushButton>:<focus><hover>"
 

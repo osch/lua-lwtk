@@ -3,31 +3,61 @@ local lwtk   = require"lwtk"
 local match  = string.match
 local lower  = string.lower
 
+local TypeRule         = lwtk.TypeRule
 local StyleRule        = lwtk.StyleRule
 local StyleRuleContext = lwtk.StyleRuleContext
 
 local StyleParams = lwtk.newClass("lwtk.StyleParams", lwtk.Object)
 
-local toPattern = StyleRule.toPattern
+local toTypePattern  = TypeRule.toPattern
+local toStylePattern = StyleRule.toPattern
 
-function StyleParams:new(ruleList)
+function StyleParams:new(typeList, ruleList)
+    self:setTypeRules(typeList)
+    self:setStyleRules(ruleList)
+end
+
+function StyleParams:setTypeRules(typeList)
+    local types = {}
+    for i, t in ipairs(typeList) do
+        types[i] = toTypePattern(t)
+    end
+    self.typeList = types
+    local ruleList = self.ruleList
+    if ruleList then
+        self.ruleList = nil
+        self:setStyleRules(ruleList)
+    end
+end
+
+function StyleParams:addTypeRules(newRules)
+    local typeList = self.typeList
+    local n = #typeList
+    local types = self.typeList
+    for i = 1, #newRules do
+        types[n + i] = toTypePattern(newRules[i])
+    end
+    local ruleList = self.ruleList
+    self.ruleList = nil
     self:setStyleRules(ruleList)
 end
 
 function StyleParams:setStyleRules(ruleList)
+    local typeList = self.typeList
     local rules = {}
     for i, rule in ipairs(ruleList) do
-        rules[i] = toPattern(rule)
+        rules[i] = toStylePattern(rule, typeList)
     end
     self.ruleList = rules
     self.cache = {}
 end
 
 function StyleParams:addStyleRules(ruleList)
-    local rules = self.rules
+    local typeList = self.typeList
+    local rules = self.ruleList
     local n = #rules
     for i, rule in ipairs(ruleList) do
-        rules[n + i] = toPattern(rule[1])
+        rules[n + i] = toStylePattern(rule[i], typeList)
     end
     self.cache = {}
 end

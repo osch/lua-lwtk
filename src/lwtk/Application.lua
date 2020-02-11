@@ -8,7 +8,8 @@ local Application = lwtk.newClass("lwtk.Application")
 function Application:new(appName, styleRules)
 
     self.appName       = appName
-    self.styleParams   = lwtk.StyleParams(styleRules or lwtk.DefaultStyleRules())
+    self.styleParams   = lwtk.StyleParams(lwtk.DefaultStyleTypes(),
+                                          styleRules or lwtk.DefaultStyleRules())
     self.windows       = {}
     self.damageReports = nil
     self.world         = lpugl.newWorld(appName)
