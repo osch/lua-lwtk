@@ -30,8 +30,8 @@ function Widget:new(initParams)
     self.visible = true
     self.x = 0
     self.y = 0
-    self.w = 1
-    self.h = 1
+    self.w = 0
+    self.h = 0
     if initParams then
         local id = initParams.id
         if id then
