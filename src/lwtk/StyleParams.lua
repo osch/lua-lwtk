@@ -4,6 +4,7 @@ local match  = string.match
 local lower  = string.lower
 local errorf = lwtk.errorf
 local type   = lwtk.type
+local floor  = math.floor
 
 local TypeRule         = lwtk.TypeRule
 local StyleRule        = lwtk.StyleRule
@@ -45,6 +46,7 @@ function StyleParams:addTypeRules(newRules)
 end
 
 function StyleParams:setStyleRules(ruleList)
+    self.scaleFactor = ruleList.scaleFactor or 1
     local typeList = self.typeList
     local rules = {}
     for i, rule in ipairs(ruleList) do
@@ -107,11 +109,10 @@ function StyleParams:isScalable(parName)
     end
 end
 
-function StyleParams:getStyleParam(parName, classSelectorPath, stateSelectorPath, localStyleRules)
-    local selector = lower(parName).."@"..classSelectorPath..":"..lower(stateSelectorPath)
+local function _getStyleParam(self, selector, parName, classSelectorPath, stateSelectorPath, localStyleRules)
     local typeRule
     local context
-    local function evalRule(rule, cache)
+    local function evalRule(rule)
         local n = #rule
         local matched = false
         for i = n - 1, 1, -1 do
@@ -138,10 +139,35 @@ function StyleParams:getStyleParam(parName, classSelectorPath, stateSelectorPath
                 errorf("Type mismatch for style parameter %q: expected %q but given %q", 
                       parName, tostring(typeRule[#typeRule]), type(param))
             end
-            cache[selector] = param
             return param
         end
     end
+    if localStyleRules then
+        for i = #localStyleRules, 1, -1 do
+            local rule = localStyleRules[i]
+            local rslt = evalRule(rule)
+            if rslt then 
+                --print(">>>>>>>>>1", selector, typeRule[#typeRule]) 
+                return rslt, typeRule
+            end
+        end
+    end
+    for i = #self.ruleList, 1, -1 do
+        local rule = self.ruleList[i]
+        local rslt = evalRule(rule)
+        if rslt then
+            --print(">>>>>>>>>2", selector, typeRule[#typeRule]) 
+            return rslt, typeRule
+        end
+    end
+end
+
+function StyleParams:_getStyleParam(parName, classSelectorPath, stateSelectorPath, localStyleRules)
+    local selector = lower(parName).."@"..classSelectorPath..":"..lower(stateSelectorPath)
+    return _getStyleParam(self, selector, parName, classSelectorPath, stateSelectorPath, localStyleRules)
+end
+
+function StyleParams:getStyleParam(parName, classSelectorPath, stateSelectorPath, localStyleRules)
     local cache
     if localStyleRules then
         cache = localStyleRules.cache
@@ -149,35 +175,25 @@ function StyleParams:getStyleParam(parName, classSelectorPath, stateSelectorPath
             cache = {}
             localStyleRules.cache = cache
         end
-        local cached = cache[selector]
-        if cached then
-            return cached
-        else
-            for i = #localStyleRules, 1, -1 do
-                local rule = localStyleRules[i]
-                local rslt = evalRule(rule, cache)
-                if rslt then 
-                    --print(localStyleRules, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1", selector) 
-                    return rslt 
-                end
-            end
-        end
     else
         cache = self.cache
     end
+    local selector = lower(parName).."@"..classSelectorPath..":"..lower(stateSelectorPath)
     local cached = cache[selector]
     if cached then
         return cached
     else
-        for i = #self.ruleList, 1, -1 do
-            local rule = self.ruleList[i]
-            local rslt = evalRule(rule, cache)
-            if rslt then
-                --print(localStyleRules, ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>2", selector) 
-                return rslt 
+        local rslt, typeRule = _getStyleParam(self, selector, parName, classSelectorPath, stateSelectorPath, localStyleRules)
+        
+        if rslt then
+            if typeRule.SCALABLE then
+                rslt = floor(rslt * self.scaleFactor + 0.5)
             end
+            cache[selector] = rslt
+            return rslt
         end
     end
 end
+
 
 return StyleParams

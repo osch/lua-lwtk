@@ -60,6 +60,7 @@ end
 local app = Application("example01.lua")
 
 app:setStyle {
+    scaleFactor = 1.2,
     { "*TransitionSeconds",               0.05 },
     { "HoverTransitionSeconds:",          0.20 },
     { "HoverTransitionSeconds:hover",     0.20 },

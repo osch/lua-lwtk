@@ -22,9 +22,9 @@ function StyleRuleContext:get(paramRef)
         end
         local name, statePath = match(paramRef, "^([^@]*)%:(.*)$") 
         if name then
-            return self.styleParams:getStyleParam(name, self.classSelectorPath, statePath, self.localStyleRules)
+            return self.styleParams:_getStyleParam(name, self.classSelectorPath, statePath, self.localStyleRules)
         else
-            return self.styleParams:getStyleParam(paramRef, self.classSelectorPath, "", self.localStyleRules)
+            return self.styleParams:_getStyleParam(paramRef, self.classSelectorPath, "", self.localStyleRules)
         end
     end
 end
