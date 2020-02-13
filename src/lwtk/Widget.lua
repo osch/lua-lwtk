@@ -151,6 +151,7 @@ function Widget:_setFrame(newX, newY, newW, newH)
 end
 
 function Widget:setFrame(...)
+    self.frameTransition = nil
     local x, y, w, h = ...
     if type(x) == "number" then
         self:_setFrame(roundRect(x, y, w, h))
@@ -171,6 +172,21 @@ end
 
 function Widget:getSize()
     return self.w, self.h
+end
+
+function Widget:changeFrame(...)
+    local x, y, w, h = ...
+    if type(x) == "number" then
+        Animatable.changeFrame(self, roundRect(x, y, w, h))
+    else
+        if x[1] then
+            Animatable.changeFrame(self, roundRect(x[1], x[2], x[3], x[4]))
+        elseif x.w then
+            Animatable.changeFrame(self, roundRect(x.x, x.y, x.w, x.h))
+        else
+            Animatable.changeFrame(self, roundRect(x.x, x.y, x.width, x.height))
+        end
+    end
 end
 
 function Widget:triggerRedraw()

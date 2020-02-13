@@ -29,7 +29,7 @@ local function shortName(className)
     return match(className, "^.*%.([^.]*)$") or className
 end
 
-local function newWrapperClass(className, WrappedChildClass, WrappingParentClass, parentAttributes)
+local function newWrapperClass(className, WrappedChildClass, WrappingParentClass, parentAttributes, parentMethods)
     
 
     local shortWrapperName  = shortName(className)
@@ -62,6 +62,14 @@ local function newWrapperClass(className, WrappedChildClass, WrappingParentClass
         if getter then
             WrapperClass[getterName] = function(self, ...)
                 return getter(getWrappingParent[self], ...)
+            end
+        end
+    end
+    for _, methodName in ipairs(parentMethods) do
+        local method = WrappingParentClass[methodName]
+        if method then
+            WrapperClass[methodName] = function(self, ...)
+                return method(getWrappingParent[self], ...)
             end
         end
     end
@@ -107,7 +115,7 @@ function WidgetWrapper(className, WrappingParentClass)
             c = newWrapperClass(className,
                                 WrappedChildClass, 
                                 WrappingParentClass, 
-                                { "frame" })
+                                { "frame" }, { "changeFrame" })
             wrappedClasses[WrappedChildClass] = c
         end
         return c

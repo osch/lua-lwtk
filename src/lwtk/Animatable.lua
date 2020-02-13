@@ -7,6 +7,8 @@ local Animatable  = lwtk.newClass("lwtk.Animatable", Super)
 
 local getStyleParams = lwtk.get.styleParams
 
+local UPDATE_INTERVAL = 0.020 -- seconds
+
 function Animatable:new()
     Super.new(self)
     self.animationTransitions = {}
@@ -16,6 +18,48 @@ function Animatable:new()
 end
 
 local getStyleParam = Super.getStyleParam
+local isActive      = Transition.isActive
+
+local function updateFrameTransition(self)
+    local trans = self.frameTransition
+    if trans then
+        trans:update(self:getCurrentTime())
+        local t = trans.state
+        local x = (1-t) * trans.oldX + t * trans.newX
+        local y = (1-t) * trans.oldY + t * trans.newY
+        local w = (1-t) * trans.oldW + t * trans.newW
+        local h = (1-t) * trans.oldH + t * trans.newH
+        self:_setFrame(x, y, w, h)
+        if isActive(trans) then
+            self:setTimer(UPDATE_INTERVAL, trans.timer)
+        end
+    end
+end
+
+function Animatable:changeFrame(newX, newY, newW, newH)
+    local duration = getStyleParam(self, "frameTransitionSeconds") or 0
+    if duration > 0 then
+        local trans = self.frameTransition
+        if not trans then
+            trans = Transition()
+            self.frameTransition = trans
+            trans.timer =  Timer(updateFrameTransition, self)
+        end
+        trans.oldX = self.x
+        trans.oldY = self.y
+        trans.oldW = self.w
+        trans.oldH = self.h
+        trans.newX = newX
+        trans.newY = newY
+        trans.newW = newW
+        trans.newH = newH
+        trans:reset()
+        trans:startForward(self:getCurrentTime(), duration)
+        self:setTimer(UPDATE_INTERVAL, trans.timer)
+    else
+        self:_setFrame(newX, newY, newW, newH)
+    end
+end
 
 function Animatable:changeState(name, flag)
     flag = flag and true or false
@@ -41,7 +85,7 @@ function Animatable:changeState(name, flag)
                     timer = Timer(self.triggerRedraw, self)
                     self.animationTimer = timer
                 end
-                self:setTimer(0.000, timer)
+                self:setTimer(UPDATE_INTERVAL, timer)
             end
         else
             if trans then
@@ -66,7 +110,6 @@ function Animatable:getStyleParam(paramName)
     return value
 end
 
-local isActive = Transition.isActive
 
 function Animatable:updateAnimation()
     local now = self:getCurrentTime()
@@ -122,7 +165,7 @@ function Animatable:updateAnimation()
         end
     end
     if hasActive then
-        self:setTimer(0.020, self.animationTimer)
+        self:setTimer(UPDATE_INTERVAL, self.animationTimer)
     else
         self.animationActive = false
     end

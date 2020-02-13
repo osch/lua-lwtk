@@ -62,6 +62,7 @@ local app = Application("example01.lua")
 app:setStyle {
     scaleFactor = 1.2,
     { "*TransitionSeconds",               0.05 },
+    { "FrameTransitionSeconds",           0.20 },
     { "HoverTransitionSeconds:",          0.20 },
     { "HoverTransitionSeconds:hover",     0.20 },
     { "PressedTransitionSeconds:pressed", 0.20 },
@@ -120,12 +121,12 @@ local win = app:newWindow {
                                 root.child.b1:setText("Clicked "..counter) 
                                 local g2 = root.child.g2
                                 local x, y, w, h = g2:getFrame()
-                                g2:setFrame(x + 5, y, w + 5, h)
+                                g2:changeFrame(x + 5, y, w + 5, h)
                                 local x, y, w, h = self:getFrame()
-                                self:setFrame(x + 2, y + 2, w, h)
+                                self:changeFrame(x + 2, y + 2, w, h)
                                 local b5 = root.child.b5
                                 local x, y, w, h = b5:getFrame()
-                                b5:setFrame(x, y + 5, w + 5, h)
+                                b5:changeFrame(x, y + 5, w + 5, h)
                             end
             }
         },

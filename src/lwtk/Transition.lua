@@ -3,6 +3,10 @@ local lwtk = require"lwtk"
 local Transition = lwtk.newClass("lwtk.Transition")
 
 function Transition:new()
+    self:reset()
+end
+
+function Transition:reset()
     self.duration = 0
     self.forward  = false
     self.startTime  = 0
