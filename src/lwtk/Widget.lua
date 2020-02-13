@@ -4,7 +4,7 @@ local Application = lwtk.Application
 local call        = lwtk.call
 local Rect        = lwtk.Rect
 local Super       = lwtk.Object
-local Animateable = lwtk.Animateable
+local Animatable  = lwtk.Animatable
 local Widget      = lwtk.newClass("lwtk.Widget", Super)
 
 local intersectRects      = Rect.intersectRects
@@ -15,16 +15,16 @@ local getRoot         = lwtk.get.root
 local getParent       = lwtk.get.parent
 local getStyleParams  = lwtk.get.styleParams
 
-Widget:implement(Animateable)
+Widget:implement(Animatable)
 
 function Widget.newClass(className, baseClass)
     local newClass = Super.newClass(className, baseClass)
-    Animateable:initClass(newClass)
+    Animatable:initClass(newClass)
     return newClass
 end
 
 function Widget:new(initParams)
-    Animateable.new(self)
+    Animatable.new(self)
     getApp[self]  = false
     getRoot[self] = self
     self.state = {}

@@ -3,11 +3,11 @@ local lwtk = require"lwtk"
 local Timer       = lwtk.Timer
 local Transition  = lwtk.Transition
 local Super       = lwtk.Styleable
-local Animateable = lwtk.newClass("lwtk.Animateable", Super)
+local Animatable  = lwtk.newClass("lwtk.Animatable", Super)
 
 local getStyleParams = lwtk.get.styleParams
 
-function Animateable:new()
+function Animatable:new()
     Super.new(self)
     self.animationTransitions = {}
     self.animationValues      = {}
@@ -17,7 +17,7 @@ end
 
 local getStyleParam = Super.getStyleParam
 
-function Animateable:changeState(name, flag)
+function Animatable:changeState(name, flag)
     flag = flag and true or false
     local oldFlag = self.state[name]
     if oldFlag ~= flag then
@@ -52,13 +52,13 @@ function Animateable:changeState(name, flag)
     end
 end
 
-function Animateable:getStyleParam(paramName)
+function Animatable:getStyleParam(paramName)
     local value = self.animationValues[paramName]
     if value == nil then
         value = getStyleParam(self, paramName)
         if value ~= nil then
-            local animateable = getStyleParams[self].animatable[paramName]
-            if animateable then
+            local animatable = getStyleParams[self].animatable[paramName]
+            if animatable then
                 self.animationValues[paramName] = value
             end
         end
@@ -68,7 +68,7 @@ end
 
 local isActive = Transition.isActive
 
-function Animateable:updateAnimation()
+function Animatable:updateAnimation()
     local now = self:getCurrentTime()
     local values = self.animationValues
     local transitions = self.animationTransitions
@@ -129,4 +129,4 @@ function Animateable:updateAnimation()
 end
 
 
-return Animateable
+return Animatable
