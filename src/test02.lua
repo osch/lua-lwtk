@@ -57,7 +57,7 @@ do
     end    
 end
 
-local app = Application("example01.lua")
+local app = Application("test02.lua")
 
 app:setStyle {
     scaleFactor = 1.2,
@@ -90,7 +90,7 @@ app:setStyle {
 local counter = 0
 
 local win = app:newWindow {
-    title = "example01",
+    title = "test02",
     Group {
         id = "g0",
         MyButton {

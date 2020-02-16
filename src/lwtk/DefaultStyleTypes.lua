@@ -11,6 +11,8 @@ local function DefaultStyleTypes()
         
         { "*Color",   "lwtk.Color", ANIMATABLE },
         
+        { "*Margin",  "number",     SCALABLE },
+        
         { "*Size",
           "*Offset",
           "*Width",

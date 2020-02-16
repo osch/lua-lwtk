@@ -14,6 +14,7 @@ local getApp          = lwtk.get.app
 local getRoot         = lwtk.get.root
 local getParent       = lwtk.get.parent
 local getStyleParams  = lwtk.get.styleParams
+local callOnLayout    = lwtk.layout.callOnLayout
 
 Widget:implement(Animatable)
 
@@ -78,8 +79,9 @@ local function setAppAndRoot(self, app, root)
     for _, child in ipairs(self) do
         setAppAndRoot(child, app, root)
     end 
-    if app then
-        call("onLayout", self, self.w, self.h)
+    local w, h = self.w, self.h
+    if app and w > 0 and h > 0 then
+        callOnLayout(self, w, h)
     end
 end
 
@@ -123,7 +125,8 @@ end
 
 function Widget:_setFrame(newX, newY, newW, newH)
     local x, y, w, h = self.x, self.y, self.w, self.h
-    if x ~= newX or y ~= newY or w ~= newW or h ~= newH then
+    local needsLayout = (w ~= newW or h ~= newH)
+    if x ~= newX or y ~= newY or needsLayout then
         self.needsRedraw = true
         if not self.oldX then
             self.oldX = x
@@ -144,8 +147,8 @@ function Widget:_setFrame(newX, newY, newW, newH)
         self.y = newY
         self.w = newW
         self.h = newH
-        if getApp[self] then
-            call("onLayout", self, newW, newH)
+        if needsLayout and getApp[self] then
+            callOnLayout(self, newW, newH)
         end
     end
 end

@@ -60,8 +60,16 @@ function Window:addChild(child)
     self[1] = child
     child:_setParent(self)
     self:_clearChildLookup()
-    if self.w then
+    if self.w > 0 and self.h > 0 then
         child:_setFrame(0, 0, self.w, self.h)
+    else
+        local getMeasures = child.getMeasures
+        if getMeasures then
+            local minW, minH, bestW, bestH, maxW, maxH, 
+                  childTop, childRight, childBottom, childLeft = child:getMeasures()
+            self.view:setSize((childLeft or 0) + bestW + (childRight  or 0), 
+                              (childTop  or 0) + bestH + (childBottom or 0))
+        end
     end
     return child
 end
