@@ -37,7 +37,7 @@ local function updateFrameTransition(self)
 end
 
 function Animatable:changeFrame(newX, newY, newW, newH)
-    local duration = getStyleParam(self, "frameTransitionSeconds") or 0
+    local duration = getStyleParam(self, "FrameTransitionSeconds") or 0
     if duration > 0 then
         local trans = self.frameTransition
         if not trans then
@@ -58,6 +58,44 @@ function Animatable:changeFrame(newX, newY, newW, newH)
         self:setTimer(UPDATE_INTERVAL, trans.timer)
     else
         self:_setFrame(newX, newY, newW, newH)
+    end
+end
+
+local function updateVisibilityTransition(self)
+    local trans = self.visibilityTransition
+    if trans then
+        trans:update(self:getCurrentTime())
+        self.opacity = trans.state
+        self:triggerRedraw()
+        if isActive(trans) then
+            self:setTimer(UPDATE_INTERVAL, trans.timer)
+        else
+            self.visible = trans.newVisibility
+        end
+    end
+end
+function Animatable:changeVisibility(newFlag)
+    local trans = self.visibilityTransition
+    if newFlag ~= self.visible or trans and newFlag ~= trans.newVisibility then
+        local duration = getStyleParam(self, "VisibilityTransitionSeconds") or 0
+        if duration > 0 then
+            if not trans then
+                trans = Transition()
+                self.visibilityTransition = trans
+                trans.timer =  Timer(updateVisibilityTransition, self)
+                if not newFlag then trans:resetBackward() end
+            end
+            trans.newVisibility = newFlag
+            self.visible = true
+            if newFlag then
+                trans:startForward(self:getCurrentTime(), duration)
+            else
+                trans:startBackward(self:getCurrentTime(), duration)
+            end
+            self:setTimer(UPDATE_INTERVAL, trans.timer)
+        else
+            self:setVisibility(newFlag)
+        end
     end
 end
 

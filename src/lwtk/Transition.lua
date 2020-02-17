@@ -14,6 +14,14 @@ function Transition:reset()
     self.state      = 0
 end
 
+function Transition:resetBackward()
+    self.duration = 0
+    self.forward  = true
+    self.startTime  = 0
+    self.endTime    = 0
+    self.state      = 1
+end
+
 function Transition:isActive()
     if self.forward then  return self.state < 1
                     else  return self.state > 0 end

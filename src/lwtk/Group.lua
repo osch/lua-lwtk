@@ -62,6 +62,10 @@ end
 
 function Group:_processDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
 
+    if self.opacity < 1 then
+        ctx:push_group()
+    end
+
     local onDraw = self.onDraw
     if onDraw then
         self:updateAnimation()
@@ -87,6 +91,11 @@ function Group:_processDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
                 end
             end
         end
+    end
+
+    if self.opacity < 1 then
+        ctx:pop_group_to_source()
+        ctx:paint_with_alpha(self.opacity)
     end
 end
 

@@ -62,7 +62,8 @@ local app = Application("test02.lua")
 app:setStyle {
     scaleFactor = 1.2,
     { "*TransitionSeconds",               0.05 },
-    { "FrameTransitionSeconds",           0.20 },
+    { "VisibilityTransitionSeconds",      1.05 },
+    { "FrameTransitionSeconds",           0.10 },
     { "HoverTransitionSeconds:",          0.20 },
     { "HoverTransitionSeconds:hover",     0.20 },
     { "PressedTransitionSeconds:pressed", 0.20 },
@@ -97,7 +98,11 @@ local win = app:newWindow {
             id = "b1",
             frame = {  10, 10, 100, 30 },
             text  = "OK",
-            onClicked = function() print("Button Clicked") end
+            onClicked = function(self) 
+                            print("Button Clicked")
+                            local c = self:getRoot().child.b5
+                            c:changeVisibility(not c:getVisibility())
+                        end
         },
         MyButton {
             id = "b2",

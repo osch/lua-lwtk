@@ -30,6 +30,7 @@ function Widget:new(initParams)
     getRoot[self] = self
     self.state = {}
     self.visible = true
+    self.opacity = 1
     self.x = 0
     self.y = 0
     self.w = 0
@@ -161,6 +162,25 @@ function Widget:_setFrame(newX, newY, newW, newH)
     end
 end
 
+function Widget:getVisibility()
+    local trans = self.visibilityTransition
+    if trans then
+        return trans.newVisibility
+    else
+        return self.visible
+    end
+end
+
+function Widget:setVisibility(newFlag)
+    if newFlag ~= self.visible then
+        self.visibilityTransition = nil
+        self.opacity = 1
+        self.visible = newFlag
+        self:triggerRedraw()
+    end
+end
+
+
 function Widget:setFrame(...)
     self.frameTransition = nil
     local x, y, w, h = ...
@@ -237,7 +257,14 @@ function Widget:_processDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
     local onDraw = self.onDraw
     if onDraw then
         self:updateAnimation()
-        onDraw(self, ctx, x0, y0, cx, cy, cw, ch, exposedArea)
+        if self.opacity == 1 then
+            onDraw(self, ctx, x0, y0, cx, cy, cw, ch, exposedArea)
+        else
+            ctx:push_group()
+            onDraw(self, ctx, x0, y0, cx, cy, cw, ch, exposedArea)
+            ctx:pop_group_to_source()
+            ctx:paint_with_alpha(self.opacity)
+        end
     end
 end
 
