@@ -15,6 +15,7 @@ local function DefaultStyleTypes()
         
         { "*Size",
           "*Offset",
+          "*Padding",
           "*Width",
           "*Height",  "number",     SCALABLE, ANIMATABLE },
     }

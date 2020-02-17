@@ -28,37 +28,59 @@ function Column._implementColumn(class, isRow)
 
     local function getMeasures(self, topMargin, rightMargin, bottomMargin, leftMargin)
         
-        local topMargin    = 0
-        local bottomMargin = 0
-        local leftMargin   = nil
-        local rightMargin  = nil
-    
         local n = #self
+        
+        local bestWidth = 0
         for i = 1, n do
             local child = self[i]
             local minW, minH, bestW, bestH, maxW, maxH,
                   childTop, childRight, childBottom, childLeft = getChildMeasures(child, isRow)
-            if i == 1 then 
+            if bestW > bestWidth then bestWidth = bestW end
+        end
+        
+        local topMargin    = nil
+        local bottomMargin = nil
+        local leftMargin   = nil
+        local rightMargin  = nil
+    
+        for i = 1, n do
+            local child = self[i]
+            local minW, minH, bestW, bestH, maxW, maxH,
+                  childTop, childRight, childBottom, childLeft = getChildMeasures(child, isRow)
+            if not topMargin and childTop and bestH > 0 then 
                 topMargin = childTop
             end
-            if i == n then
+            if bestH > 0 and childBottom then
                 bottomMargin = childBottom
             end
-            if not leftMargin  or childLeft  < leftMargin  then leftMargin  = childLeft  end
-            if not rightMargin or childRight < rightMargin then rightMargin = childRight end
+            if bestW > 0 then
+                local w = (childLeft or 0) + bestW + (childRight or 0)
+                if w > bestWidth then
+                    local dw = w - bestWidth
+                    if childLeft  and (not leftMargin  or childLeft  < leftMargin)  then 
+                        leftMargin  = childLeft  
+                    end
+                    if childRight and (not rightMargin or childRight < rightMargin) then 
+                        rightMargin = childRight 
+                    end
+                end
+            end
         end
-        leftMargin  = leftMargin or 0
-        rightMargin = rightMargin or 0
+        topMargin    = topMargin or 0
+        rightMargin  = rightMargin or 0
+        bottomMargin = bottomMargin or 0
+        leftMargin   = leftMargin or 0
         
         local flexCount = 0
-        local unlmCount = 0
+        local unlmCount1 = 0
+        local unlmCount2 = 0
         
         local minHeight = 0
         local bestHeight = 0
         local maxHeight = 0
+        local maxContentHeight = 0
         
         local minWidth = 0
-        local bestWidth = 0
         local maxWidth = 0
         
         local prevBottom
@@ -69,63 +91,73 @@ function Column._implementColumn(class, isRow)
                   childTop, childRight, childBottom, childLeft = getChildMeasures(child, isRow)
             
             local dw = 0
-            if childLeft > leftMargin then
+            if childLeft and childLeft > leftMargin then
                 dw = childLeft - leftMargin
             end
-            if childRight > rightMargin then
+            if childRight and childRight > rightMargin then
                 dw = dw + childRight - rightMargin
             end
             if dw > 0 then 
                 minW = minW + dw
                 bestW = bestW + dw
-                if maxW then maxW = maxW + dw end
+                if maxW >= 0 then maxW = maxW + dw end
             end
-            
-
             if minW  > minWidth  then minWidth  = minW  end
             if bestW > bestWidth then bestWidth = bestW end
-            if maxWidth then
-                if maxW then
+            
+            if maxWidth >= 0 then
+                if maxW >= 0 then
                     if maxW > maxWidth then maxWidth = maxW end
-                else
-                    maxWidth = false
+                elseif maxW == -1 then
+                    maxWidth = -1
+                elseif bestW > maxWidth then 
+                    maxWidth = bestW 
                 end
             end
             if i > 1 then
-                if childTop > prevBottom then 
+                if childTop and prevBottom and childTop > prevBottom then 
                     minHeight  =  minHeight + childTop - prevBottom
                     bestHeight = bestHeight + childTop - prevBottom
                     maxHeight  =  maxHeight + childTop - prevBottom
                 end
             end
-            if i < n then
-                minHeight  =  minHeight + childBottom
-                bestHeight = bestHeight + childBottom
-                maxHeight  =  maxHeight + childBottom
+            if bestH > 0 and prevBottom then
+                minHeight  =  minHeight + prevBottom
+                bestHeight = bestHeight + prevBottom
+                maxHeight  =  maxHeight + prevBottom
             end
-            prevBottom = childBottom
             minHeight  = minHeight  + minH
-            bestHeight = bestHeight + bestH
-            if maxH then
+            if bestH > 0 then
+                prevBottom = childBottom 
+                bestHeight = bestHeight + bestH
+            end
+            if maxH >= 0 then
                 maxHeight = maxHeight + maxH
+                maxContentHeight = maxContentHeight + maxH
                 if maxH > bestH then flexCount = flexCount + 1 end
             else
                 maxHeight = maxHeight + bestH
-                unlmCount = unlmCount + 1
+                maxContentHeight = maxContentHeight + bestH
+                if maxH == -1 then
+                    unlmCount1 = unlmCount1 + 1
+                else
+                    unlmCount2 = unlmCount2 + 1
+                end
             end
         end
         bottomMargin = prevBottom or 0
         
         return minWidth, minHeight, bestWidth, bestHeight, maxWidth, maxHeight, 
                topMargin, rightMargin, bottomMargin, leftMargin, 
-               flexCount, unlmCount
+               flexCount, unlmCount1, unlmCount2, maxContentHeight
     end
     
     function class:getMeasures()
         local minWidth, minHeight, bestWidth, bestHeight, maxWidth, maxHeight,
-              topMargin, rightMargin, bottomMargin, leftMargin, flexCount, unlmCount = getMeasures(self)
-        if unlmCount > 0 then
-            maxHeight = false
+              topMargin, rightMargin, bottomMargin, leftMargin, 
+              flexCount, unlmCount1, unlmCount2, maxContentHeight = getMeasures(self)
+        if unlmCount1 > 0 then
+            maxHeight = -1
         end
         if isRow then
             minWidth, minHeight, bestWidth, bestHeight, maxWidth, maxHeight =
@@ -148,7 +180,8 @@ function Column._implementColumn(class, isRow)
         end
 
         local minWidth, minHeight, bestWidth, bestHeight, maxWidth, maxHeight,
-              myTop, myRight, myBottom, myLeft, flexCount, unlmCount = getMeasures(self)
+              myTop, myRight, myBottom, myLeft, 
+              flexCount, unlmCount1, unlmCount2, maxContentHeight = getMeasures(self)
 
         local dLeft  = 0
         local dRight = 0
@@ -162,31 +195,37 @@ function Column._implementColumn(class, isRow)
             bestHeight = bestHeight + dh
             maxHeight  =  maxHeight + dh
         end
-        local unlmAdd = 0
+        local unlmAdd1 = 0
+        local unlmAdd2 = 0
         local s = 0
         local t = 0
+        local addStretch = nil
         if height > minHeight then
             if height > maxHeight then
-                if unlmCount > 0 then
+                if unlmCount1 > 0 then
                     local d0 = maxHeight - bestHeight
                     local d1 = height - maxHeight
-                    if flexCount / unlmCount >= d0 / d1 then
-                        unlmAdd = floor(d1/unlmCount + 0.5)
+                    if flexCount / unlmCount1 >= d0 / d1 then
+                        unlmAdd1 = floor(d1/unlmCount1 + 0.5)
                         t = 1
                     else
-                        local d2a = (unlmCount * (d1 + d0))/(unlmCount + flexCount)
-                        local d2b = (flexCount * (d1 + d0))/(unlmCount + flexCount)
-                        unlmAdd = floor(d2a/unlmCount + 0.5)
+                        local d2a = (unlmCount1 * (d1 + d0))/(unlmCount1 + flexCount)
+                        local d2b = (flexCount * (d1 + d0))/(unlmCount1 + flexCount)
+                        unlmAdd1 = floor(d2a/unlmCount1 + 0.5)
                         t = (d2b)/(maxHeight - bestHeight)
                     end
+                elseif unlmCount2 > 0 then
+                    unlmAdd2 = floor((height - maxHeight) / unlmCount2 + 0.5)
+                    t = 1
                 else
+                    addStretch = height - maxHeight
                     t = 1
                 end
             elseif height > bestHeight and maxHeight > bestHeight then
-                if unlmCount > 0 then
-                    local d0a = unlmCount * (height - bestHeight)/(unlmCount + flexCount)
-                    local d0b = flexCount * (height - bestHeight)/(unlmCount + flexCount)
-                    unlmAdd = floor(d0a/unlmCount + 0.5)
+                if unlmCount1 > 0 then
+                    local d0a = unlmCount1 * (height - bestHeight)/(unlmCount1 + flexCount)
+                    local d0b = flexCount * (height - bestHeight)/(unlmCount1 + flexCount)
+                    unlmAdd1 = floor(d0a/unlmCount1 + 0.5)
                     t = (d0b)/(maxHeight - bestHeight)
                 else
                     t = (height - bestHeight)/(maxHeight - bestHeight)
@@ -205,37 +244,43 @@ function Column._implementColumn(class, isRow)
             if s > 0 then
                 childH = minH + floor(s * (bestH - minH) + 0.5)
             elseif t > 0 then
-                if maxH then 
-                    childH = bestH + floor(t * (maxH - bestH) + 0.5)
-                else 
-                    childH = bestH + unlmAdd
+                if maxH >= 0 then 
+                    if addStretch then
+                        childH = maxH + floor(maxH * addStretch / maxContentHeight + 0.5)
+                    else
+                        childH = bestH + floor(t * (maxH - bestH) + 0.5)
+                    end
+                elseif maxH == -1 then
+                    childH = bestH + unlmAdd1
+                else
+                    childH = bestH + unlmAdd2
                 end
             else
                 childH = minH
             end
+            if factor then
+                childH = floor(factor * childH + 0.5)
+            end
             local dy = 0
-            if childTop > prevBottom then
+            if childTop and prevBottom and childTop > prevBottom then
                 dy = childTop - prevBottom
             end
             local childX
-            if childLeft > myLeft then childX = dLeft + childLeft - myLeft 
-                                  else childX = dLeft end
+            if childLeft and childLeft > myLeft then childX = dLeft + childLeft - myLeft 
+                                                else childX = dLeft end
             local childW = width - childX - dRight
-            if childRight > myRight then 
+            if childRight and childRight > myRight then 
                 childW = childW - (childRight - myRight)
             end
             if childW < minW then
                 childW = minW
             end
-            if maxW and childW > maxW then
-                childW = maxW
-            end                    
             prevBottom = childBottom
             local childY = y + dy
-            y = y + dy + childBottom + childH
-            local ncTop, ncRight, ncBottom, ncLeft = dy + prevBottom, 
+            y = y + dy + (childBottom or 0) + childH
+            local ncTop, ncRight, ncBottom, ncLeft = dy + (prevBottom or 0), 
                                                      width - childX + childW + rightMargin,
-                                                     childBottom, 
+                                                     childBottom or 0, 
                                                      childX + leftMargin
             if isRow then
                 ncTop, ncRight, ncBottom, ncLeft = rotateMargins(ncTop, ncRight, ncBottom, ncLeft)

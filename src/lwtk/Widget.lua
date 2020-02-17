@@ -18,9 +18,9 @@ local callOnLayout    = lwtk.layout.callOnLayout
 
 Widget:implement(Animatable)
 
-function Widget.newClass(className, baseClass)
+function Widget.newClass(className, baseClass, additionalStyleSelector, ...)
     local newClass = Super.newClass(className, baseClass)
-    Animatable:initClass(newClass)
+    Animatable:initClass(newClass, additionalStyleSelector, ...)
     return newClass
 end
 
@@ -64,6 +64,14 @@ function Widget:getCurrentTime()
     local rslt = p:getCurrentTime()
     self.getCurrentTime = p.getCurrentTime
     return rslt
+end
+
+function Widget:getLayoutContext()
+    local ctx
+    local root = getRoot[self]
+    if root then ctx = root:getLayoutContext() end
+    assert(ctx, "Widget not connected to Window")
+    return ctx
 end
 
 local function setAppAndRoot(self, app, root)

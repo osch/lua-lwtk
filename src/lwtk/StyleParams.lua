@@ -187,7 +187,11 @@ function StyleParams:getStyleParam(parName, classSelectorPath, stateSelectorPath
         
         if rslt then
             if typeRule.SCALABLE then
-                rslt = floor(rslt * self.scaleFactor + 0.5)
+                local rslt0 = rslt
+                rslt = floor(rslt0 * self.scaleFactor + 0.5)
+                if rslt == 0 and rslt0 > 0 then
+                    rslt = 1
+                end
             end
             cache[selector] = rslt
             return rslt

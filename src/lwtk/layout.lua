@@ -47,18 +47,22 @@ local function getMeasures(widget)
         local minW, minH, bestW, bestH, maxW, maxH,
           topMargin, rightMargin, bottomMargin, leftMargin = getMeasures(widget)
 
-        topMargin    = topMargin    or widget:getStyleParam("topMargin")    or 0
-        rightMargin  = rightMargin  or widget:getStyleParam("rightMargin")  or 0
-        bottomMargin = bottomMargin or widget:getStyleParam("bottomMargin") or 0
-        leftMargin   = leftMargin   or widget:getStyleParam("leftMargin")   or 0
+        topMargin    = topMargin    or widget:getStyleParam("topMargin")    or false
+        rightMargin  = rightMargin  or widget:getStyleParam("rightMargin")  or false
+        bottomMargin = bottomMargin or widget:getStyleParam("bottomMargin") or false
+        leftMargin   = leftMargin   or widget:getStyleParam("leftMargin")   or false
 
         if not bestW then
             bestW = minW
             maxW  = minW
+        elseif not maxW then
+            maxW = bestW
         end
         if not bestH then
             bestH = minH
             maxH  = minH
+        elseif not maxH then
+            maxH = bestH
         end
 
         cached[1], cached[2], cached[3], cached[4], cached[5], cached[6],

@@ -6,7 +6,9 @@ local Widget      = lwtk.Widget
 local Border      = lwtk.Border
 local Bordered    = lwtk.Bordered
 local Color       = lwtk.Color
+local Row         = lwtk.Row
 local Column      = lwtk.Column
+local Space       = lwtk.Space
 local newClass    = lwtk.newClass
 local fillRect    = lwtk.draw.fillRect
 
@@ -47,8 +49,10 @@ app:setStyle {
 
 local win = app:newWindow {
     title = "test03",
+    Row {
     Column {
     MyColumn {
+        id = "mc1",
         ---[=[
         MyBox {
             id = "a1",
@@ -57,7 +61,7 @@ local win = app:newWindow {
             },
             measures = { 200, 20, 
                          200, 60, 
-                         400, false }
+                         400, -1 }
         },
         ---[[
         MyBox {
@@ -67,7 +71,7 @@ local win = app:newWindow {
             },
             measures = { 200, 20, 
                          200, 60, 
-                         400, false }
+                         400, -1 }
         }, --]]
         ---[[
         MyBox {
@@ -77,19 +81,25 @@ local win = app:newWindow {
             },
             measures = { 200, 20, 
                          200, 60, 
-                         400, false }
+                         400, -1 }
         }, --]]
         --]=]
-        MyBox {
-            id = "c1",
-            style = {
-                { "*Margin", 20 }
-            },
-            measures = { 200, 30, 
-                         200, 50, 
-                         300, 80 }
+        Row {
+            id = "r1",
+            MyBox {
+                id = "c1",
+                style = {
+                    { "*Margin", 20 }
+                },
+                measures = { 200, 30, 
+                             200, 50, 
+                             300, 80 }
+            }, 
+            Space()
         }
-    }}
+    }}, 
+    --Space() 
+    }
 }
 
 win:show()

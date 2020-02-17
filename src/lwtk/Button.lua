@@ -1,6 +1,6 @@
 local lwtk = require"lwtk"
 
-local Super  = lwtk.Box
+local Super  = lwtk.Control
 local Button = lwtk.newClass("lwtk.Button", Super)
 
 function Button:new(initParams)

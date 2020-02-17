@@ -11,11 +11,21 @@ local toPattern      = lwtk.StyleRule.toPattern
 
 local Styleable = lwtk.newClass("lwtk.Styleable")
 
-function Styleable.initClass(mixinClass, newClass)
+local function addToStyleSelectorClassPath(class, name)
+    local n = match(name, "^.*%.([^.]*)$")
+    name = n or name
+    class.styleSelectorClassPath = (class.styleSelectorClassPath or "").."<"..lower(name)..">"
+end
+
+function Styleable.initClass(mixinClass, newClass, additionalStyleSelector, ...)
     local className = newClass.__name
-    local m = match(className, "^.*%.([^.]*)$")
-    className = m or className
-    newClass.styleSelectorClassPath = (newClass.styleSelectorClassPath or "").."<"..lower(className)..">"
+    addToStyleSelectorClassPath(newClass, className)
+    if additionalStyleSelector then
+        addToStyleSelectorClassPath(newClass, additionalStyleSelector)
+        for i = 1, select("#", ...) do
+            addToStyleSelectorClassPath(newClass, select(i, ...))
+        end
+    end
     return newClass
 end
 
