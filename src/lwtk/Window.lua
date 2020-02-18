@@ -67,10 +67,13 @@ function Window:addChild(child)
         if child.getMeasures then
             local minW, minH, bestW, bestH, maxW, maxH, 
                   childTop, childRight, childBottom, childLeft = getMeasures(child)
-            local w = (childLeft or 0) + bestW + (childRight  or 0)
-            local h = (childTop  or 0) + bestH + (childBottom or 0)
-            if w > 0 and h > 0 then
-                self.view:setSize(w, h)
+            local mw = (childLeft or 0) + minW  + (childRight  or 0)
+            local mh = (childTop  or 0) + minH  + (childBottom or 0)
+            local bw = (childLeft or 0) + bestW + (childRight  or 0)
+            local bh = (childTop  or 0) + bestH + (childBottom or 0)
+            if bw > 0 and bh > 0 then
+                self.view:setMinSize(mw, mh)
+                self.view:setSize(bw, bh)
             end
         end
     end
