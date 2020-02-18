@@ -114,7 +114,7 @@ function layout.getMeasures(widget)
                   topMargin, rightMargin, bottomMargin, leftMargin
         if _VERSION == "Lua 5.1" then
             ok, minW, minH, bestW, bestH, maxW, maxH,
-                topMargin, rightMargin, bottomMargin, leftMargin = xpcall(function() getMeasures(widget) end, msgh)
+                topMargin, rightMargin, bottomMargin, leftMargin = xpcall(function() return getMeasures(widget) end, msgh)
         else
             ok, minW, minH, bestW, bestH, maxW, maxH,
                 topMargin, rightMargin, bottomMargin, leftMargin = xpcall(getMeasures, msgh, widget)
