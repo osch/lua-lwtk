@@ -12,22 +12,25 @@ for _, line in ipairs(lines) do
     if m == "BEGIN" then 
         out[#out+1] = line
         inList = true 
-        local list = {}
+        local modules = {}
+        local files   = {}
         local maxl = 0
         for file in io.lines(listFilename) do
-            file = file:match("^(.*)%.lua$")
-            if file then
-                list[#list + 1] = file == "init" and "" or file
-                if #file > maxl then maxl = #file end
+            if file:match("^.*%.lua$") then
+                local module = "lwtk."..file:match("^(.*)%.lua$"):gsub("%/", ".")
+                if module:match("%.init$") then
+                    module = module:gsub("^(.*)%.init$", "%1")
+                end
+                modules[#modules + 1] = module
+                if #module > maxl then maxl = #module end
+                files[module] = file
             end
         end
-        table.sort(list)
-        maxl = maxl + 1
-        for _, file in ipairs(list) do
-            local module = file == "" and ""     or "."..file
-                  file   = file == "" and "init" or file
-            out[#out+1] = string.format([[        ["lwtk%s"]%s = "src/lwtk/%s.lua",]], 
-                                        module,
+        table.sort(modules)
+        for _, module in ipairs(modules) do
+            local file = files[module]
+            out[#out+1] = string.format([[        ["%s"]%s = "src/lwtk/%s",]], 
+                                        module:gsub("%/", "."),
                                         string.rep(" ", maxl - #module),
                                         file)
         end
