@@ -75,6 +75,11 @@ function Window:addChild(child)
                 self.view:setMinSize(mw, mh)
                 self.view:setSize(bw, bh)
             end
+            if maxW > 0 or maxH > 0 then
+                local mxw = maxW > 0 and ((childLeft or 0) + maxW + (childRight  or 0)) or -1
+                local mxh = maxH > 0 and ((childTop  or 0) + maxH + (childBottom or 0)) or -1
+                self.view:setMaxSize(mxw, mxh)
+            end
         end
     end
     return child

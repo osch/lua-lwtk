@@ -65,7 +65,7 @@ local win = app:newWindow {
             },
             measures = { 100, 20, 
                          150, 80,
-                         -1, -1 }
+                         -1, 400 }
         },
         MyBox {
             id = "b3",
