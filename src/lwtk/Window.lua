@@ -36,7 +36,8 @@ function Window:new(app, initParms)
     getParent[self]      = app
     getStyleParams[self] = getStyleParams[app]
     self.child = ChildLookup(self)
-    self.view  = app.world:newView { resizable = true }
+    self.view  = app.world:newView { resizable      = true, 
+                                     dontMergeRects = true }
     self.view:setEventFunc(app.eventFunc, self)
     self.exposedArea = Area()
     self.damagedArea = Area() -- as cache

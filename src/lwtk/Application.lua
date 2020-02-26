@@ -68,9 +68,7 @@ function Application:runEventLoop()
     while world:hasViews() do
         local hasEvents = world:pollEvents()
         if hasEvents then
-            self.dispatchingEvents = true
             world:dispatchEvents()
-            self.dispatchingEvents = false
         end
         if not world:isClosed() then
             self:_processAllChanges()
@@ -155,9 +153,7 @@ function Application:_createClosures()
                 world:setNextProcessTime(t)
             end
         end
-        if not self.dispatchingEvents then
-            self:_processAllChanges()
-        end
+        self:_processAllChanges()
     end
     
     function self.eventFunc(window, event, ...)
@@ -179,9 +175,7 @@ function Application:_createClosures()
         elseif event == "CLOSE" then
             window:_handleClose()
         end
-        if not self.dispatchingEvents then
-            self:_processAllChanges()
-        end
+        self:_processAllChanges()
     end
     
 end
