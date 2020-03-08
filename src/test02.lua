@@ -4,6 +4,7 @@ local Application = lwtk.Application
 local Group       = lwtk.Group
 local Widget      = lwtk.Widget
 local Border      = lwtk.Border
+local Focusable   = lwtk.Focusable
 local Bordered    = lwtk.Bordered
 local Color       = lwtk.Color
 local newClass    = lwtk.newClass
@@ -11,6 +12,14 @@ local fillRect    = lwtk.draw.fillRect
 
 local MyButton = newClass("MyButton", Widget)
 do
+    MyButton:implement(Focusable)
+    
+    function MyButton:onFocusIn()
+        print("focus in ", self.id)
+    end
+    function MyButton:onFocusOut()
+        print("focus out", self.id)
+    end
     function MyButton:setOnClicked(onClicked)
         self.onClicked = onClicked
     end
@@ -31,6 +40,17 @@ do
         self:changeState("pressed", false)
         if self.state.hover and self.onClicked then
             self:onClicked()
+        end
+    end
+    function MyButton:onKeyDown(key)
+        if key == "RIGHT" then
+            self:getFocusHandler():moveFocusRight()
+        elseif key == "LEFT" then
+            self:getFocusHandler():moveFocusLeft()
+        elseif key == "UP" then
+            self:getFocusHandler():moveFocusUp()
+        elseif key == "DOWN" then
+            self:getFocusHandler():moveFocusDown()
         end
     end
     function MyButton:onDraw(ctx)

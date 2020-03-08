@@ -10,11 +10,14 @@ local Widget      = lwtk.newClass("lwtk.Widget", Super)
 local intersectRects      = Rect.intersectRects
 local roundRect           = Rect.round
 
-local getApp          = lwtk.get.app
-local getRoot         = lwtk.get.root
-local getParent       = lwtk.get.parent
-local getStyleParams  = lwtk.get.styleParams
-local callOnLayout    = lwtk.layout.callOnLayout
+local getApp               = lwtk.get.app
+local getRoot              = lwtk.get.root
+local getParent            = lwtk.get.parent
+local getStyleParams       = lwtk.get.styleParams
+local getFocusHandler      = lwtk.get.focusHandler
+local getFocusableChildren = lwtk.get.focusableChildren
+local wantsFocus           = lwtk.get.wantsFocus
+local callOnLayout         = lwtk.layout.callOnLayout
 
 Widget:implement(Animatable)
 
@@ -88,6 +91,18 @@ local function setAppAndRoot(self, app, root)
     for _, child in ipairs(self) do
         setAppAndRoot(child, app, root)
     end 
+    if self._handleFocusIn and not getFocusHandler[self] then
+        local handler = self:getFocusHandler()
+        if handler then
+            getFocusHandler[self] = handler
+            local focusableChildren = getFocusableChildren[handler]
+            focusableChildren[#focusableChildren + 1] = self
+            if wantsFocus[self] then
+                handler:setFocus(self)
+                wantsFocus[self] = nil
+            end
+        end
+    end
     local w, h = self.w, self.h
     if app and w > 0 and h > 0 then
         callOnLayout(self, w, h)
@@ -130,6 +145,36 @@ end
 
 function Widget:getRoot()
     return getRoot[self]
+end
+
+function Widget:getFocusHandler()
+    local handler = getFocusHandler[self]
+    if not handler then
+        local p = getParent[self]
+        while p do
+            handler = getFocusHandler[p]
+            if not handler then
+                p = getParent[p]
+            else
+                getFocusHandler[self] = handler
+                break
+            end
+                
+        end
+    end
+    return handler
+end
+
+function Widget:transformXY(x, y, parent)
+    local w = self
+    repeat
+        x = x + w.x
+        y = y + w.y
+        w = getParent[w]
+        if w == parent then
+            return x, y
+        end
+    until not w
 end
 
 function Widget:_setFrame(newX, newY, newW, newH)

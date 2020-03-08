@@ -168,10 +168,16 @@ function Application:_createClosures()
             window:_handleMouseLeave(...)
         elseif event == "ENTER_NOTIFY" then
             window:_handleMouseEnter(...)
+        elseif event == "KEY_PRESS" then
+            window:_handleKeyDown(...)
         elseif event == "BUTTON_PRESS" then
             window:_handleMouseDown(...)
         elseif event == "BUTTON_RELEASE" then
             window:_handleMouseUp(...)
+        elseif event == "FOCUS_IN" then
+            window:_handleFocusIn(...)
+        elseif event == "FOCUS_OUT" then
+            window:_handleFocusOut(...)
         elseif event == "CLOSE" then
             window:_handleClose()
         end

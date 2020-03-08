@@ -2,20 +2,23 @@ local lwtk = require"lwtk"
 
 local Area        = lwtk.Area
 
-local Super       = lwtk.Object
-local ChildLookup = lwtk.ChildLookup
-local Styleable   = lwtk.Styleable
-local Window      = lwtk.newClass("lwtk.Window", Super)
-local fillRect    = lwtk.draw.fillRect
-local getMeasures = lwtk.layout.getMeasures
+local Super        = lwtk.Object
+local ChildLookup  = lwtk.ChildLookup
+local Styleable    = lwtk.Styleable
+local FocusHandler = lwtk.FocusHandler
+local Window       = lwtk.newClass("lwtk.Window", Super)
+local fillRect     = lwtk.draw.fillRect
+local getMeasures  = lwtk.layout.getMeasures
 
 Window:implement(Styleable)
+Window:implement(FocusHandler)
 Window.color = true
 
-local getParent      = lwtk.get.parent
-local getStyleParams = lwtk.get.styleParams
-local getApp         = lwtk.get.app
-local getRoot        = lwtk.get.root
+local getParent       = lwtk.get.parent
+local getStyleParams  = lwtk.get.styleParams
+local getApp          = lwtk.get.app
+local getRoot         = lwtk.get.root
+local getFocusHandler = lwtk.get.focusHandler
 
 
 function Window.newClass(className, baseClass)
@@ -25,8 +28,10 @@ function Window.newClass(className, baseClass)
 end
 
 function Window:new(app, initParms)
+    FocusHandler.new(self)
     getApp[self]  = app
     getRoot[self] = self
+    getFocusHandler[self] = self
     self.x = 0
     self.y = 0
     self.w = 0
@@ -141,21 +146,23 @@ end
 function Window:_handleExpose(x, y, w, h, count)
     self.exposedArea:addRect(x, y, w, h)
     if count == 0 then
-        local child = self[1]
-        if child and child.visible then
-            local ctx = self.view:getDrawContext()
-            for _, ax, ay, aw, ah in self.exposedArea:iteration() do
-                ctx:rectangle(ax, ay, aw, ah)
+        local ctx = self.view:getDrawContext()
+        for _, ax, ay, aw, ah in self.exposedArea:iteration() do
+            ctx:rectangle(ax, ay, aw, ah)
+        end
+        ctx:clip()
+        local color = self.color
+        if color == true then
+            color = self:getStyleParam("Color")
+        end
+        if color and self.w then
+            fillRect(ctx, color, 0, 0, self.w, self.h)
+        end
+        for i = 1, #self do
+            local child = self[i]
+            if child.visible then
+                child:_processDraw(ctx, 0, 0, 0, 0, self.w, self.h, self.exposedArea)
             end
-            ctx:clip()
-            local color = self.color
-            if color == true then
-                color = self:getStyleParam("Color")
-            end
-            if color and self.w then
-                fillRect(ctx, color, 0, 0, self.w, self.h)
-            end
-            child:_processDraw(ctx, 0, 0, 0, 0, self.w, self.h, self.exposedArea)
         end
         self.exposedArea:clear()
     end
@@ -207,6 +214,8 @@ function Window:_handleMouseUp(mx, my, button, modState)
         child:_processMouseUp(self.mouseEntered, mx, my, button, modState)
     end
 end
+
+
 
 function Window:_handleClose()
     local onClose = self.onClose

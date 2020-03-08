@@ -2,9 +2,11 @@ local lwtk = require"lwtk"
 
 local fillRect = lwtk.draw.fillRect
 
+local Focusable  = lwtk.Focusable
 local Super      = lwtk.Button
 local PushButton = lwtk.newClass("lwtk.PushButton", Super)
 
+PushButton:implement(Focusable)
 
 function PushButton:new(initParams)
     self.text = ""
@@ -26,6 +28,7 @@ function PushButton:onMouseLeave(x, y)
 end
 function PushButton:onMouseDown(x, y, button, modState)
     self:changeState("pressed", true)
+    self:setFocus()
 end
 function PushButton:onMouseUp(x, y, button, modState)
     self:changeState("pressed", false)
@@ -33,6 +36,16 @@ function PushButton:onMouseUp(x, y, button, modState)
         self:onClicked()
     end
 end
+function PushButton:onFocusIn()
+    self:changeState("focused", true)
+end
+function PushButton:onFocusOut()
+    self:changeState("focused", false)
+end
+function PushButton:onKeyDown(key)
+    return Focusable.onKeyDown(self, key)
+end
+
 function PushButton:getMeasures()
     local ctx = self:getLayoutContext()
     ctx:select_font_face("sans-serif", "normal", "normal")
@@ -59,6 +72,14 @@ function PushButton:onDraw(ctx)
         local ty = (h - ext.height)/2 + ext.height
         ctx:move_to(offs + math.floor(tx+0.5), offs + math.floor(ty+0.5)) -- sharper text
         ctx:show_text(self.text)
+    end
+    local borderSize  = self:getStyleParam("BorderSize") or 0
+    local borderColor = self:getStyleParam("BorderColor")
+    if borderSize > 0 and borderColor then
+        ctx:rectangle(0.5, 0.5, w-1, h-1)
+        ctx:set_source_rgba(borderColor:toRGBA())
+        ctx:set_line_width(borderSize)
+        ctx:stroke()
     end
 end
 
