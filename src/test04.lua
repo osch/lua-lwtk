@@ -14,16 +14,16 @@ local win = app:newWindow {
         Column {
             Row {
                 Column {
-                    PushButton { text = "OK" },
-                    PushButton { text = "Cancel" },
+                    PushButton { text = "&OK" },
+                    PushButton { text = "C&ancel" },
                 },
                 Column {
-                    PushButton { text = "Click now and here!" },
+                    PushButton { text = "Click n&og and here!" },
                     --Space {},
                 }
             },
-            PushButton { text = "Click now and here!" },
-            PushButton { text = "Exit",
+            PushButton { text = "Click &now and here!" },
+            PushButton { text = "&Exit",
                          onClicked = function() app:close() end },
             --Space {}
         },

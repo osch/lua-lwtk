@@ -13,5 +13,7 @@ get.focusableChildren = setmetatable({}, { __mode = "k" })
 get.focusedChild      = setmetatable({}, { __mode = "k" })
 get.hasFocus          = setmetatable({}, { __mode = "k" })
 get.wantsFocus        = setmetatable({}, { __mode = "k" })
+get.actions           = setmetatable({}, { __mode = "k" })
+get.keyBinding        = setmetatable({}, { __mode = "k" })
 
 return get

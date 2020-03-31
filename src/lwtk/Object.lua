@@ -14,24 +14,24 @@ local sub    = string.sub
 local format = string.format
 
 local lwtk  = require"lwtk"
-local Class = lwtk.Class
+local class = lwtk.class
 
 local Object = {}
 Object.__index = Object
 Object.__name = "lwtk.Object"
-setmetatable(Object, Class)
+setmetatable(Object, class.metaTable)
 
 function Object:new()
 end
 
-function Object.newClass(className, superClass)
+function Object.newClass(className, superClass, classMeta)
   local newClass = {}
   for k, v in pairs(superClass) do
       newClass[k] = v
   end
   newClass.__index = newClass
   newClass.__name = className
-  setmetatable(newClass, Class)
+  setmetatable(newClass, classMeta or class.metaTable)
   newClass.super = superClass
   return newClass
 end

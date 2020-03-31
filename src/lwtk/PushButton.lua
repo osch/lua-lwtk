@@ -1,5 +1,6 @@
 local lwtk = require"lwtk"
 
+local utf8     = lwtk.utf8
 local fillRect = lwtk.draw.fillRect
 
 local Focusable  = lwtk.Focusable
@@ -17,7 +18,22 @@ function PushButton:setOnClicked(onClicked)
     self.onClicked = onClicked
 end
 function PushButton:setText(text)
-    self.text = text
+    local a, b, c = string.match(text, "^([^&]*)&().*$")
+    if not a then
+        a = ""
+        b = ""
+        c = text
+    else
+        local nextCharPos = utf8.offset(text, 2, b)
+        b = text:sub(b, nextCharPos - 1)
+        c = text:sub(nextCharPos)
+        self:setHotkey(b)
+    end
+    self.labelLeft  = a
+    self.labelKey   = b
+    self.labelRight = c
+    self.label      = a..b..c
+    self.text       = text
     self:triggerRedraw()
 end
 function PushButton:onMouseEnter(x, y)
@@ -50,7 +66,7 @@ function PushButton:getMeasures()
     local ctx = self:getLayoutContext()
     ctx:select_font_face("sans-serif", "normal", "normal")
     ctx:set_font_size(self:getStyleParam("TextSize"))
-    local ext = ctx:text_extents(self.text)
+    local ext = ctx:text_extents(self.label)
     local width  = (self:getStyleParam("Width") or 0)
     local height = (self:getStyleParam("Height") or 0)
     local minWidth =   (self:getStyleParam("LeftPadding") or 0)
@@ -63,15 +79,26 @@ function PushButton:onDraw(ctx)
     local w, h = self:getSize()
     fillRect(ctx, self:getStyleParam("Color"), 0, 0, w, h)
     ctx:set_source_rgba(self:getStyleParam("TextColor"):toRGBA())
-    if self.text then
+    if self.label then
         ctx:select_font_face("sans-serif", "normal", "normal")
         ctx:set_font_size(self:getStyleParam("TextSize"))
-        local ext = ctx:text_extents(self.text)
+        local ext  = ctx:text_extents(self.label)
+        local fext = ctx:font_extents()
+        local fh   = fext.ascent + fext.descent
         local offs = self:getStyleParam("TextOffset")
         local tx = (w - ext.width)/2
-        local ty = (h - ext.height)/2 + ext.height
+        local ty = (h - fh)/2 + fext.ascent
         ctx:move_to(offs + math.floor(tx+0.5), offs + math.floor(ty+0.5)) -- sharper text
-        ctx:show_text(self.text)
+        ctx:show_text(self.label)
+        if #self.labelKey > 0 and self:isHotkeyEnabled(self.labelKey) then
+            local x1 = tx + ctx:text_extents(self.labelLeft).x_advance + ctx:text_extents(self.labelKey).x_bearing
+            local x2 = x1 + ctx:text_extents(self.labelKey).width
+            local y1 = ty + fext.descent / 2
+            ctx:set_line_width(1)
+            ctx:move_to(math.floor(x1 + 0.5 + offs) + 0.5, math.floor(y1 + 0.5 + offs) + 0.5)
+            ctx:line_to(math.floor(x2 + 0.5 + offs) + 0.5, math.floor(y1 + 0.5 + offs) + 0.5)
+            ctx:stroke()
+        end
     end
     local borderSize  = self:getStyleParam("BorderSize") or 0
     local borderColor = self:getStyleParam("BorderColor")

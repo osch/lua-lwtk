@@ -1,11 +1,11 @@
 local lwtk = require"lwtk"
 
-local Class      = lwtk.Class
+local class      = lwtk.class
 local getWrapper = lwtk.get.wrapper
 
 local ChildLookup = {}
 ChildLookup.__name = "lwtk.ChildLookup"
-setmetatable(ChildLookup, Class)
+setmetatable(ChildLookup, class.metaTable)
 
 function ChildLookup:new(group)
     self[0] = false

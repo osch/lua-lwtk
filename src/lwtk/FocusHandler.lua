@@ -3,11 +3,15 @@ local lwtk = require"lwtk"
 local abs                  = math.abs
 local getFocusableChildren = lwtk.get.focusableChildren
 local getFocusedChild      = lwtk.get.focusedChild
+local getActions           = lwtk.get.actions
 local hasFocus             = lwtk.get.hasFocus
 
-local FocusHandler = lwtk.newClass("lwtk.FocusHandler")
+local Super        = lwtk.Actionable
+local FocusHandler = lwtk.newClass("lwtk.FocusHandler", Super)
 
-function FocusHandler:new()
+function FocusHandler:new(baseWidget)
+    Super.new(self)
+    self.baseWidget = baseWidget
     getFocusableChildren[self] = {}
 end
 
@@ -27,8 +31,9 @@ end
 function FocusHandler:getNextFocusableChild(direction)
     local cx, cy, cw, ch = 0, 0, 0, 0
     local focusedChild = getFocusedChild[self]
+    local baseWidget = self.baseWidget
     if focusedChild then
-        cx, cy = focusedChild:transformXY(0, 0, self)
+        cx, cy = focusedChild:transformXY(0, 0, baseWidget)
         cw, ch = focusedChild.w, focusedChild.h
     end
     local focusableChildren = getFocusableChildren[self]
@@ -38,7 +43,7 @@ function FocusHandler:getNextFocusableChild(direction)
         for i = 1, #focusableChildren do
             local child = focusableChildren[i]
             if child ~= focusedChild then
-                local nx, ny = child:transformXY(0, 0, self)
+                local nx, ny = child:transformXY(0, 0, baseWidget)
                 local nw, nh = child.w, child.h
                 if direction == "right" then
                     if ny + nh >= cy  and ny < cy + ch then
@@ -81,7 +86,7 @@ function FocusHandler:getNextFocusableChild(direction)
         for i = 1, #focusableChildren do
             local child = focusableChildren[i]
             if child ~= focusedChild then
-                local nx, ny = child:transformXY(0, 0, self)
+                local nx, ny = child:transformXY(0, 0, baseWidget)
                 local nw, nh = child.w, child.h
                 if direction == "up" then
                     if ny < cy and (not found or dist(cx, cw, nx, nw) < dist(cx, cw, fx, fw)) then
@@ -98,29 +103,33 @@ function FocusHandler:getNextFocusableChild(direction)
     return found
 end
 
-function FocusHandler:moveFocusRight()
+function FocusHandler:onActionFocusRight()
     local found = self:getNextFocusableChild("right")
     if found then
         self:setFocus(found)
     end
+    return true
 end
-function FocusHandler:moveFocusLeft()
+function FocusHandler:onActionFocusLeft()
     local found = self:getNextFocusableChild("left")
     if found then
         self:setFocus(found)
     end
+    return true
 end
-function FocusHandler:moveFocusUp()
+function FocusHandler:onActionFocusUp()
     local found = self:getNextFocusableChild("up")
     if found then
         self:setFocus(found)
     end
+    return true
 end
-function FocusHandler:moveFocusDown()
+function FocusHandler:onActionFocusDown()
     local found = self:getNextFocusableChild("down")
     if found then
         self:setFocus(found)
     end
+    return true
 end
 
 function FocusHandler:_handleFocusIn()
@@ -130,19 +139,20 @@ function FocusHandler:_handleFocusIn()
         if focusedChild then
             focusedChild:_handleFocusIn()
         else
+            local baseWidget = self.baseWidget
             local found, foundX, foundY
             local focusableChildren = getFocusableChildren[self]
             for i = 1, #focusableChildren do
                 local child = focusableChildren[i]
                 if found then
-                    local childX, childY = child:transformXY(0, 0, self)
+                    local childX, childY = child:transformXY(0, 0, baseWidget)
                     if childY < foundY or childY == foundY and childX < foundX then
                         foundX = childX
                         foundY = childY
                         found = child
                     end
                 else
-                    foundX, foundY = child:transformXY(0, 0, self)
+                    foundX, foundY = child:transformXY(0, 0, baseWidget)
                     found = child
                 end
             end
@@ -179,9 +189,32 @@ function FocusHandler:setFocus(newFocusChild)
     end
 end
 
+function FocusHandler:hasActionMethod(actionMethodName)
+    local focusedChild = getFocusedChild[self]
+    if focusedChild then
+        local childHasActionMethod = focusedChild.hasActionMethod
+        if childHasActionMethod and childHasActionMethod(focusedChild, actionMethodName) then
+            return true
+        end
+    end
+    return Super.hasActionMethod(self, actionMethodName)
+end
+
+function FocusHandler:invokeActionMethod(actionMethodName)
+    local focusedChild = getFocusedChild[self]
+    if focusedChild then
+        local childInvokeActionMethod = focusedChild.invokeActionMethod
+        if childInvokeActionMethod and childInvokeActionMethod(focusedChild, actionMethodName) then
+            return true
+        end
+    end
+    return Super.invokeActionMethod(self, actionMethodName)
+end
+
 function FocusHandler:_handleKeyDown(key)
     local focusedChild = getFocusedChild[self]
     if focusedChild then
+        local actions = getActions[focusedChild]
         local onKeyDown = focusedChild.onKeyDown
         if onKeyDown then
             return onKeyDown(focusedChild, key)

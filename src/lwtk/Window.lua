@@ -2,24 +2,27 @@ local lwtk = require"lwtk"
 
 local Area        = lwtk.Area
 
+local ChildLookup     = lwtk.ChildLookup
+local Styleable       = lwtk.Styleable
+local KeyHandler      = lwtk.KeyHandler
+local fillRect        = lwtk.draw.fillRect
+local FocusHandler    = lwtk.FocusHandler
+local getFocusHandler = lwtk.get.focusHandler
+local getMeasures     = lwtk.layout.getMeasures
+local call            = lwtk.call
+
 local Super        = lwtk.Object
-local ChildLookup  = lwtk.ChildLookup
-local Styleable    = lwtk.Styleable
-local FocusHandler = lwtk.FocusHandler
 local Window       = lwtk.newClass("lwtk.Window", Super)
-local fillRect     = lwtk.draw.fillRect
-local getMeasures  = lwtk.layout.getMeasures
 
 Window:implement(Styleable)
-Window:implement(FocusHandler)
+Window:implement(KeyHandler)
 Window.color = true
 
 local getParent       = lwtk.get.parent
 local getStyleParams  = lwtk.get.styleParams
 local getApp          = lwtk.get.app
 local getRoot         = lwtk.get.root
-local getFocusHandler = lwtk.get.focusHandler
-
+local getKeyBinding   = lwtk.get.keyBinding
 
 function Window.newClass(className, baseClass)
     local newClass = Super.newClass(className, baseClass)
@@ -28,10 +31,8 @@ function Window.newClass(className, baseClass)
 end
 
 function Window:new(app, initParms)
-    FocusHandler.new(self)
     getApp[self]  = app
     getRoot[self] = self
-    getFocusHandler[self] = self
     self.x = 0
     self.y = 0
     self.w = 0
@@ -39,7 +40,9 @@ function Window:new(app, initParms)
     self.getCurrentTime  = app.getCurrentTime
     self.setTimer        = app.setTimer
     getParent[self]      = app
+    getKeyBinding[self]  = getKeyBinding[app]
     getStyleParams[self] = getStyleParams[app]
+    KeyHandler.new(self)
     self.child = ChildLookup(self)
     self.view  = app.world:newView { resizable      = true, 
                                      dontMergeRects = true }
@@ -63,8 +66,8 @@ function Window:new(app, initParms)
 end
 
 function Window:addChild(child)
-    assert(not self[1], "Window can only have one child widget")
-    self[1] = child
+    self[#self + 1] = child
+    getFocusHandler[child] = FocusHandler(child)
     child:_setParent(self)
     self:_clearChildLookup()
     if self.w > 0 and self.h > 0 then
@@ -136,8 +139,8 @@ function Window:_handleConfigure(x, y, w, h)
     if self.w ~= w or self.h ~= h then
         self.w = w
         self.h = h
-        local child = self[1]
-        if child then
+        for i = 1, #self do
+            local child = self[i]
             child:_setFrame(0, 0, w, h)
         end
     end
@@ -172,18 +175,24 @@ function Window:_handleMouseEnter(mx, my)
     self.mouseX = mx
     self.mouseY = my
     self.mouseEntered = true
-    local child = self[1]
-    if child and child.visible then
-        child:_processMouseEnter(mx, my)
+    for i = #self, 1, -1 do
+        local child = self[i]
+        if child.visible then
+            child:_processMouseEnter(mx, my)
+            break
+        end
     end
 end
 
 function Window:_handleMouseMove(mx, my)
     self.mouseX = mx
     self.mouseY = my
-    local child = self[1]
-    if child and child.visible then
-        child:_processMouseMove(self.mouseEntered, mx, my)
+    for i = #self, 1, -1 do
+        local child = self[i]
+        if child.visible then
+            child:_processMouseMove(self.mouseEntered, mx, my)
+            break
+        end
     end
 end
 
@@ -191,30 +200,60 @@ function Window:_handleMouseLeave(mx, my)
     self.mouseX = mx
     self.mouseY = my
     self.mouseEntered = false
-    local child = self[1]
-    if child and child.visible then
-        child:_processMouseLeave(mx, my)
+    for i = #self, 1, -1 do
+        local child = self[i]
+        if child.visible then
+            child:_processMouseLeave(mx, my)
+            break
+        end
     end
 end
 
 function Window:_handleMouseDown(mx, my, button, modState)
     self.mouseX = mx
     self.mouseY = my
-    local child = self[1]
-    if child and child.visible then
-        child:_processMouseDown(mx, my, button, modState)
+    for i = #self, 1, -1 do
+        local child = self[i]
+        if child.visible then
+            child:_processMouseDown(mx, my, button, modState)
+            break
+        end
     end
 end
 
 function Window:_handleMouseUp(mx, my, button, modState)
     self.mouseX = mx
     self.mouseY = my
-    local child = self[1]
-    if child and child.visible then
-        child:_processMouseUp(self.mouseEntered, mx, my, button, modState)
+    for i = #self, 1, -1 do
+        local child = self[i]
+        if child.visible then
+            child:_processMouseUp(self.mouseEntered, mx, my, button, modState)
+            break
+        end
     end
 end
 
+function Window:_handleFocusIn()
+    self:resetKeyHandling()
+    for i = #self, 1, -1 do
+        local child = self[i]
+        if child.visible then
+            getFocusHandler[child]:_handleFocusIn()
+            break
+        end
+    end
+end
+
+function Window:_handleFocusOut()
+    self:resetKeyHandling()
+    for i = #self, 1, -1 do
+        local child = self[i]
+        if child.visible then
+            getFocusHandler[child]:_handleFocusOut()
+            break
+        end
+    end
+end
 
 
 function Window:_handleClose()
@@ -233,7 +272,6 @@ function Window:_clearChildLookup()
 end
 
 function Window:_processChanges()
-    local child = self[1]
     if self.positionsChanged then
         self.positionsChanged = false
         if self.mouseEntered then
@@ -243,18 +281,21 @@ function Window:_processChanges()
             end
         end
     end
-    if child and child.hasChanges then
-        child.hasChanges       = false
-        child.positionsChanged = false
-        if self.w then
-            local damagedArea = self.damagedArea
-            child:_processChanges(0, 0, 0, 0, self.w, self.h, damagedArea)
-            if damagedArea.count > 0 then
-                local view = self.view
-                for _, x, y, w, h in damagedArea:iteration() do
-                    view:postRedisplayRect(x, y, w, h)
+    for i = 1, #self do
+        local child = self[i]
+        if child.hasChanges then
+            child.hasChanges       = false
+            child.positionsChanged = false
+            if self.w then
+                local damagedArea = self.damagedArea
+                child:_processChanges(0, 0, 0, 0, self.w, self.h, damagedArea)
+                if damagedArea.count > 0 then
+                    local view = self.view
+                    for _, x, y, w, h in damagedArea:iteration() do
+                        view:postRedisplayRect(x, y, w, h)
+                    end
+                    damagedArea:clear()
                 end
-                damagedArea:clear()
             end
         end
     end

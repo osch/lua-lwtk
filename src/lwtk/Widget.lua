@@ -3,9 +3,7 @@ local lwtk = require"lwtk"
 local Application = lwtk.Application
 local call        = lwtk.call
 local Rect        = lwtk.Rect
-local Super       = lwtk.Object
 local Animatable  = lwtk.Animatable
-local Widget      = lwtk.newClass("lwtk.Widget", Super)
 
 local intersectRects      = Rect.intersectRects
 local roundRect           = Rect.round
@@ -16,8 +14,12 @@ local getParent            = lwtk.get.parent
 local getStyleParams       = lwtk.get.styleParams
 local getFocusHandler      = lwtk.get.focusHandler
 local getFocusableChildren = lwtk.get.focusableChildren
+local getActions           = lwtk.get.actions
 local wantsFocus           = lwtk.get.wantsFocus
 local callOnLayout         = lwtk.layout.callOnLayout
+
+local Super       = lwtk.Actionable
+local Widget      = lwtk.newClass("lwtk.Widget", Super)
 
 Widget:implement(Animatable)
 
@@ -28,6 +30,7 @@ function Widget.newClass(className, baseClass, additionalStyleSelector, ...)
 end
 
 function Widget:new(initParams)
+    Super.new(self, initParams)
     Animatable.new(self)
     getApp[self]  = false
     getRoot[self] = self

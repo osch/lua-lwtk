@@ -22,20 +22,4 @@ function Focusable:setFocus()
     end
 end
 
-function Focusable:onKeyDown(key)
-    if key == "RIGHT" then
-        self:getFocusHandler():moveFocusRight()
-        return true
-    elseif key == "LEFT" then
-        self:getFocusHandler():moveFocusLeft()
-        return true
-    elseif key == "UP" then
-        self:getFocusHandler():moveFocusUp()
-        return true
-    elseif key == "DOWN" then
-        self:getFocusHandler():moveFocusDown()
-        return true
-    end
-end
-
 return Focusable

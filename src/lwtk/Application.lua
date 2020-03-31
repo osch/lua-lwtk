@@ -6,11 +6,14 @@ local Window      = lwtk.Window
 local Application = lwtk.newClass("lwtk.Application")
 
 local getStyleParams  = lwtk.get.styleParams
+local getKeyBinding   = lwtk.get.keyBinding
 
 function Application:new(appName, styleRules)
 
     getStyleParams[self] = lwtk.StyleParams(lwtk.DefaultStyleTypes(),
                                             styleRules or lwtk.DefaultStyleRules())
+    getKeyBinding[self]  = lwtk.DefaultKeyBinding()
+
     self.appName       = appName
     self.windows       = {}
     self.damageReports = nil
@@ -170,6 +173,8 @@ function Application:_createClosures()
             window:_handleMouseEnter(...)
         elseif event == "KEY_PRESS" then
             window:_handleKeyDown(...)
+        elseif event == "KEY_RELEASE" then
+            window:_handleKeyUp(...)
         elseif event == "BUTTON_PRESS" then
             window:_handleMouseDown(...)
         elseif event == "BUTTON_RELEASE" then
