@@ -18,6 +18,7 @@ local function DefaultStyleRules(params)
         { "HoverTransitionSeconds:",          0.20 },
         { "HoverTransitionSeconds:hover",     0.20 },
         { "PressedTransitionSeconds:pressed", 0.20 },
+        { "SimulateButtonClickSeconds",       0.10 },
 
         { "TextSize",                  12 },
         { "*Margin@Control",            8 },

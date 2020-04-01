@@ -23,7 +23,7 @@ end
 
 local function normalize(entry)
     entry = upper(entry)
-    local isShift, isCtrl, isAlt, isSuper
+    local isShift, isCtrl, isAlt, isAltGr, isSuper
     local p0 = 1
     local p  = p0
     while true do
@@ -40,6 +40,11 @@ local function normalize(entry)
         local m = match(entry, "^ *ALT%+()", p)
         if m then
             isAlt = true
+            p = m
+        end
+        local m = match(entry, "^ *ALT_?GR%+()", p)
+        if m then
+            isAltGr = true
             p = m
         end
         local m = match(entry, "^ *SHIFT%+()", p)
@@ -62,6 +67,7 @@ local function normalize(entry)
     return   (isShift and "Shift+" or "")
            ..(isCtrl  and "Ctrl+"  or "")
            ..(isAlt   and "Alt+"   or "")
+           ..(isAltGr and "AltGr+" or "")
            ..(isSuper and "Super+" or "")
            ..key
 end
@@ -86,21 +92,23 @@ end
 
 function KeyBinding:new(rules)
     for _, rule in ipairs(rules) do
-        local keyList = toKeyList(rule[1])
-        if #keyList > 0 then
-            local lookup = self
-            for i, k in ipairs(keyList) do
-                local entries = lookup[k]
-                if not entries then 
-                    local path = lookup[-1]
-                    entries = { [0]  = false,
-                                [-1] = (path and (path..","..k) or k) }
-                    lookup[0] = true
-                    lookup[k] = entries
+        for i = 1, #rule-1 do
+            local keyList = toKeyList(rule[i])
+            if #keyList > 0 then
+                local lookup = self
+                for i, k in ipairs(keyList) do
+                    local entries = lookup[k]
+                    if not entries then 
+                        local path = lookup[-1]
+                        entries = { [0]  = false,
+                                    [-1] = (path and (path..","..k) or k) }
+                        lookup[0] = true
+                        lookup[k] = entries
+                    end
+                    lookup = entries
                 end
-                lookup = entries
+                lookup[#lookup + 1] = "onAction"..rule[#rule]
             end
-            lookup[#lookup + 1] = "onAction"..rule[2]
         end
     end
 end

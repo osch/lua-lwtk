@@ -27,7 +27,9 @@ function PushButton:setText(text)
         local nextCharPos = utf8.offset(text, 2, b)
         b = text:sub(b, nextCharPos - 1)
         c = text:sub(nextCharPos)
-        self:setHotkey(b)
+        local B = utf8.upper(b)
+        self.hotkey = B
+        self:setHotkey(B)
     end
     self.labelLeft  = a
     self.labelKey   = b
@@ -58,8 +60,24 @@ end
 function PushButton:onFocusOut()
     self:changeState("focused", false)
 end
-function PushButton:onKeyDown(key)
-    return Focusable.onKeyDown(self, key)
+
+local function simulateButtonClick2(self)
+    self:changeState("hover",   false)
+    self:changeState("pressed", false)
+    if self.onClicked then
+        self:onClicked()
+    end
+end
+
+local function simulateButtonClick1(self)
+    self:changeState("hover",   true)
+    self:changeState("pressed", true)
+    self:setTimer(self:getStyleParam("SimulateButtonClickSeconds") or 0.1, 
+                  simulateButtonClick2, self)
+end
+
+function PushButton:onHotkeyDown()
+    simulateButtonClick1(self)
 end
 
 function PushButton:getMeasures()
@@ -90,7 +108,7 @@ function PushButton:onDraw(ctx)
         local ty = (h - fh)/2 + fext.ascent
         ctx:move_to(offs + math.floor(tx+0.5), offs + math.floor(ty+0.5)) -- sharper text
         ctx:show_text(self.label)
-        if #self.labelKey > 0 and self:isHotkeyEnabled(self.labelKey) then
+        if self.hotkey and self:isHotkeyEnabled(self.hotkey) then
             local x1 = tx + ctx:text_extents(self.labelLeft).x_advance + ctx:text_extents(self.labelKey).x_bearing
             local x2 = x1 + ctx:text_extents(self.labelKey).width
             local y1 = ty + fext.descent / 2

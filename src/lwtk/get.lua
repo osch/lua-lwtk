@@ -15,5 +15,6 @@ get.hasFocus          = setmetatable({}, { __mode = "k" })
 get.wantsFocus        = setmetatable({}, { __mode = "k" })
 get.actions           = setmetatable({}, { __mode = "k" })
 get.keyBinding        = setmetatable({}, { __mode = "k" })
+get.hotKeys           = setmetatable({}, { __mode = "k" })
 
 return get

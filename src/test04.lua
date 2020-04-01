@@ -8,23 +8,26 @@ local PushButton  = lwtk.PushButton
 
 local app = Application("test04.lua")
 
+local function printClicked(self)
+    print("clicked", self.text)
+end
+
 local win = app:newWindow {
     title = "test04",
     Row {
         Column {
             Row {
                 Column {
-                    PushButton { text = "&OK" },
-                    PushButton { text = "C&ancel" },
+                    PushButton { text = "&OK",     onClicked = printClicked },
+                    PushButton { text = "C&ancel", onClicked = printClicked },
                 },
                 Column {
-                    PushButton { text = "Click n&og and here!" },
+                    PushButton { text = "Click no&g and here!", onClicked = printClicked },
                     --Space {},
                 }
             },
-            PushButton { text = "Click &now and here!" },
-            PushButton { text = "&Exit",
-                         onClicked = function() app:close() end },
+            PushButton { text = "Click &now and here!", onClicked = printClicked },
+            PushButton { text = "&Exit",  onClicked = function() app:close() end },
             --Space {}
         },
         --Space {}

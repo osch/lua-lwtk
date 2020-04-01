@@ -1,10 +1,14 @@
-local lwtk = require"lwtk"
+local lpugl = require"lpugl"
+local lwtk   = require"lwtk"
 
 local abs                  = math.abs
+local btest                = lpugl.btest
+local MOD_ALT              = lpugl.MOD_ALT
 local getFocusableChildren = lwtk.get.focusableChildren
 local getFocusedChild      = lwtk.get.focusedChild
 local getActions           = lwtk.get.actions
 local hasFocus             = lwtk.get.hasFocus
+local getHotkeys           = lwtk.get.hotKeys
 
 local Super        = lwtk.Actionable
 local FocusHandler = lwtk.newClass("lwtk.FocusHandler", Super)
@@ -161,6 +165,15 @@ function FocusHandler:_handleFocusIn()
                 found:_handleFocusIn()
             end
         end
+        local allHotkeys = getHotkeys[self]
+        if allHotkeys then
+            for hotkey, list in pairs(allHotkeys) do
+                local n = #list
+                if n > 0 then
+                    list[n]:onHotkeyEnabled(hotkey)
+                end
+            end
+        end
     end
 end
 
@@ -170,6 +183,15 @@ function FocusHandler:_handleFocusOut()
         local focusedChild = getFocusedChild[self]
         if focusedChild then
             focusedChild:_handleFocusOut()
+        end
+        local allHotkeys = getHotkeys[self]
+        if allHotkeys then
+            for hotkey, list in pairs(allHotkeys) do
+                local n = #list
+                if n > 0 then
+                    list[n]:onHotkeyDisabled(hotkey)
+                end
+            end
         end
     end
 end
@@ -211,14 +233,108 @@ function FocusHandler:invokeActionMethod(actionMethodName)
     return Super.invokeActionMethod(self, actionMethodName)
 end
 
-function FocusHandler:_handleKeyDown(key)
-    local focusedChild = getFocusedChild[self]
-    if focusedChild then
-        local actions = getActions[focusedChild]
-        local onKeyDown = focusedChild.onKeyDown
-        if onKeyDown then
-            return onKeyDown(focusedChild, key)
+
+local function invokeActionMethods(self, actions)
+    if actions then
+        local invokeActionMethod = self.invokeActionMethod
+        if invokeActionMethod then
+            for i = #actions, 1, -1 do
+                local action = actions[i]
+                local handled = invokeActionMethod(self, action)
+                if handled then
+                    return true
+                end
+            end
         end
+    end
+end
+
+local function handleHotkey(self, key)
+    local allHotkeys = getHotkeys[self]
+    if allHotkeys then
+        local list = allHotkeys[key]
+        if list then
+            local n = #list
+            if n > 0 then
+                local w = list[n]
+                local onHotkeyDown = w.onHotkeyDown
+                if onHotkeyDown then
+                    onHotkeyDown(w)
+                    return true
+                end
+            end
+        end
+    end
+end
+
+
+function FocusHandler:onKeyDown(key, modifier, ...)
+    local focusedChild = getFocusedChild[self]
+    local handled 
+    if focusedChild then
+        local onKeyDown = focusedChild.onKeyDown 
+        if onKeyDown then
+            handled = onKeyDown(focusedChild, key, modifier, ...)
+        end
+    end
+    if not handled and modifier == 0 then
+        handled = handleHotkey(self, key)
+    end
+    return handled
+end
+
+function FocusHandler:registerHotkeys(widget, hotkeys)
+    local allHotkeys = getHotkeys[self]
+    if not allHotkeys then
+        allHotkeys = {}
+        getHotkeys[self] = allHotkeys
+    end
+    for hotkey, flag in pairs(hotkeys) do
+        local list = allHotkeys[hotkey]
+        if not list then
+            list = { widget }
+            allHotkeys[hotkey] = list
+        else 
+            local n = #list
+            if n > 0 then
+                list[n]:onHotkeyDisabled(hotkey)
+            end
+            list[n + 1] = widget
+        end
+    end
+end
+
+function FocusHandler:deregisterHotkeys(widget, hotkeys)
+    local allHotkeys = getHotkeys[self]
+    if allHotkeys then
+        for hotkey, flag in pairs(hotkeys) do
+            local list = allHotkeys[hotkey]
+            if list then
+                local n = #list 
+                if n > 0 then
+                    if list[n] == widget then
+                        list[n] = nil
+                        n = n - 1
+                        if n > 0 and hasFocus[self] then
+                            list[n]:onHotkeyEnabled(hotkey)
+                        end
+                    else
+                        for i = 1, n-1 do
+                            if list[i] == widget then
+                                table.remove(list, i)
+                                break
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+function FocusHandler:filterKeyDown(key, modifier, ...)
+    if modifier == MOD_ALT then
+        return handleHotkey(self, key)
     end
 end
 

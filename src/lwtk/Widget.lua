@@ -104,6 +104,10 @@ local function setAppAndRoot(self, app, root)
                 handler:setFocus(self)
                 wantsFocus[self] = nil
             end
+            local handleHasFocusHandler = self._handleHasFocusHandler
+            if handleHasFocusHandler then
+                handleHasFocusHandler(self, handler)
+            end
         end
     end
     local w, h = self.w, self.h

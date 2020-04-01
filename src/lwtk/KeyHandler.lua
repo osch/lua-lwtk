@@ -6,6 +6,7 @@ local btest           = lpugl.btest
 local MOD_SHIFT       = lpugl.MOD_SHIFT
 local MOD_CTRL        = lpugl.MOD_CTRL
 local MOD_ALT         = lpugl.MOD_ALT
+local MOD_ALTGR       = lpugl.MOD_ALTGR
 local MOD_SUPER       = lpugl.MOD_SUPER
 local utf8            = lwtk.utf8
 local len             = utf8.len
@@ -39,7 +40,6 @@ function KeyHandler:new()
 end
 
 function KeyHandler:resetKeyHandling()
-    print("resetKeyHandling")
     local state = getState[self]
     state.current = false
     state.mod     = false
@@ -63,11 +63,17 @@ local function toModKeyString(key, modifier)
                 if isMod ~= "Alt" and btest(modifier, MOD_ALT) then
                     modString = "Alt+"..modString
                 end
+                if isMod ~= "Alt" and btest(modifier, MOD_ALTGR) then
+                    modString = "AltGr+"..modString
+                end
                 if isMod ~= "Ctrl" and btest(modifier, MOD_CTRL) then
                     modString = "Ctrl+"..modString
                 end
                 if isMod ~= "Shift" and btest(modifier, MOD_SHIFT) then
                     modString = "Shift+"..modString
+                end
+                if not isMod and modifier ~= 0 and #modString == 0 then
+                    modString = "???+"
                 end
                 if not isMod then
                     modMap[modifier] = modString
@@ -82,8 +88,32 @@ local function toModKeyString(key, modifier)
     return mapped
 end
 
+local function getVisibleChild(self)
+    for i = #self, 1, -1 do
+        local child = self[i]
+        if child.visible then
+            return child
+        end
+    end
+end
+
+local function invokeActionMethods(self, actions)
+    if actions then
+        local invokeActionMethod = self.invokeActionMethod
+        if invokeActionMethod then
+            for i = #actions, 1, -1 do
+                local action = actions[i]
+                local handled = invokeActionMethod(self, action)
+                if handled then
+                    return true
+                end
+            end
+        end
+    end
+end
 
 function KeyHandler:_handleKeyDown(key, modifier, ...)
+    --print("KeyHandler:_handleKeyDown", key, modifier, ...)
     local state = getState[self]
     if key then
         if len(key) == 1 then
@@ -98,40 +128,30 @@ function KeyHandler:_handleKeyDown(key, modifier, ...)
             state.mod = key
         else
             state.mod = false
-            if state.current then
+            local current = state.current
+            if current then
                 modifier = 0
             end
-            key = toModKeyString(key, modifier)
-
-            print("_handleKeyDown", key, modifier, ...)
-            for i = #self, 1, -1 do
-                local child = self[i]
-                if child.visible then
+            local child = getVisibleChild(self)
+            if child then
+                local focusHandler = getFocusHandler[child]
+                local filtered = not current and focusHandler:filterKeyDown(key, modifier, ...)
+                if not filtered then
+                    local modAndKey = toModKeyString(key, modifier)
                     local keyBinding = getKeyBinding[self]
-                    local actions    = (state.current or keyBinding)[key]
-                    local focusHandler = getFocusHandler[child]
-                    if actions then 
-                        local handled
-                        for i = #actions, 1, -1 do
-                            local action = actions[i]
-                            handled = focusHandler:invokeActionMethod(action)
-                            if handled then
-                                state.current = false
-                                break
-                            end
-                        end
-                        if not handled then
-                            if actions[0] then
-                                state.current = actions
-                                print("Step:", actions[-1])
-                            else
-                                state.current = false
-                            end
-                        end
-                    else
+                    local actions    = (current or keyBinding)[modAndKey]
+                    local handled    = invokeActionMethods(focusHandler, actions)
+                    if handled then
                         state.current = false
+                    else
+                        if actions and actions[0] then
+                            state.current = actions
+                        elseif state.current then
+                            state.current = false
+                        else
+                            handled = focusHandler:onKeyDown(key, modifier, ...)
+                        end
                     end
-                    break
                 end
             end
         end
@@ -144,22 +164,18 @@ function KeyHandler:_handleKeyUp(key, modifier, ...)
         if state.mod == key then
             state.mod = false
             key = toModKeyString(key, modifier)
-            print("_handleKeyUp", key)
             local keyBinding = getKeyBinding[self]
             local actions = keyBinding[key]                    
             if actions then
-                for i = #self, 1, -1 do
-                    local child = self[i]
-                    if child.visible then
-                        local focusHandler = getFocusHandler[child]
-                        for i = #actions, 1, -1 do
-                            local action = actions[i]
-                            local handled = focusHandler:invokeActionMethod(action)
-                            if handled then
-                                break
-                            end
+                local child = getVisibleChild(self)
+                if child then
+                    local focusHandler = getFocusHandler[child]
+                    for i = #actions, 1, -1 do
+                        local action = actions[i]
+                        local handled = focusHandler:invokeActionMethod(action)
+                        if handled then
+                            break
                         end
-                        break
                     end
                 end
             end
