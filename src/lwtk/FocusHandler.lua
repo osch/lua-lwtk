@@ -32,7 +32,7 @@ local function dist(x1, w1, x2, w2)
     end
 end
 
-function FocusHandler:getNextFocusableChild(direction)
+local function findNextFocusableChild1(self, direction)
     local cx, cy, cw, ch = 0, 0, 0, 0
     local focusedChild = getFocusedChild[self]
     local baseWidget = self.baseWidget
@@ -107,33 +107,91 @@ function FocusHandler:getNextFocusableChild(direction)
     return found
 end
 
+local function findNextFocusableChild2(self, direction)
+    local isForw = (direction == "next")
+    local cx, cy = 0, 0
+    local focusedChild = getFocusedChild[self]
+    local baseWidget = self.baseWidget
+    if focusedChild then
+        cx, cy = focusedChild:transformXY(0, 0, baseWidget)
+    end
+    local focusableChildren = getFocusableChildren[self]
+    local found
+    for try = 1, 2 do
+        local fx, fy
+        for i = 1, #focusableChildren do
+            local child = focusableChildren[i]
+            local nx, ny = child:transformXY(0, 0, baseWidget)
+            if child ~= focusedChild then
+                if isForw then
+                    if nx > cx and ny >= cy and (not found or ny < fy or (ny == fy and nx < fx)) then
+                        found = child
+                        fx, fy = nx, ny
+                    end
+                else
+                    if nx < cx and ny <= cy and (not found or ny > fy or (ny == fy and nx > fx)) then
+                        found = child
+                        fx, fy = nx, ny
+                    end
+                end
+            end
+        end
+        if found then
+            break
+        elseif try == 1 then
+            if isForw then
+                cx = -1
+                cy = cy + 1
+            else
+                cx = baseWidget.w + 1
+                cy = cy - 1
+            end
+        end
+    end
+    return found
+end
+
 function FocusHandler:onActionFocusRight()
-    local found = self:getNextFocusableChild("right")
+    local found = findNextFocusableChild1(self, "right")
     if found then
         self:setFocus(found)
     end
     return true
 end
 function FocusHandler:onActionFocusLeft()
-    local found = self:getNextFocusableChild("left")
+    local found = findNextFocusableChild1(self, "left")
     if found then
         self:setFocus(found)
     end
     return true
 end
 function FocusHandler:onActionFocusUp()
-    local found = self:getNextFocusableChild("up")
+    local found = findNextFocusableChild1(self, "up")
     if found then
         self:setFocus(found)
     end
     return true
 end
 function FocusHandler:onActionFocusDown()
-    local found = self:getNextFocusableChild("down")
+    local found = findNextFocusableChild1(self, "down")
     if found then
         self:setFocus(found)
     end
     return true
+end
+function FocusHandler:onActionFocusNext()
+    local found = findNextFocusableChild2(self, "next")
+    if found then
+        self:setFocus(found)
+    end
+    return true    
+end
+function FocusHandler:onActionFocusPrev()
+    local found = findNextFocusableChild2(self, "prev")
+    if found then
+        self:setFocus(found)
+    end
+    return true    
 end
 
 function FocusHandler:_handleFocusIn()

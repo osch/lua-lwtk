@@ -5,9 +5,13 @@ return function()
     {
         { "F,Right",           "FocusRight"   }, -- TODO: WIP just for playing around
         { "Ctrl+F,Left,Space", "FocusLeft"    }, -- TODO: WIP just for playing around
-
+        
+        
+        { "Tab",      "FocusNext"          },
+        { "Shift+Tab","FocusPrev"          },
+        
         { "Right",
-          "KP_Right", "FocusRight"      },
+          "KP_Right", "FocusRight"         },
 
         { "Left", 
           "KP_Left",  "FocusLeft"          },
