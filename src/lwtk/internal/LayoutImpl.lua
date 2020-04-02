@@ -225,16 +225,16 @@ function LayoutImpl.applyTBLayout(childList, height, topMargin, bottomMargin, rs
                 local d0 = maxHeight - bestHeight
                 local d1 = height - maxHeight
                 if flexCount / unlmCount1 >= d0 / d1 then
-                    unlmAdd1 = floor(d1/unlmCount1 + 0.5)
+                    unlmAdd1 = d1/unlmCount1
                     t = 1
                 else
                     local d2a = (unlmCount1 * (d1 + d0))/(unlmCount1 + flexCount)
                     local d2b = (flexCount * (d1 + d0))/(unlmCount1 + flexCount)
-                    unlmAdd1 = floor(d2a/unlmCount1 + 0.5)
+                    unlmAdd1 = d2a/unlmCount1
                     t = (d2b)/(maxHeight - bestHeight)
                 end
             elseif unlmCount2 > 0 then
-                unlmAdd2 = floor((height - maxHeight) / unlmCount2 + 0.5)
+                unlmAdd2 = (height - maxHeight) / unlmCount2
                 t = 1
             else
                 addStretch = height - maxHeight
@@ -244,7 +244,7 @@ function LayoutImpl.applyTBLayout(childList, height, topMargin, bottomMargin, rs
             if unlmCount1 > 0 then
                 local d0a = unlmCount1 * (height - bestHeight)/(unlmCount1 + flexCount)
                 local d0b = flexCount * (height - bestHeight)/(unlmCount1 + flexCount)
-                unlmAdd1 = floor(d0a/unlmCount1 + 0.5)
+                unlmAdd1 = d0a/unlmCount1
                 t = (d0b)/(maxHeight - bestHeight)
             else
                 t = (height - bestHeight)/(maxHeight - bestHeight)
@@ -255,19 +255,21 @@ function LayoutImpl.applyTBLayout(childList, height, topMargin, bottomMargin, rs
     end
     local prevBottom = topMargin
     local y = 0
-    for i = 1, #childList do
+    local roundingError = 0
+    local n = #childList
+    for i = 1, n do
         local child = childList[i]
         local minH, bestH, maxH,
               childTop, childBottom = getChildTBMeasures(child)
         local childH
         if s > 0 then
-            childH = minH + floor(s * (bestH - minH) + 0.5)
+            childH = minH + s * (bestH - minH)
         elseif t > 0 then
             if maxH >= 0 then 
                 if addStretch then
-                    childH = maxH + floor(maxH * addStretch / maxContentHeight + 0.5)
+                    childH = maxH + maxH * addStretch / maxContentHeight
                 else
-                    childH = bestH + floor(t * (maxH - bestH) + 0.5)
+                    childH = bestH + t * (maxH - bestH)
                 end
             elseif maxH == -1 then
                 childH = bestH + unlmAdd1
@@ -278,7 +280,7 @@ function LayoutImpl.applyTBLayout(childList, height, topMargin, bottomMargin, rs
             childH = minH
         end
         if factor then
-            childH = floor(factor * childH + 0.5)
+            childH = factor * childH
         end
         local dy = 0
         if childTop and prevBottom and childTop > prevBottom then
@@ -286,6 +288,16 @@ function LayoutImpl.applyTBLayout(childList, height, topMargin, bottomMargin, rs
         end
         prevBottom = childBottom
         local childY = y + dy
+        do
+            local r = floor(childH)
+            roundingError = roundingError + childH - r
+            if roundingError >= 1 then
+                childH = r + 1
+                roundingError = roundingError - 1
+            else
+                childH = r
+            end
+        end
         y = y + dy + (childBottom or 0) + childH
         local ncTop, ncBottom = dy + (prevBottom or 0), 
                                 childBottom or 0
