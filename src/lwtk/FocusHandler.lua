@@ -50,7 +50,7 @@ local function findNextFocusableChild1(self, direction)
                 local nx, ny = child:transformXY(0, 0, baseWidget)
                 local nw, nh = child.w, child.h
                 if direction == "right" then
-                    if ny + nh >= cy  and ny < cy + ch then
+                    if ny + nh > cy  and ny < cy + ch then
                         if nx >= cx and (not found or  nx - cx <  fx - cx 
                                                    or (nx - cx == fx - cx and dist(cy, ch, ny, nh) < dist(cy, ch, fy, fh)))
                         then
@@ -74,9 +74,9 @@ local function findNextFocusableChild1(self, direction)
                         end
                     end
                 elseif direction == "down" then
-                    if nx + nw >= cx  and nx < cx + cw then
+                    if nx + nw > cx  and nx < cx + cw then
                         if ny >= cy and (not found or  ny - cy <  fy - cy
-                                                   or (ny - cy == fy - cy and dist(cx, cw, nx, nw) < dist(cx, cw, fx, fw)))
+                                                  or (ny - cy == fy - cy and dist(cx, cw, nx, nw) < dist(cx, cw, fx, fw)))
                         then
                             found, fx, fy, fw, fh = child, nx, ny, nw, nh
                         end
