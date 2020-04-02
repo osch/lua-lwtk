@@ -10,6 +10,7 @@ local newClass          = lwtk.newClass
 local getWrapper        = lwtk.get.wrapper
 local getWrappedChild   = lwtk.get.wrappedChild
 local getWrappingParent = lwtk.get.wrappingParent
+local getStylePath      = lwtk.get.stylePath
 
 local function cloneClass(class, selectorFrag)
     local cloned = {}
@@ -17,9 +18,9 @@ local function cloneClass(class, selectorFrag)
         cloned[k] = v
     end
     cloned.__index = cloned
-    local selector = class.styleSelectorClassPath
+    local selector = getStylePath[class]
     if selector and selectorFrag then
-        cloned.styleSelectorClassPath = selector.."<"..lower(selectorFrag)..">"
+        getStylePath[cloned] = selector.."<"..lower(selectorFrag)..">"
     end
     setmetatable(cloned, getmetatable(class))
     return cloned

@@ -31,6 +31,7 @@ function Window.newClass(className, baseClass)
 end
 
 function Window:new(app, initParms)
+    Styleable.new(self)
     getApp[self]  = app
     getRoot[self] = self
     self.x = 0

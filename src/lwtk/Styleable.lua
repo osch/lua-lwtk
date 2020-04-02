@@ -7,32 +7,41 @@ local lower  = string.lower
 
 local getParent      = lwtk.get.parent
 local getStyleParams = lwtk.get.styleParams
+local getStylePath   = lwtk.get.stylePath
 local toPattern      = lwtk.StyleRule.toPattern
+
+local getStateStylePath = setmetatable({}, { __mode = "k" })
 
 local Styleable = lwtk.newClass("lwtk.Styleable")
 
-local function addToStyleSelectorClassPath(class, name)
+local function addToStyleSelectorClassPath(path, name)
     local n = match(name, "^.*%.([^.]*)$")
     name = n or name
-    class.styleSelectorClassPath = (class.styleSelectorClassPath or "").."<"..lower(name)..">"
+    return (path or "").."<"..lower(name)..">"
 end
 
 function Styleable.initClass(mixinClass, newClass, additionalStyleSelector, ...)
     local className = newClass.__name
-    addToStyleSelectorClassPath(newClass, className)
+    local path = getStylePath[newClass.super]
+    path = addToStyleSelectorClassPath(path, className)
     if additionalStyleSelector then
-        addToStyleSelectorClassPath(newClass, additionalStyleSelector)
+        path = addToStyleSelectorClassPath(path, additionalStyleSelector)
         for i = 1, select("#", ...) do
-            addToStyleSelectorClassPath(newClass, select(i, ...))
+            path = addToStyleSelectorClassPath(path, select(i, ...))
         end
     end
+    getStylePath[newClass] = path
     return newClass
+end
+
+function Styleable:new()
+    getStylePath[self] = getStylePath[getmetatable(self)]
 end
 
 function Styleable:setState(name, flag)
     flag = flag and true or false
     self.state[name] = flag
-    self.stateStyleSelectorPath = nil
+    getStateStylePath[self] = false
 end
 
 function Styleable:setStyle(styleRules)
@@ -47,7 +56,7 @@ end
 
 
 function Styleable:getStateStyleSelectorPath()
-    local path = self.stateStyleSelectorPath
+    local path = getStateStylePath[self]
     if not path then
         local state = self.state
         local stateNames = {}
@@ -64,7 +73,7 @@ function Styleable:getStateStyleSelectorPath()
         else
             path = ""
         end
-        self.stateStyleSelectorPath = path
+        getStateStylePath[self] = path
     end
     return path
 end
@@ -75,7 +84,7 @@ function Styleable:getStyleParam(paramName)
     local styleParams = getStyleParams[self]
     if styleParams then
         local statePath = getStateStyleSelectorPath(self)
-        return styleParams:getStyleParam(paramName, self.styleSelectorClassPath, statePath, self.styleRules)
+        return styleParams:getStyleParam(paramName, getStylePath[self], statePath, self.styleRules)
     end
 end
 
