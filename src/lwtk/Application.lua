@@ -8,8 +8,12 @@ local Application = lwtk.newClass("lwtk.Application")
 local getStyleParams  = lwtk.get.styleParams
 local getKeyBinding   = lwtk.get.keyBinding
 
-function Application:new(appName, styleRules)
+local isClosed        = setmetatable({}, { __mode = "k" })
 
+function Application:new(appName, styleRules)
+    
+    isClosed[self] = false
+    
     getStyleParams[self] = lwtk.StyleParams(lwtk.DefaultStyleTypes(),
                                             styleRules or lwtk.DefaultStyleRules())
     getKeyBinding[self]  = lwtk.DefaultKeyBinding()
@@ -26,6 +30,7 @@ end
 
 function Application:close()
     self.world:close()
+    isClosed[self] = true
 end
 
 function Application:setStyle(styleRules) 
@@ -73,7 +78,7 @@ function Application:runEventLoop()
         if hasEvents then
             world:dispatchEvents()
         end
-        if not world:isClosed() then
+        if not isClosed[self] then
             self:_processAllChanges()
         end
     end
@@ -139,7 +144,8 @@ function Application:_createClosures()
     
     function self.processFunc()
         local now = world:getTime()
-        while true do
+        local closed = isClosed[self]
+        while not closed do
             local timer = timers[1]
             if not timer or timer.time > now then
                 break
@@ -147,16 +153,19 @@ function Application:_createClosures()
             remove(timers, 1)
             timer.time = false
             timer.func(unpack(timer))
+            closed = isClosed[self]
         end
         local timer = timers[1]
         if timer then
             local t = timer.time - now
             t = (t >= 0) and t or 0
-            if not world:isClosed() then
+            if not closed then
                 world:setNextProcessTime(t)
             end
         end
-        self:_processAllChanges()
+        if not closed then
+            self:_processAllChanges()
+        end
     end
     
     function self.eventFunc(window, event, ...)
