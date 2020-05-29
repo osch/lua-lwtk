@@ -12,7 +12,7 @@ local fillRect    = lwtk.draw.fillRect
 
 local MyButton = newClass("MyButton", Widget)
 do
-    MyButton:implement(Focusable)
+    MyButton:implementFrom(Focusable)
     
     function MyButton:onFocusIn()
         print("focus in ", self.id)
@@ -88,18 +88,19 @@ app:setStyle {
     { "HoverTransitionSeconds:hover",     0.20 },
     { "PressedTransitionSeconds:pressed", 0.20 },
     
-    { "Color",                     Color"f9f9fa" },
+    { "*Color",                    Color"f9f9fa" },
     { "TextColor",                 Color"000000" },
     { "TextSize",                  13            },
     { "TextOffset",                 0            },
     { "TextOffset:pressed+hover",   1            },
 
-    { "BorderWidth",                         10  },
-    { "BorderWidth@*MyGroup*",                3  },
-    { "BorderWidth@Bordered(MyButton)",       1  },
+    { "BorderSize",                          10  },
+    { "BorderSize@*MyGroup*",                 3  },
+    { "BorderSize@Bordered(MyButton)",        1  },
+    { "BorderPadding",                       lwtk.StyleParamRef.get("BorderSize")  },
 
-    { "Color@Border",                   Color"ff0000" },
-    { "Color@Bordered*",                Color"0000ff" },
+    { "BorderColor@Border",             Color"ff0000" },
+    { "BorderColor@Bordered*",          Color"0000ff" },
     
     { "Color@MyGroup",                  Color"e1e1ff" },
     { "Color@MyButton",                 Color"e1e1e2" },

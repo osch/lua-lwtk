@@ -7,7 +7,7 @@ local Focusable  = lwtk.Focusable
 local Super      = lwtk.Button
 local PushButton = lwtk.newClass("lwtk.PushButton", Super)
 
-PushButton:implement(Focusable)
+PushButton:implementFrom(Focusable)
 
 function PushButton:new(initParams)
     self.text = ""
@@ -95,7 +95,7 @@ function PushButton:getMeasures()
 end
 function PushButton:onDraw(ctx)
     local w, h = self:getSize()
-    fillRect(ctx, self:getStyleParam("Color"), 0, 0, w, h)
+    fillRect(ctx, self:getStyleParam("BackgroundColor"), 0, 0, w, h)
     ctx:set_source_rgba(self:getStyleParam("TextColor"):toRGBA())
     if self.label then
         ctx:select_font_face("sans-serif", "normal", "normal")

@@ -87,7 +87,7 @@ future.
         { "TextOffset",                 0            },
         { "TextOffset:pressed+hover",   1            },
         
-        { "Color",                     Color"f9f9fa" },
+        { "BackgroundColor",           Color"f9f9fa" },
         { "TextColor",                 Color"000000" },
     
         { "Color@MyButton",                 Color"e1e1e2" },

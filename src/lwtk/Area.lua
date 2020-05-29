@@ -59,6 +59,31 @@ function Area:intersects(x, y, w, h)
     return false
 end
 
+function Area:isWithin(x, y, w, h)
+    for _, x2, y2, w2, h2 in iterator, self, 0 do
+        if not doesRectContain(x, y, w, h, x2, y2, w2, h2) then
+            return false
+        end
+    end
+    return true
+end
+
+function Area:intersectsBorder(x, y, w, h, borderWidth)
+    local ix, iy, iw, ih = x + borderWidth,
+                           y + borderWidth,
+                           w - 2*borderWidth,
+                           h - 2*borderWidth
+    for _, x2, y2, w2, h2 in iterator, self, 0 do
+        if     not doesRectContain(ix, iy, iw, ih, x2, y2, w2, h2) 
+           and areRectsIntersected( x,  y,  w,  h, x2, y2, w2, h2)
+        then
+            return true
+        end
+    end
+    return false
+end
+
+
 function Area:clear()
     self.count = 0
 end

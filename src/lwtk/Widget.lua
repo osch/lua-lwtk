@@ -17,11 +17,13 @@ local getFocusableChildren = lwtk.get.focusableChildren
 local getActions           = lwtk.get.actions
 local wantsFocus           = lwtk.get.wantsFocus
 local callOnLayout         = lwtk.layout.callOnLayout
+local getStylePath         = lwtk.get.stylePath
+local getFontInfos         = lwtk.get.fontInfos
 
 local Super       = lwtk.Actionable
 local Widget      = lwtk.newClass("lwtk.Widget", Super)
 
-Widget:implement(Animatable)
+Widget:implementFrom(Animatable)
 
 function Widget.newClass(className, baseClass, additionalStyleSelector, ...)
     local newClass = Super.newClass(className, baseClass)
@@ -34,7 +36,6 @@ function Widget:new(initParams)
     Animatable.new(self)
     getApp[self]  = false
     getRoot[self] = self
-    self.state = {}
     self.visible = true
     self.opacity = 1
     self.x = 0
@@ -73,6 +74,10 @@ function Widget:getCurrentTime()
     return rslt
 end
 
+function Widget:getFontInfo(family, slant, weight, size)
+    return getFontInfos[self]:getFontInfo(family, slant, weight, size)
+end
+
 function Widget:getLayoutContext()
     local ctx
     local root = getRoot[self]
@@ -85,6 +90,7 @@ local function setAppAndRoot(self, app, root)
     getRoot[self] = root
     if app then
         getApp[self] = app
+        getFontInfos[self] = getFontInfos[app]
         local style = self.style
         if style then
             self.style = nil

@@ -15,7 +15,7 @@ dependencies = {
     "lua >= 5.1, < 5.4",
     "compat53",
     "luautf8",
-    "lpugl.cairo"
+    "lpugl_cairo"
 }
 build = {
     type = "builtin",
@@ -32,12 +32,15 @@ build = {
         ["lwtk.ChildLookup"]         = "src/lwtk/ChildLookup.lua",
         ["lwtk.Color"]               = "src/lwtk/Color.lua",
         ["lwtk.Column"]              = "src/lwtk/Column.lua",
+        ["lwtk.Compound"]            = "src/lwtk/Compound.lua",
         ["lwtk.Control"]             = "src/lwtk/Control.lua",
         ["lwtk.DefaultKeyBinding"]   = "src/lwtk/DefaultKeyBinding.lua",
         ["lwtk.DefaultStyleRules"]   = "src/lwtk/DefaultStyleRules.lua",
         ["lwtk.DefaultStyleTypes"]   = "src/lwtk/DefaultStyleTypes.lua",
         ["lwtk.FocusHandler"]        = "src/lwtk/FocusHandler.lua",
         ["lwtk.Focusable"]           = "src/lwtk/Focusable.lua",
+        ["lwtk.FontInfo"]            = "src/lwtk/FontInfo.lua",
+        ["lwtk.FontInfos"]           = "src/lwtk/FontInfos.lua",
         ["lwtk.Group"]               = "src/lwtk/Group.lua",
         ["lwtk.HotkeyHandler"]       = "src/lwtk/HotkeyHandler.lua",
         ["lwtk.KeyBinding"]          = "src/lwtk/KeyBinding.lua",
@@ -53,6 +56,9 @@ build = {
         ["lwtk.StyleRule"]           = "src/lwtk/StyleRule.lua",
         ["lwtk.StyleRuleContext"]    = "src/lwtk/StyleRuleContext.lua",
         ["lwtk.Styleable"]           = "src/lwtk/Styleable.lua",
+        ["lwtk.TextCursor"]          = "src/lwtk/TextCursor.lua",
+        ["lwtk.TextFragment"]        = "src/lwtk/TextFragment.lua",
+        ["lwtk.TextInput"]           = "src/lwtk/TextInput.lua",
         ["lwtk.Timer"]               = "src/lwtk/Timer.lua",
         ["lwtk.Transition"]          = "src/lwtk/Transition.lua",
         ["lwtk.TypeRule"]            = "src/lwtk/TypeRule.lua",

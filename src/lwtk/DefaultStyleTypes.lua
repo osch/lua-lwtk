@@ -7,7 +7,10 @@ local ANIMATABLE = TypeRule.ANIMATABLE
 
 local function DefaultStyleTypes()
     return {
-        { "*Seconds", "number" },
+        { "*Family",  "string" },
+        
+        { "*Seconds", 
+          "*Columns", "number" },
         
         { "*Color",   "lwtk.Color", ANIMATABLE },
         

@@ -25,6 +25,13 @@ return function()
         { "Return",
           "KP_Enter",
           "Space",    "FocusedButtonClick" },
+
+        { "Right",
+          "KP_Right", "CursorRight"         },
+
+        { "Left", 
+          "KP_Left",  "CursorLeft"          },
+
     }
 end
 

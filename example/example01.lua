@@ -42,7 +42,7 @@ do
             local offs = self:getStyleParam("TextOffset")
             local tx = (w - ext.width)/2
             local ty = (h - ext.height)/2 + ext.height
-            ctx:move_to(offs + math.floor(tx+0.5), offs + math.floor(ty+0.5)) -- sharper text
+            ctx:move_to(offs + math.floor(tx+0.5), offs + math.floor(ty+0.5))
             ctx:show_text(self.text)
         end
     end
@@ -60,7 +60,7 @@ app:setStyle {
     { "TextOffset",                 0            },
     { "TextOffset:pressed+hover",   1            },
     
-    { "Color",                     Color"f9f9fa" },
+    { "BackgroundColor",           Color"f9f9fa" },
     { "TextColor",                 Color"000000" },
 
     { "Color@MyButton",                 Color"e1e1e2" },

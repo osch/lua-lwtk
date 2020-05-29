@@ -38,7 +38,7 @@ local app = Application("test03.lua")
 
 app:setStyle {
     scaleFactor = 1,
-    { "Color",                     Color"f9f9fa" },
+    { "*Color",                    Color"f9f9fa" },
     { "Color@MyBox",               Color"0000ff" },
     { "Color@MyRow",               Color"f0f0ff" },
     { "*Margin",                   10 }

@@ -1,12 +1,14 @@
-local lpugl = require"lpugl.cairo"
+local lpugl = require"lpugl_cairo"
 local lwtk  = require"lwtk"
 
 local Timer       = lwtk.Timer
 local Window      = lwtk.Window
+local FontInfos   = lwtk.FontInfos
 local Application = lwtk.newClass("lwtk.Application")
 
 local getStyleParams  = lwtk.get.styleParams
 local getKeyBinding   = lwtk.get.keyBinding
+local getFontInfos    = lwtk.get.fontInfos
 
 local isClosed        = setmetatable({}, { __mode = "k" })
 
@@ -26,11 +28,16 @@ function Application:new(appName, styleRules)
     self:_createClosures()
 
     self.world:setProcessFunc(self.processFunc)
+    getFontInfos[self] = FontInfos(self.world:getDefaultBackend():getLayoutContext())
 end
 
 function Application:close()
     self.world:close()
     isClosed[self] = true
+end
+
+function Application:getFontInfo(family, slant, weight, size)
+    return getFontInfos[self]:getFontInfo(family, slant, weight, size)
 end
 
 function Application:setStyle(styleRules) 

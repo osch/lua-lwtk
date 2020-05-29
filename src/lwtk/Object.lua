@@ -37,15 +37,21 @@ function Object.newClass(className, superClass, classMeta)
 end
 
 
-function Object.implement(class, ...)
+function Object.implementFrom(class, ...)
   for _, mixin in pairs({...}) do
-    for k, v in pairs(mixin) do
-      if class[k] == nil and type(v) == "function" then
-        class[k] = v
+    local implementInto = mixin.implementInto
+    if implementInto then
+      implementInto(class)
+    else
+      for k, v in pairs(mixin) do
+        if class[k] == nil and type(v) == "function" then
+          class[k] = v
+        end
       end
     end
-    if mixin.initClass then
-        mixin:initClass(class)
+    local initClass = mixin.initClass
+    if initClass then
+        initClass(mixin, class)
     end
   end
 end

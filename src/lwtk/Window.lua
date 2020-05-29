@@ -14,8 +14,8 @@ local call            = lwtk.call
 local Super        = lwtk.Object
 local Window       = lwtk.newClass("lwtk.Window", Super)
 
-Window:implement(Styleable)
-Window:implement(KeyHandler)
+Window:implementFrom(Styleable)
+Window:implementFrom(KeyHandler)
 Window.color = true
 
 local getParent       = lwtk.get.parent
@@ -23,6 +23,7 @@ local getStyleParams  = lwtk.get.styleParams
 local getApp          = lwtk.get.app
 local getRoot         = lwtk.get.root
 local getKeyBinding   = lwtk.get.keyBinding
+local getFontInfos    = lwtk.get.fontInfos
 
 function Window.newClass(className, baseClass)
     local newClass = Super.newClass(className, baseClass)
@@ -34,6 +35,7 @@ function Window:new(app, initParms)
     Styleable.new(self)
     getApp[self]  = app
     getRoot[self] = self
+    getFontInfos[self] = getFontInfos[app]
     self.x = 0
     self.y = 0
     self.w = 0
@@ -134,6 +136,10 @@ function Window:getLayoutContext()
     return self.view:getLayoutContext()
 end
 
+function Window:getFontInfo(family, slant, weight, size)
+    return getFontInfos[self]:getFontInfo(family, slant, weight, size)
+end
+
 function Window:_handleConfigure(x, y, w, h)
     self.x = x
     self.y = y
@@ -157,7 +163,7 @@ function Window:_handleExpose(x, y, w, h, count)
         ctx:clip()
         local color = self.color
         if color == true then
-            color = self:getStyleParam("Color")
+            color = self:getStyleParam("BackgroundColor")
         end
         if color and self.w then
             fillRect(ctx, color, 0, 0, self.w, self.h)

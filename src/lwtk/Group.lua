@@ -4,15 +4,19 @@ local call        = lwtk.call
 local Object      = lwtk.Object
 local Rect        = lwtk.Rect
 local Styleable   = lwtk.Styleable
-local Super       = lwtk.Widget
 local ChildLookup = lwtk.ChildLookup
-local Group       = lwtk.newClass("lwtk.Group", Super)
 
-local intersectRects      = Rect.intersectRects
+local Compound                = lwtk.Compound
+local Compound_addChild       = Compound.addChild
 
 local getParent         = lwtk.get.parent
 local getWrappingParent = lwtk.get.wrappingParent
     
+local Super       = lwtk.Widget
+local Group       = lwtk.newClass("lwtk.Group", Super)
+
+Group:implementFrom(Compound)
+
 function Group:new(initParams)
     self.child = ChildLookup(self)
     local childList = {}
@@ -39,65 +43,13 @@ function Group:_clearChildLookup()
     end
 end
 
+
 function Group:addChild(child)
-    local myChild = getWrappingParent[child] or child
-    self[#self + 1] = myChild
-    myChild:_setParent(self)
+    Compound_addChild(self, child)
     self:_clearChildLookup()
     return child
 end
 
-function Group:_processChanges(x0, y0, cx, cy, cw, ch, damagedArea)
-    Super._processChanges(self, x0, y0, cx, cy, cw, ch, damagedArea)
-    local x, y, w, h = x0 + self.x, y0 + self.y, self.w, self.h
-    local cx, cy, cw, ch = intersectRects(x, y, w, h, cx, cy, cw, ch)
-    for _, child in ipairs(self) do
-        if child.hasChanges then
-            child.hasChanges = false
-            child.positionsChanged = false 
-            child:_processChanges(x, y, cx, cy, cw, ch, damagedArea)
-        end
-    end
-end
-
-function Group:_processDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
-
-    if self.opacity < 1 then
-        ctx:push_group()
-    end
-
-    local onDraw = self.onDraw
-    if onDraw then
-        self:updateAnimation()
-        onDraw(self, ctx, x0, y0, cx, cy, cw, ch, exposedArea)
-    end
-
-    local cx, cy, cw, ch = intersectRects(x0, y0, self.w, self.h, cx, cy, cw, ch)
-    if cw > 0 and ch > 0 then
-        for _, child in ipairs(self) do
-            if child.visible then
-                local childX, childY = child.x, child.y
-                local x, y, w, h = x0 + childX, y0 + childY, child.w, child.h
-                local x1, y1, w1, h1 = intersectRects(x, y, w, h, cx, cy, cw, ch)
-                if w1 > 0 and h1 > 0
-                   and exposedArea:intersects(x1, y1, w1, h1) 
-                then
-                    ctx:save()
-                    ctx:rectangle(childX, childY, w, h)
-                    ctx:clip()
-                    ctx:translate(childX, childY)
-                    child:_processDraw(ctx, x, y, x1, y1, w1, h1, exposedArea)
-                    ctx:restore()
-                end
-            end
-        end
-    end
-
-    if self.opacity < 1 then
-        ctx:pop_group_to_source()
-        ctx:paint_with_alpha(self.opacity)
-    end
-end
 
 local function findChildAt(self, mx, my)
     for i = #self, 1, -1 do
