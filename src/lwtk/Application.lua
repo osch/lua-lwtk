@@ -81,10 +81,7 @@ end
 function Application:runEventLoop()
     local world = self.world
     while world:hasViews() do
-        local hasEvents = world:pollEvents()
-        if hasEvents then
-            world:dispatchEvents()
-        end
+        world:update()
         if not isClosed[self] then
             self:_processAllChanges()
         end
@@ -181,11 +178,11 @@ function Application:_createClosures()
             window:_handleConfigure(...)
         elseif event == "EXPOSE" then
             window:_handleExpose(...)
-        elseif event == "MOTION_NOTIFY" then
+        elseif event == "MOTION" then
             window:_handleMouseMove(...)
-        elseif event == "LEAVE_NOTIFY" then
+        elseif event == "POINTER_OUT" then
             window:_handleMouseLeave(...)
-        elseif event == "ENTER_NOTIFY" then
+        elseif event == "POINTER_IN" then
             window:_handleMouseEnter(...)
         elseif event == "KEY_PRESS" then
             window:_handleKeyDown(...)
