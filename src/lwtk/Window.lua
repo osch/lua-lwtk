@@ -299,7 +299,7 @@ function Window:_processChanges()
                 if damagedArea.count > 0 then
                     local view = self.view
                     for _, x, y, w, h in damagedArea:iteration() do
-                        view:postRedisplayRect(x, y, w, h)
+                        view:postRedisplay(x, y, w, h)
                     end
                     damagedArea:clear()
                 end
