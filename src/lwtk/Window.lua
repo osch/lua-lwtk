@@ -47,13 +47,15 @@ function Window:new(app, initParms)
     getStyleParams[self] = getStyleParams[app]
     KeyHandler.new(self)
     self.child = ChildLookup(self)
-    self.view  = app.world:newView { resizable      = true, 
-                                     dontMergeRects = true }
-    self.view:setEventFunc(app.eventFunc, self)
     self.exposedArea = Area()
     self.damagedArea = Area() -- as cache
     self.mouseEntered = false
     app:_addWindow(self)
+    self.view = app.world:newView {
+        resizable      = true, 
+        dontMergeRects = true,
+        eventFunc      = {app.eventFunc, self}  
+    }
     if initParms then
         local childList = {}
         for i = 1, #initParms do

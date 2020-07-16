@@ -172,7 +172,7 @@ function Application:_createClosures()
         end
     end
     
-    function self.eventFunc(window, event, ...)
+    function self.eventFunc(window, view, event, ...)
         --print(event, ...)
         if event == "CONFIGURE" then
             window:_handleConfigure(...)
