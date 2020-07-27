@@ -15,20 +15,21 @@ local isClosed        = setmetatable({}, { __mode = "k" })
 function Application:new(appName, styleRules)
     
     isClosed[self] = false
+    self.world     = lpugl.newWorld(appName)
     
+    styleRules = styleRules or lwtk.DefaultStyleRules{ screenScale = self.world:getScreenScale() }
     getStyleParams[self] = lwtk.StyleParams(lwtk.DefaultStyleTypes(),
-                                            styleRules or lwtk.DefaultStyleRules())
+                                            styleRules)
     getKeyBinding[self]  = lwtk.DefaultKeyBinding()
 
     self.appName       = appName
     self.windows       = {}
     self.damageReports = nil
-    self.world         = lpugl.newWorld(appName)
 
     self:_createClosures()
 
     self.world:setProcessFunc(self.processFunc)
-    getFontInfos[self] = FontInfos(self.world:getDefaultBackend():getLayoutContext())
+    getFontInfos[self]   = FontInfos(self.world:getDefaultBackend():getLayoutContext())
 end
 
 function Application:close()
@@ -38,6 +39,33 @@ end
 
 function Application:getFontInfo(family, slant, weight, size)
     return getFontInfos[self]:getFontInfo(family, slant, weight, size)
+end
+
+function Application:getScreenScale()
+    return self.world:getScreenScale()
+end
+
+function Application:getScreenScaleFunc()
+    local f = self.screenScaleFunc
+    if not f then
+        local s = self.world:getScreenScale()
+        f = function(arg, arg2, arg3, arg4)
+            if type(arg) == "table" then
+                arg[1] = arg[1] * s
+                arg[2] = arg[2] * s
+                arg[3] = arg[3] * s
+                arg[4] = arg[4] * s
+                return arg
+            else
+                return          s * arg, 
+                       arg2 and s * arg2,
+                       arg3 and s * arg3,
+                       arg4 and s * arg4
+            end
+        end
+        self.screenScaleFunc = f
+    end
+    return f
 end
 
 function Application:setStyle(styleRules) 

@@ -79,8 +79,10 @@ end
 
 local app = Application("test02.lua")
 
+local scale = app:getScreenScaleFunc()
+
 app:setStyle {
-    scaleFactor = 1.2,
+    scaleFactor = scale(1.2),
     { "*TransitionSeconds",               0.05 },
     { "VisibilityTransitionSeconds",      1.05 },
     { "FrameTransitionSeconds",           0.10 },
@@ -117,7 +119,7 @@ local win = app:newWindow {
         id = "g0",
         MyButton {
             id = "b1",
-            frame = {  10, 10, 100, 30 },
+            frame = scale {  10, 10, 100, 30 },
             text  = "OK",
             onClicked = function(self) 
                             print("Button Clicked")
@@ -127,19 +129,19 @@ local win = app:newWindow {
         },
         MyButton {
             id = "b2",
-            frame = { 120, 10, 100, 30 },
+            frame = scale { 120, 10, 100, 30 },
             text  = "Exit",
             onClicked = function(self) 
-                            self:getRoot():close()
-                            --app:close() 
+                            --self:getRoot():close()
+                            app:close() 
                         end
         },
         Bordered(MyGroup) {
             id = "g1",
-            frame = {  10, 80, 200, 100 },
+            frame = scale {  10, 80, 200, 100 },
             MyButton {
                 id = "b3",
-                frame = { -40, -10, 100, 30 },
+                frame = scale { -40, -10, 100, 30 },
                 text = "test",
                 onClicked = function(self)
                                 counter = counter + 1
@@ -149,30 +151,30 @@ local win = app:newWindow {
                                 local x, y, w, h = g2:getFrame()
                                 g2:changeFrame(x + 5, y, w + 5, h)
                                 local x, y, w, h = self:getFrame()
-                                self:changeFrame(x + 2, y + 2, w, h)
+                                self:changeFrame(x + scale(2), y + scale(2), w, h)
                                 local b5 = root.child.b5
                                 local x, y, w, h = b5:getFrame()
-                                b5:changeFrame(x, y + 5, w + 5, h)
+                                b5:changeFrame(x, y + scale(5), w + scale(5), h)
                             end
             }
         },
         Border {
             id = "g2",
-            frame = { 230, 80, 200, 100 },
+            frame = scale { 230, 80, 200, 100 },
             MyButton {
                 id = "b4",
-                frame = { -40, -10, 100, 30 },
+                frame = scale { -40, -10, 100, 30 },
                 text = "test",
             }
         },
         Bordered(MyButton) {
             id = "b5",
-            frame = { 440, 80, 100, 50 },
+            frame = scale { 440, 80, 100, 50 },
             text = "test",
         }
     }
 }
---win:setSize(400,300)
+win:setSize(scale(640,480))
 win:show()
 
 app:runEventLoop()

@@ -11,7 +11,7 @@ local function DefaultStyleRules(params)
     
     return {
         
-        scaleFactor = params.scaleFactor or 1,
+        scaleFactor = (params.scaleFactor or 1) * (params.screenScale or 1),
         
         { "*TransitionSeconds",               0.05 },
         { "FrameTransitionSeconds",           0.20 },
