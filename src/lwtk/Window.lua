@@ -159,10 +159,6 @@ function Window:_handleExpose(x, y, w, h, count)
     self.exposedArea:addRect(x, y, w, h)
     if count == 0 then
         local ctx = self.view:getDrawContext()
-        for _, ax, ay, aw, ah in self.exposedArea:iteration() do
-            ctx:rectangle(ax, ay, aw, ah)
-        end
-        ctx:clip()
         local color = self.color
         if color == true then
             color = self:getStyleParam("BackgroundColor")
