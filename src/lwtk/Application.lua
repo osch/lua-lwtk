@@ -106,14 +106,24 @@ function Application:_processAllChanges()
     end
 end
 
-function Application:runEventLoop()
+function Application:runEventLoop(timeout)
     local world = self.world
+    local endTime = timeout and (world:getTime() + timeout)
+    self:_processAllChanges()
     while world:hasViews() do
-        world:update()
+        world:update(endTime and world:getTime() - endTime)
         if not isClosed[self] then
             self:_processAllChanges()
         end
+        if endTime and world:getTime() >= endTime then
+            break
+        end
     end
+end
+
+function Application:update(timeout)
+    self:_processAllChanges()
+    return self.world:update(timeout)
 end
 
 local insert = table.insert
