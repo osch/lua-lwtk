@@ -33,6 +33,7 @@ end
 
 function Window:new(app, initParms)
     Styleable.new(self)
+    self.fullRedisplayOutstanding = true
     getApp[self]  = app
     getRoot[self] = self
     getFontInfos[self] = getFontInfos[app]
@@ -158,6 +159,7 @@ end
 function Window:_handleExpose(x, y, w, h, count)
     self.exposedArea:addRect(x, y, w, h)
     if count == 0 then
+        self.fullRedisplayOutstanding = false
         local ctx = self.view:getDrawContext()
         local color = self.color
         if color == true then
@@ -297,7 +299,12 @@ function Window:_processChanges()
                 if damagedArea.count > 0 then
                     local view = self.view
                     for _, x, y, w, h in damagedArea:iteration() do
-                        view:postRedisplay(x, y, w, h)
+                        if not self.fullRedisplayOutstanding then
+                            view:postRedisplay(x, y, w, h)
+                            if x <= 0 and y <= 0 and x + w >= self.w and y + h >= self.h then
+                                self.fullRedisplayOutstanding = true
+                            end
+                        end
                     end
                     damagedArea:clear()
                 end
