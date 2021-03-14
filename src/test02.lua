@@ -28,16 +28,16 @@ do
         self:triggerRedraw()
     end
     function MyButton:onMouseEnter(x, y)
-        self:changeState("hover", true)
+        self:setState("hover", true)
     end
     function MyButton:onMouseLeave(x, y)
-        self:changeState("hover", false)
+        self:setState("hover", false)
     end
     function MyButton:onMouseDown(x, y, button, modState)
-        self:changeState("pressed", true)
+        self:setState("pressed", true)
     end
     function MyButton:onMouseUp(x, y, button, modState)
-        self:changeState("pressed", false)
+        self:setState("pressed", false)
         if self.state.hover and self.onClicked then
             self:onClicked()
         end
@@ -83,12 +83,10 @@ local scale = app:getScreenScaleFunc()
 
 app:setStyle {
     scaleFactor = scale(1.2),
-    { "*TransitionSeconds",               0.05 },
-    { "VisibilityTransitionSeconds",      1.05 },
-    { "FrameTransitionSeconds",           0.10 },
-    { "HoverTransitionSeconds:",          0.20 },
-    { "HoverTransitionSeconds:hover",     0.20 },
-    { "PressedTransitionSeconds:pressed", 0.20 },
+    { "*TransitionSeconds",                 0.05 },
+    { "VisibilityTransitionSeconds",        1.05 },
+    { "FrameTransitionSeconds",             0.10 },
+    { "HoverTransitionSeconds:hover",       0.20 },
     
     { "*Color",                    Color"f9f9fa" },
     { "TextColor",                 Color"000000" },
@@ -124,7 +122,9 @@ local win = app:newWindow {
             onClicked = function(self) 
                             print("Button Clicked")
                             local c = self:getRoot().child.b5
-                            c:changeVisibility(not c:getVisibility())
+                            local wasVisible = c:isVisible()
+                            c:setVisible(not wasVisible)
+                            assert(c:isVisible() == not wasVisible)
                         end
         },
         MyButton {

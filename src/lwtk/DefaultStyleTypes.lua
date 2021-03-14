@@ -12,6 +12,8 @@ local function DefaultStyleTypes()
         { "*Seconds", 
           "*Columns", "number" },
         
+        { "*Opacity",               ANIMATABLE },
+        
         { "*Color",   "lwtk.Color", ANIMATABLE },
         
         { "*Margin",  "number",     SCALABLE },

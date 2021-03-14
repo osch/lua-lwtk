@@ -22,14 +22,33 @@ function Button:setHotkey(hotkey)
     end
     getHotkeys[self] = hotkeys
     local focusHandler = getFocusHandler[self]
-    if focusHandler then
+    if focusHandler and self.visible then
         focusHandler:registerHotkeys(self, hotkeys)
+    end
+end
+
+function Button:setVisible(shouldBeVisible)
+    if shouldBeVisible ~= self.visible then
+        if shouldBeVisible then
+            local focusHandler = getFocusHandler[self]
+            local hotkeys = getHotkeys[self]
+            if focusHandler and hotkeys then
+                focusHandler:registerHotkeys(self, hotkeys)
+            end
+        else
+            local focusHandler = getFocusHandler[self]
+            local hotkeys = getHotkeys[self]
+            if focusHandler and hotkeys then
+                focusHandler:deregisterHotkeys(self, hotkeys)
+            end
+        end
+        Super.setVisible(self, shouldBeVisible)
     end
 end
 
 function Button:_handleHasFocusHandler(focusHandler)
     local hotkeys = getHotkeys[self]
-    if hotkeys then
+    if hotkeys and self.visible then
         focusHandler:registerHotkeys(self, hotkeys)
     end
 end

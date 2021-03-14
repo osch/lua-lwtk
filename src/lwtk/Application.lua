@@ -9,8 +9,10 @@ local Application = lwtk.newClass("lwtk.Application")
 local getStyleParams  = lwtk.get.styleParams
 local getKeyBinding   = lwtk.get.keyBinding
 local getFontInfos    = lwtk.get.fontInfos
+local getAnimations   = lwtk.get.animations
 
 local isClosed        = setmetatable({}, { __mode = "k" })
+local createClosures
 
 function Application:new(appName, styleRules)
     
@@ -26,10 +28,9 @@ function Application:new(appName, styleRules)
     self.windows       = {}
     self.damageReports = nil
 
-    self:_createClosures()
-
-    self.world:setProcessFunc(self.processFunc)
     getFontInfos[self]   = FontInfos(self.world:getDefaultBackend():getLayoutContext())
+
+    createClosures(self)
 end
 
 function Application:close()
@@ -92,40 +93,6 @@ function Application:_removeWindow(win)
     end
 end
 
-function Application:_processAllChanges()
-    if self.hasChanges then
-        self.hasChanges = false
-        local windows = self.windows
-        for _, w in ipairs(windows) do
-            if w.hasChanges then
-                w.hasChanges = false
-                w:_processChanges()
-            end
-        end
-        assert(not self.hasChanges)
-    end
-end
-
-function Application:runEventLoop(timeout)
-    local world = self.world
-    local endTime = timeout and (world:getTime() + timeout)
-    self:_processAllChanges()
-    while world:hasViews() do
-        world:update(endTime and world:getTime() - endTime)
-        if not isClosed[self] then
-            self:_processAllChanges()
-        end
-        if endTime and world:getTime() >= endTime then
-            break
-        end
-    end
-end
-
-function Application:update(timeout)
-    self:_processAllChanges()
-    return self.world:update(timeout)
-end
-
 local insert = table.insert
 local remove = table.remove
 
@@ -138,14 +105,10 @@ local function unpack(t)
     return unpack2(t, 1, t.n)
 end
 
-function Application:_createClosures()
-    
+createClosures = function(self)
+
     local world  = self.world
     local timers = {}
-    
-    function self:getCurrentTime()
-        return world:getTime() 
-    end
     
     function self:setTimer(seconds, func, ...)
         local n = #timers
@@ -183,8 +146,53 @@ function Application:_createClosures()
         world:setNextProcessTime(t)
         return timer
     end
+
+    local animations     = lwtk.Animations(self)
+    local animationTimer = animations.timer
+    getAnimations[self]  = animations
+
+    function self:getCurrentTime()
+        return world:getTime() 
+    end
     
-    function self.processFunc()
+    local function _processAllChanges()
+        if self.hasChanges then
+            self.hasChanges = false
+            local windows = self.windows
+            for _, w in ipairs(windows) do
+                if w.hasChanges then
+                    w.hasChanges = false
+                    w:_processChanges()
+                end
+            end
+            assert(not self.hasChanges)
+        end
+    end
+    
+    function self:runEventLoop(timeout)
+        local endTime = timeout and (world:getTime() + timeout)
+        if not animationTimer.time then
+            _processAllChanges()
+        end
+        while world:hasViews() do
+            world:update(endTime and world:getTime() - endTime)
+            if not isClosed[self] and not animationTimer.time then
+                _processAllChanges()
+            end
+            if endTime and world:getTime() >= endTime then
+                break
+            end
+        end
+    end
+    
+    function self:update(timeout)
+        if not animationTimer.time then
+            _processAllChanges()
+        end
+        return world:update(timeout)
+    end
+    
+    world:setProcessFunc(function()
         local now = world:getTime()
         local closed = isClosed[self]
         while not closed do
@@ -193,6 +201,9 @@ function Application:_createClosures()
                 break
             end
             remove(timers, 1)
+            if timer == animationTimer then
+                _processAllChanges()
+            end
             timer.time = false
             timer.func(unpack(timer))
             closed = isClosed[self]
@@ -205,12 +216,12 @@ function Application:_createClosures()
                 world:setNextProcessTime(t)
             end
         end
-        if not closed then
-            self:_processAllChanges()
+        if not closed and not animationTimer.time then
+            _processAllChanges()
         end
-    end
+    end)
     
-    function self.eventFunc(window, view, event, ...)
+    function self._eventFunc(window, view, event, ...)
         --print(event, ...)
         if event == "CONFIGURE" then
             window:_handleConfigure(...)
@@ -237,9 +248,10 @@ function Application:_createClosures()
         elseif event == "CLOSE" then
             window:_handleClose()
         end
-        self:_processAllChanges()
+        if not isClosed[self] and not animationTimer.time then
+            _processAllChanges()
+        end
     end
-    
 end
 
 

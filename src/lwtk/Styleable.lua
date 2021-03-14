@@ -92,6 +92,9 @@ end
 local getStateStyleSelectorPath = Styleable.getStateStyleSelectorPath
 
 function Styleable:getStyleParam(paramName)
+    if not self.visible and paramName == "Opacity" then
+        return 0
+    end
     local styleParams = getStyleParams[self]
     if styleParams then
         local stylePath = getStylePath[self]
@@ -110,7 +113,12 @@ function Styleable:getStyleParam(paramName)
         end
         local statePath = getStateStyleSelectorPath(self)
         assert(stylePath, "Widget not connected to parent")
-        return styleParams:getStyleParam(paramName, stylePath, statePath, self.styleRules)
+        local rslt = styleParams:getStyleParam(paramName, stylePath, statePath, self.styleRules)
+        if not rslt and paramName:match("^.*Opacity$") then
+            return 1
+        else
+            return rslt
+        end
     end
 end
 

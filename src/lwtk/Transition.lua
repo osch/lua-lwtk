@@ -22,6 +22,14 @@ function Transition:resetBackward()
     self.state      = 1
 end
 
+function Transition:finish()
+    if self.forward then
+        self:resetBackward()
+    else
+        self:reset()
+    end
+end
+
 function Transition:isActive()
     if self.forward then  return self.state < 1
                     else  return self.state > 0 end

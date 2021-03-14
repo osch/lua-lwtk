@@ -3,6 +3,7 @@ local lwtk = require"lwtk"
 local Rect                = lwtk.Rect
 local intersectRects      = Rect.intersectRects
 local getWrappingParent   = lwtk.get.wrappingParent
+local ignored             = lwtk.get.ignored
 
 local Super    = lwtk.Widget
 local Compound = lwtk.newClass("lwtk.Compound", Super, lwtk.Styleable.ADOPT_PARENT_STYLE)
@@ -40,7 +41,8 @@ function Compound:_processChanges(x0, y0, cx, cy, cw, ch, damagedArea)
 end
 
 function Compound:_processDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
-    if self.opacity < 1 then
+    local opacity = self:getStyleParam("Opacity") or 1
+    if opacity < 1 then
         ctx:push_group()
     end
 
@@ -53,7 +55,7 @@ function Compound:_processDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
     local cx, cy, cw, ch = intersectRects(x0, y0, self.w, self.h, cx, cy, cw, ch)
     if cw > 0 and ch > 0 then
         for _, child in ipairs(self) do
-            if child.visible then
+            if not ignored[child] then
                 local childX, childY = child.x, child.y
                 local x, y, w, h = x0 + childX, y0 + childY, child.w, child.h
                 local x1, y1, w1, h1 = intersectRects(x, y, w, h, cx, cy, cw, ch)
@@ -71,9 +73,9 @@ function Compound:_processDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
         end
     end
 
-    if self.opacity < 1 then
+    if opacity < 1 then
         ctx:pop_group_to_source()
-        ctx:paint_with_alpha(self.opacity)
+        ctx:paint_with_alpha(opacity)
     end
 end
 

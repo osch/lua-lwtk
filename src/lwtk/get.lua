@@ -18,5 +18,7 @@ get.keyBinding        = setmetatable({}, { __mode = "k" })
 get.hotKeys           = setmetatable({}, { __mode = "k" })
 get.stylePath         = setmetatable({}, { __mode = "k" })
 get.fontInfos         = setmetatable({}, { __mode = "k" })
+get.ignored           = setmetatable({}, { __mode = "k" })
+get.animations        = setmetatable({}, { __mode = "k" })
 
 return get

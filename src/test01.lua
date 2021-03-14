@@ -86,12 +86,12 @@ MyGroup.onDraw = MyBox.onDraw
 
 function MyBox:onMouseEnter(x, y)
 --    print(self.id, "move", x, y)
-    self:changeState("hover", true)
+    self:setState("hover", true)
 end
 
 function MyBox:onMouseLeave(x, y)
 --    print(self.id, "leave", x, y)
-    self:changeState("hover", false)
+    self:setState("hover", false)
 end
 
 local win1 = app:newWindow {

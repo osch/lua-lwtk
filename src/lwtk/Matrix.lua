@@ -24,6 +24,16 @@ local RowAdapter    = lwtk.newClass("lwtk.Matrix.RowAdapter")
 
 -------------------------------------------------------------------------------------------------
 
+function ColumnAdapter:new()
+    self.visible = true
+end
+
+function RowAdapter:new()
+    self.visible = true
+end
+
+-------------------------------------------------------------------------------------------------
+
 local function get4Cache(cache, i)
     i = (i - 1) * 4
     return cache[i + 1], cache[i + 2], cache[i + 3], cache[i + 4]

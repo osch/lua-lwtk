@@ -24,6 +24,7 @@ build = {
         ["lwtk"]                     = "src/lwtk/init.lua",
         ["lwtk.Actionable"]          = "src/lwtk/Actionable.lua",
         ["lwtk.Animatable"]          = "src/lwtk/Animatable.lua",
+        ["lwtk.Animations"]          = "src/lwtk/Animations.lua",
         ["lwtk.Application"]         = "src/lwtk/Application.lua",
         ["lwtk.Area"]                = "src/lwtk/Area.lua",
         ["lwtk.Border"]              = "src/lwtk/Border.lua",

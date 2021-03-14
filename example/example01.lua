@@ -17,16 +17,16 @@ do
         self:triggerRedraw()
     end
     function MyButton:onMouseEnter(x, y)
-        self:changeState("hover", true)
+        self:setState("hover", true)
     end
     function MyButton:onMouseLeave(x, y)
-        self:changeState("hover", false)
+        self:setState("hover", false)
     end
     function MyButton:onMouseDown(x, y, button, modState)
-        self:changeState("pressed", true)
+        self:setState("pressed", true)
     end
     function MyButton:onMouseUp(x, y, button, modState)
-        self:changeState("pressed", false)
+        self:setState("pressed", false)
         if self.state.hover and self.onClicked then
             self:onClicked()
         end

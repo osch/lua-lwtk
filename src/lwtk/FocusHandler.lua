@@ -46,7 +46,7 @@ local function findNextFocusableChild1(self, direction)
         local fx, fy, fw, fh
         for i = 1, #focusableChildren do
             local child = focusableChildren[i]
-            if child ~= focusedChild then
+            if child.visible and child ~= focusedChild then
                 local nx, ny = child:transformXY(0, 0, baseWidget)
                 local nw, nh = child.w, child.h
                 if direction == "right" then
@@ -89,7 +89,7 @@ local function findNextFocusableChild1(self, direction)
         local fx, fy, fw, fh
         for i = 1, #focusableChildren do
             local child = focusableChildren[i]
-            if child ~= focusedChild then
+            if child.visible and child ~= focusedChild then
                 local nx, ny = child:transformXY(0, 0, baseWidget)
                 local nw, nh = child.w, child.h
                 if direction == "up" then
@@ -121,8 +121,8 @@ local function findNextFocusableChild2(self, direction)
         local fx, fy
         for i = 1, #focusableChildren do
             local child = focusableChildren[i]
-            local nx, ny = child:transformXY(0, 0, baseWidget)
-            if child ~= focusedChild then
+            if child.visible and child ~= focusedChild then
+                local nx, ny = child:transformXY(0, 0, baseWidget)
                 if isForw then
                     if nx > cx and ny >= cy and (not found or ny < fy or (ny == fy and nx < fx)) then
                         found = child
@@ -206,16 +206,18 @@ function FocusHandler:_handleFocusIn()
             local focusableChildren = getFocusableChildren[self]
             for i = 1, #focusableChildren do
                 local child = focusableChildren[i]
-                if found then
-                    local childX, childY = child:transformXY(0, 0, baseWidget)
-                    if childY < foundY or childY == foundY and childX < foundX then
-                        foundX = childX
-                        foundY = childY
+                if child.visible then
+                    if found then
+                        local childX, childY = child:transformXY(0, 0, baseWidget)
+                        if childY < foundY or childY == foundY and childX < foundX then
+                            foundX = childX
+                            foundY = childY
+                            found = child
+                        end
+                    else
+                        foundX, foundY = child:transformXY(0, 0, baseWidget)
                         found = child
                     end
-                else
-                    foundX, foundY = child:transformXY(0, 0, baseWidget)
-                    found = child
                 end
             end
             if found then

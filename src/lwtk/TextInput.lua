@@ -69,10 +69,10 @@ function TextInput:onLayout(width, height)
 end
 
 function TextInput:onFocusIn()
-    self:changeState("focused", true)
+    self:setState("focused", true)
 end
 function TextInput:onFocusOut()
-    self:changeState("focused", false)
+    self:setState("focused", false)
 end
 
 function TextInput:onActionCursorRight()

@@ -34,6 +34,9 @@ function layout.getOuterMargins(widget)
 end
 
 local function getMeasures(widget)
+    if not widget.visible then
+        return 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+    end
     local cached = measureCache[widget]
     if not cached then 
         cached = {}

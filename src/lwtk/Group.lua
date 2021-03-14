@@ -127,16 +127,10 @@ local function processMouseMove(self, entered, mx, my)
                 end
                 self.mouseHoverChild = uChild
                 local mcx, mcy = mx - x, my - y
-                self.mouseHoverChildX = mcx
-                self.mouseHoverChildY = mcy
                 uChild:_processMouseEnter(mx - x, my - y)
             else
                 local mcx, mcy = mx - x, my - y
-                if self.mouseHoverChildX ~= mcx or self.mouseHoverChildY ~= mcy then
-                    self.mouseHoverChildX = mcx
-                    self.mouseHoverChildY = mcy
-                    uChild:_processMouseMove(entered, mcx, mcy)
-                end
+                uChild:_processMouseMove(entered, mcx, mcy)
             end
         else
             local hChild = self.mouseHoverChild

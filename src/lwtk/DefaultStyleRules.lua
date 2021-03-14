@@ -14,10 +14,10 @@ local function DefaultStyleRules(params)
         scaleFactor = (params.scaleFactor or 1) * (params.screenScale or 1),
         
         { "*TransitionSeconds",               0.05 },
+        { "VisibilityTransitionSeconds",      0.00 },
         { "FrameTransitionSeconds",           0.20 },
-        { "HoverTransitionSeconds:",          0.20 },
-        { "HoverTransitionSeconds:hover",     0.20 },
-        { "PressedTransitionSeconds:pressed", 0.20 },
+        { "HoverTransitionSeconds",           0.20 },
+        { "PressedTransitionSeconds",         0.05 },
         { "SimulateButtonClickSeconds",       0.10 },
 
         { "TextSize",                  12 },

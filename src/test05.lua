@@ -16,11 +16,15 @@ local win = app:newWindow {
             {
                 PushButton { text = "OK" }, 
                 PushButton { text = "OK" }, 
-                PushButton { text = "Click now and here!" },
+                PushButton { text = "Click now and here!",
+                             onClicked =    function(self) 
+                                                local c = self:getRoot().child.b5
+                                                c:setVisibility(not c:getVisibility()) 
+                                            end },
             },
             {
                 PushButton { text = "OK" },                 
-                PushButton { text = "Cancel" },
+                PushButton { text = "Cancel", id = "b5" },
                 PushButton { text = "OK" , 
                     style = {
                         {"Height",  40}

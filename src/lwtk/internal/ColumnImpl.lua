@@ -108,16 +108,18 @@ function ColumnImpl.implementColumn(class, isRow)
         applyTBLayout(self, height, topMargin,  bottomMargin, tbCache, getChildTBMeasures)
         for i = 1, #self do
             local child = self[i]
-            local ncTop, ncRight, ncBottom, ncLeft
-            local childX, childY, childW, childH
-            ncLeft, ncRight,  childX, childW = get4Cache(lrCache, i)
-            ncTop,  ncBottom, childY, childH = get4Cache(tbCache, i)
-            if isRow then
-                ncTop, ncRight, ncBottom, ncLeft = rotateMargins(ncTop, ncRight, ncBottom, ncLeft)
-                childX, childY, childW, childH = childY, childX, childH, childW
+            if child.visible then
+                local ncTop, ncRight, ncBottom, ncLeft
+                local childX, childY, childW, childH
+                ncLeft, ncRight,  childX, childW = get4Cache(lrCache, i)
+                ncTop,  ncBottom, childY, childH = get4Cache(tbCache, i)
+                if isRow then
+                    ncTop, ncRight, ncBottom, ncLeft = rotateMargins(ncTop, ncRight, ncBottom, ncLeft)
+                    childX, childY, childW, childH = childY, childX, childH, childW
+                end
+                setOuterMargins(child, ncTop, ncRight, ncBottom, ncLeft)
+                child:setFrame(childX, childY, childW, childH)
             end
-            setOuterMargins(child, ncTop, ncRight, ncBottom, ncLeft)
-            child:setFrame(childX, childY, childW, childH)
         end
     end
 end

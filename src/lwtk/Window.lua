@@ -24,6 +24,7 @@ local getApp          = lwtk.get.app
 local getRoot         = lwtk.get.root
 local getKeyBinding   = lwtk.get.keyBinding
 local getFontInfos    = lwtk.get.fontInfos
+local ignored         = lwtk.get.ignored
 
 function Window.newClass(className, baseClass)
     local newClass = Super.newClass(className, baseClass)
@@ -55,7 +56,7 @@ function Window:new(app, initParms)
     self.view = app.world:newView {
         resizable      = true, 
         dontMergeRects = true,
-        eventFunc      = {app.eventFunc, self}  
+        eventFunc      = {app._eventFunc, self}  
     }
     if initParms then
         local childList = {}
@@ -170,7 +171,7 @@ function Window:_handleExpose(x, y, w, h, count)
         end
         for i = 1, #self do
             local child = self[i]
-            if child.visible then
+            if not ignored[child] then
                 child:_processDraw(ctx, 0, 0, 0, 0, self.w, self.h, self.exposedArea)
             end
         end

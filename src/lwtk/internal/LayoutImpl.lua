@@ -21,9 +21,11 @@ local function calculateLRMeasures(childList, getChildLRMeasures)
     local bestWidth = 0
     for i = 1, n do
         local child = childList[i]
-        local minW, bestW, maxW,
-              childLeft, childRight  = getChildLRMeasures(child)
-        if bestW > bestWidth then bestWidth = bestW end
+        if child.visible then
+            local minW, bestW, maxW,
+                  childLeft, childRight  = getChildLRMeasures(child)
+            if bestW > bestWidth then bestWidth = bestW end
+        end
     end
     
     local leftMargin   = nil
@@ -31,17 +33,19 @@ local function calculateLRMeasures(childList, getChildLRMeasures)
 
     for i = 1, n do
         local child = childList[i]
-        local minW, bestW, maxW,
-              childLeft, childRight  = getChildLRMeasures(child)
-        if bestW > 0 then
-            local w = (childLeft or 0) + bestW + (childRight or 0)
-            if w > bestWidth then
-                local dw = w - bestWidth
-                if childLeft  and (not leftMargin  or childLeft  < leftMargin)  then 
-                    leftMargin  = childLeft  
-                end
-                if childRight and (not rightMargin or childRight < rightMargin) then 
-                    rightMargin = childRight 
+        if child.visible then
+            local minW, bestW, maxW,
+                  childLeft, childRight  = getChildLRMeasures(child)
+            if bestW > 0 then
+                local w = (childLeft or 0) + bestW + (childRight or 0)
+                if w > bestWidth then
+                    local dw = w - bestWidth
+                    if childLeft  and (not leftMargin  or childLeft  < leftMargin)  then 
+                        leftMargin  = childLeft  
+                    end
+                    if childRight and (not rightMargin or childRight < rightMargin) then 
+                        rightMargin = childRight 
+                    end
                 end
             end
         end
@@ -54,31 +58,33 @@ local function calculateLRMeasures(childList, getChildLRMeasures)
     
     for i = 1, n do
         local child = childList[i]
-        local minW, bestW, maxW,
-              childLeft, childRight  = getChildLRMeasures(child)
-        
-        local dw = 0
-        if childLeft and childLeft > leftMargin then
-            dw = childLeft - leftMargin
-        end
-        if childRight and childRight > rightMargin then
-            dw = dw + childRight - rightMargin
-        end
-        if dw > 0 then 
-            minW = minW + dw
-            bestW = bestW + dw
-            if maxW >= 0 then maxW = maxW + dw end
-        end
-        if minW  > minWidth  then minWidth  = minW  end
-        if bestW > bestWidth then bestWidth = bestW end
-        
-        if maxWidth >= 0 then
-            if maxW >= 0 then
-                if maxW > maxWidth then maxWidth = maxW end
-            elseif maxW == -1 then
-                maxWidth = -1
-            elseif bestW > maxWidth then 
-                maxWidth = bestW 
+        if child.visible then
+            local minW, bestW, maxW,
+                  childLeft, childRight  = getChildLRMeasures(child)
+            
+            local dw = 0
+            if childLeft and childLeft > leftMargin then
+                dw = childLeft - leftMargin
+            end
+            if childRight and childRight > rightMargin then
+                dw = dw + childRight - rightMargin
+            end
+            if dw > 0 then 
+                minW = minW + dw
+                bestW = bestW + dw
+                if maxW >= 0 then maxW = maxW + dw end
+            end
+            if minW  > minWidth  then minWidth  = minW  end
+            if bestW > bestWidth then bestWidth = bestW end
+            
+            if maxWidth >= 0 then
+                if maxW >= 0 then
+                    if maxW > maxWidth then maxWidth = maxW end
+                elseif maxW == -1 then
+                    maxWidth = -1
+                elseif bestW > maxWidth then 
+                    maxWidth = bestW 
+                end
             end
         end
     end
@@ -99,13 +105,15 @@ local function calculateTBMeasures(childList, getChildTBMeasures)
 
     for i = 1, n do
         local child = childList[i]
-        local minH, bestH, maxH,
-              childTop, childBottom = getChildTBMeasures(child)
-        if not topMargin and childTop and bestH > 0 then 
-            topMargin = childTop
-        end
-        if bestH > 0 and childBottom then
-            bottomMargin = childBottom
+        if child.visible then
+            local minH, bestH, maxH,
+                  childTop, childBottom = getChildTBMeasures(child)
+            if not topMargin and childTop and bestH > 0 then 
+                topMargin = childTop
+            end
+            if bestH > 0 and childBottom then
+                bottomMargin = childBottom
+            end
         end
     end
     topMargin    = topMargin or 0
@@ -124,37 +132,39 @@ local function calculateTBMeasures(childList, getChildTBMeasures)
     
     for i = 1, n do
         local child = childList[i]
-        local minH, bestH, maxH,
-              childTop, childBottom = getChildTBMeasures(child)
-        
-        if i > 1 then
-            if childTop and prevBottom and childTop > prevBottom then 
-                minHeight  =  minHeight + childTop - prevBottom
-                bestHeight = bestHeight + childTop - prevBottom
-                maxHeight  =  maxHeight + childTop - prevBottom
+        if child.visible then
+            local minH, bestH, maxH,
+                  childTop, childBottom = getChildTBMeasures(child)
+            
+            if i > 1 then
+                if childTop and prevBottom and childTop > prevBottom then 
+                    minHeight  =  minHeight + childTop - prevBottom
+                    bestHeight = bestHeight + childTop - prevBottom
+                    maxHeight  =  maxHeight + childTop - prevBottom
+                end
             end
-        end
-        if bestH > 0 and prevBottom then
-            minHeight  =  minHeight + prevBottom
-            bestHeight = bestHeight + prevBottom
-            maxHeight  =  maxHeight + prevBottom
-        end
-        minHeight  = minHeight  + minH
-        if bestH > 0 then
-            prevBottom = childBottom 
-            bestHeight = bestHeight + bestH
-        end
-        if maxH >= 0 then
-            maxHeight = maxHeight + maxH
-            maxContentHeight = maxContentHeight + maxH
-            if maxH > bestH then flexCount = flexCount + 1 end
-        else
-            maxHeight = maxHeight + bestH
-            maxContentHeight = maxContentHeight + bestH
-            if maxH == -1 then
-                unlmCount1 = unlmCount1 + 1
+            if bestH > 0 and prevBottom then
+                minHeight  =  minHeight + prevBottom
+                bestHeight = bestHeight + prevBottom
+                maxHeight  =  maxHeight + prevBottom
+            end
+            minHeight  = minHeight  + minH
+            if bestH > 0 then
+                prevBottom = childBottom 
+                bestHeight = bestHeight + bestH
+            end
+            if maxH >= 0 then
+                maxHeight = maxHeight + maxH
+                maxContentHeight = maxContentHeight + maxH
+                if maxH > bestH then flexCount = flexCount + 1 end
             else
-                unlmCount2 = unlmCount2 + 1
+                maxHeight = maxHeight + bestH
+                maxContentHeight = maxContentHeight + bestH
+                if maxH == -1 then
+                    unlmCount1 = unlmCount1 + 1
+                else
+                    unlmCount2 = unlmCount2 + 1
+                end
             end
         end
     end
@@ -181,21 +191,25 @@ function LayoutImpl.applyLRLayout(childList, width, leftMargin, rightMargin, rsl
     
     for i = 1, #childList do
         local child = childList[i]
-        local minW, bestW, maxW,
-              childLeft, childRight = getChildLRMeasures(child)
-        local childX
-        if childLeft and childLeft > myLeft then childX = dLeft + childLeft - myLeft 
-                                            else childX = dLeft end
-        local childW = width - childX - dRight
-        if childRight and childRight > myRight then 
-            childW = childW - (childRight - myRight)
+        if child.visible then
+            local minW, bestW, maxW,
+                  childLeft, childRight = getChildLRMeasures(child)
+            local childX
+            if childLeft and childLeft > myLeft then childX = dLeft + childLeft - myLeft 
+                                                else childX = dLeft end
+            local childW = width - childX - dRight
+            if childRight and childRight > myRight then 
+                childW = childW - (childRight - myRight)
+            end
+            if childW < minW then
+                childW = minW
+            end
+            local ncLeft, ncRight = childX + leftMargin,
+                                    width - childX + childW + rightMargin
+            set4Cache(rsltCache, i, ncLeft, ncRight, childX, childW)
+        else
+            set4Cache(rsltCache, i, 0, 0, 0, 0)
         end
-        if childW < minW then
-            childW = minW
-        end
-        local ncLeft, ncRight = childX + leftMargin,
-                                width - childX + childW + rightMargin
-        set4Cache(rsltCache, i, ncLeft, ncRight, childX, childW)
     end
 end
 
@@ -259,49 +273,53 @@ function LayoutImpl.applyTBLayout(childList, height, topMargin, bottomMargin, rs
     local n = #childList
     for i = 1, n do
         local child = childList[i]
-        local minH, bestH, maxH,
-              childTop, childBottom = getChildTBMeasures(child)
-        local childH
-        if s > 0 then
-            childH = minH + s * (bestH - minH)
-        elseif t > 0 then
-            if maxH >= 0 then 
-                if addStretch then
-                    childH = maxH + maxH * addStretch / maxContentHeight
+        if child.visible then
+            local minH, bestH, maxH,
+                  childTop, childBottom = getChildTBMeasures(child)
+            local childH
+            if s > 0 then
+                childH = minH + s * (bestH - minH)
+            elseif t > 0 then
+                if maxH >= 0 then 
+                    if addStretch then
+                        childH = maxH + maxH * addStretch / maxContentHeight
+                    else
+                        childH = bestH + t * (maxH - bestH)
+                    end
+                elseif maxH == -1 then
+                    childH = bestH + unlmAdd1
                 else
-                    childH = bestH + t * (maxH - bestH)
+                    childH = bestH + unlmAdd2
                 end
-            elseif maxH == -1 then
-                childH = bestH + unlmAdd1
             else
-                childH = bestH + unlmAdd2
+                childH = minH
             end
+            if factor then
+                childH = factor * childH
+            end
+            local dy = 0
+            if childTop and prevBottom and childTop > prevBottom then
+                dy = childTop - prevBottom
+            end
+            prevBottom = childBottom
+            local childY = y + dy
+            do
+                local r = floor(childH)
+                roundingError = roundingError + childH - r
+                if roundingError >= 1 then
+                    childH = r + 1
+                    roundingError = roundingError - 1
+                else
+                    childH = r
+                end
+            end
+            y = y + dy + (childBottom or 0) + childH
+            local ncTop, ncBottom = dy + (prevBottom or 0), 
+                                    childBottom or 0
+            set4Cache(rsltCache, i, ncTop, ncBottom, childY, childH)
         else
-            childH = minH
+            set4Cache(rsltCache, i, 0, 0, 0, 0)
         end
-        if factor then
-            childH = factor * childH
-        end
-        local dy = 0
-        if childTop and prevBottom and childTop > prevBottom then
-            dy = childTop - prevBottom
-        end
-        prevBottom = childBottom
-        local childY = y + dy
-        do
-            local r = floor(childH)
-            roundingError = roundingError + childH - r
-            if roundingError >= 1 then
-                childH = r + 1
-                roundingError = roundingError - 1
-            else
-                childH = r
-            end
-        end
-        y = y + dy + (childBottom or 0) + childH
-        local ncTop, ncBottom = dy + (prevBottom or 0), 
-                                childBottom or 0
-        set4Cache(rsltCache, i, ncTop, ncBottom, childY, childH)
     end
 end
 
