@@ -14,10 +14,12 @@ local UPDATE_INTERVAL = 0.010 -- seconds
 
 function Animatable:new()
     Super.new(self)
-    self.animationTransitions = {}
-    self.animationValues      = {}
+    self.paramTransitions     = {}
+    self.stateTransitions     = {}
+    self.currentValues        = {}
     self.animationActive      = false
     self.animationTriggered   = false
+    self.animationUpdated     = false
 end
 
 local getStyleParam = Super.getStyleParam
@@ -78,7 +80,97 @@ end
 local function assureActiveAnimation(self)
     if not self.animationTriggered then
         self.animationTriggered = true
+        self.animationUpdated   = false
         getAnimations(self):add(self)
+    end
+end
+
+local function _setState(self, name, flag)
+    local invisibleState = (name == "invisible")
+    flag = flag and true or false
+    local oldFlag = self.state[name]
+    if oldFlag ~= flag then
+        local durationParamName
+        if invisibleState then
+            durationParamName = "VisibilityTransitionSeconds"
+            self.visible = not flag
+        else
+            durationParamName = name.."TransitionSeconds"
+        end
+        if getApp[self] then -- connected to app
+            local currentValues = self.currentValues
+            local isIgnored = ignored[self]
+            local duration  = getStyleParam(self, durationParamName) or 0 
+            if invisibleState then
+                if duration > 0 then
+                    ignored[self] = false
+                    isIgnored = false
+                end
+            elseif isIgnored then
+                duration = 0
+            end
+            Super.setState(self, name, flag)
+            local now       = self:getCurrentTime()
+            local endTime   = now + duration
+            local hasTrans = false
+            for paramName, trans in pairs(self.paramTransitions) do
+                local endValue = getStyleParam(self, paramName)
+                if (not trans or trans == true or not trans.endTime)
+                   and (duration <= 0 or endValue == currentValues[paramName]) 
+                then
+                    currentValues[paramName] = endValue
+                else
+                    hasTrans = true
+                    local currentValue
+                    if not isIgnored then
+                        currentValue = currentValues[paramName]
+                        if trans == true then
+                            trans = {
+                                startValue  = currentValue,
+                                endValue    = endValue,
+                                startTime   = now,
+                                endTime     = endTime,
+                            }
+                            self.paramTransitions[paramName] = trans
+                        else
+                            if not trans.endTime or trans.endValue ~= endValue then
+                                trans.startValue  = currentValue
+                                trans.endValue    = endValue
+                                trans.startTime   = now
+                                local tendTime = trans.endTime
+                                if not tendTime or tendTime < endTime then
+                                    trans.endTime = endTime
+                                end
+                            end
+                        end
+                    else
+                        currentValue = endValue
+                        currentValues[paramName] = endValue
+                        if trans then
+                            trans.endTime = false
+                        end
+                    end
+                end
+            end
+            if invisibleState then
+                if hasTrans then
+                    assureActiveAnimation(self)
+                end
+                self:triggerParentLayout()
+                self:triggerRedraw()
+                
+            elseif not isIgnored then
+                if hasTrans then
+                    assureActiveAnimation(self)
+                end
+                self:triggerRedraw()
+            end
+        else
+            Super.setState(self, name, flag)
+            if invisibleState then
+                ignored[self] = flag
+            end
+        end
     end
 end
 
@@ -88,77 +180,32 @@ end
 
 function Animatable:setVisible(shouldBeVisible)
     if shouldBeVisible ~= self.visible then
-        self.visible = shouldBeVisible
-        if getApp[self] then -- connected to app
-            local duration = getStyleParam(self, "VisibilityTransitionSeconds") or 0
-            if duration > 0 then
-                ignored[self] = false
-                local trans = self.visibilityTransition
-                if not trans then
-                    trans = Transition()
-                    self.visibilityTransition = trans
-                    if not shouldBeVisible then trans:resetBackward() end
-                end
-                if shouldBeVisible then
-                    trans:startForward(self:getCurrentTime(), duration)
-                else
-                    trans:startBackward(self:getCurrentTime(), duration)
-                end
-                assureActiveAnimation(self)
-            else
-                ignored[self] = not shouldBeVisible
-            end
-        else
-            ignored[self] = not shouldBeVisible    
-        end
-        self:triggerParentLayout()
-        self:triggerRedraw()
+        _setState(self, "invisible", not shouldBeVisible)
     end
 end
 
 function Animatable:setState(name, flag)
-    flag = flag and true or false
-    local oldFlag = self.state[name]
-    if oldFlag ~= flag then
-        if getApp[self] then -- connected to app
-            local duration = getStyleParam(self, name.."TransitionSeconds") or 0
-            Super.setState(self, name, flag)
-            local trans = self.animationTransitions[name]
-            if duration > 0 then
-                if not trans then
-                    trans = Transition()
-                    self.animationTransitions[name] = trans
-                end
-                if flag then
-                    trans:startForward(self:getCurrentTime(), duration)
-                else
-                    trans:startBackward(self:getCurrentTime(), duration)
-                end
-                assureActiveAnimation(self)
-            elseif trans then
-                self.animationTransitions[name] = false
-            end
-            self:triggerRedraw()
-        else
-            Super.setState(self, name, flag)
-        end
-    end
+    _setState(self, name, flag)
 end
 
 function Animatable:setStates(stateNames)
     for _, stateName in ipairs(stateNames) do
-        self:setState(stateName)
+        _setState(self, stateName, true)
     end
 end
 
 function Animatable:getStyleParam(paramName)
-    local value = self.animationValues[paramName]
+    local value = self.currentValues[paramName]
+    local wasInCache = value
     if value == nil then
         value = getStyleParam(self, paramName)
         if value ~= nil then
+            self.currentValues[paramName] = value
             local animatable = getStyleParams[self].animatable[paramName]
             if animatable or paramName:match("^.*Opacity") then
-                self.animationValues[paramName] = value
+                self.paramTransitions[paramName] = true
+            else
+                self.paramTransitions[paramName] = false
             end
         end
     end
@@ -167,82 +214,51 @@ end
 
 
 function Animatable:updateAnimation()
-    local now = self:getCurrentTime()
-    local values = self.animationValues
-    local transitions = self.animationTransitions
-    local stateFlags = self.state
-    local hasActive = false
-    for _, trans in pairs(transitions) do
-        if trans then
-            trans.state0 = trans.state
-            local isActive = trans:update(now)
-            hasActive = hasActive or isActive
-        end
+    if self.animationUpdated then
+        return
     end
-    local vtrans = self.visibilityTransition
-    if vtrans then
-        vtrans.state0 = vtrans.state
-        local  isActive = vtrans:update(now)
-        hasActive = hasActive or isActive
-        if not isActive and not self.visible and not ignored[self] then
-            ignored[self] = true
-        end
-    end
-    for paramName, currentValue in pairs(values) do
-        local targetValue = getStyleParam(self, paramName)
-        if targetValue ~= currentValue then
-            local value
-            local count = 0
-            if not ignored[self] then
-                local function evaluateTransition(trans)
-                    local t0 = trans.state0
-                    local t  = trans.state
-                    if trans.forward then
-                        if t0 < 1 then
-                            local v = ((t-1)/(t0-1))*currentValue + ((t0-t)/(t0-1))*targetValue
-                            if value then value = value + v
-                                     else value = v end
-                        else
-                            if value then value = value + targetValue
-                                     else value = targetValue end
-                        end
+    self.animationUpdated = true
+    
+    local now          = self:getCurrentTime()
+    local currentValues= self.currentValues
+    local isIgnored    = ignored[self]
+    local hasActive    = false
+
+    for paramName, trans in pairs(self.paramTransitions) do
+        if trans and trans ~= true then
+            local endTime = trans.endTime
+            if endTime then
+                local isActive = endTime > now
+                if isActive then
+                    if isIgnored then
+                        currentValues[paramName] = trans.endValue
+                        trans.endTime = false
                     else
-                        if t0 > 0 then
-                            local v = (t/t0)*currentValue + ((t0-t)/t0)*targetValue
-                            if value then value = value + v
-                                     else value = v end
+                        hasActive = true
+                        local startTime = trans.startTime
+                        local T = endTime - startTime
+                        if T > 0 then
+                            local t = (now - startTime)/T
+                            currentValues[paramName] =  (1-t) * trans.startValue + t * trans.endValue
                         else
-                            if value then value = value + targetValue
-                                     else value = targetValue end
+                            currentValues[paramName] = trans.endValue
                         end
                     end
-                    count = count + 1
-                end
-                for stateName, stateFlag in pairs(stateFlags) do
-                    local trans = transitions[stateName]
-                    if trans and isActive(trans) then
-                        evaluateTransition(trans)
+                else
+                    currentValues[paramName] = trans.endValue
+                    trans.endTime = false
+                    if paramName == "Opacity" and not self.visible and not isIgnored then
+                        ignored[self] = true
                     end
-                end
-                if paramName == "Opacity" and vtrans and isActive(vtrans) then
-                    evaluateTransition(vtrans)
-                end
-            else
-                hasActive = false
-                for stateName, stateFlag in pairs(stateFlags) do
-                    local trans = transitions[stateName]
-                    if trans and isActive(trans) then
-                        trans:finish()
-                    end
-                end
-                if vtrans and isActive(vtrans) then
-                    vtrans:finish()
                 end
             end
-            if count > 0 then
-                values[paramName] = (1/count) * value
-            else
-                values[paramName] = targetValue
+        end
+    end
+    if not isIgnored and ignored[self] then
+        for paramName, trans in pairs(self.paramTransitions) do
+            if trans and trans ~= true then
+                currentValues[paramName] = trans.endValue
+                trans.endTime = false
             end
         end
     end
@@ -256,6 +272,5 @@ function Animatable:updateAnimation()
         self.animationActive = false
     end
 end
-
 
 return Animatable

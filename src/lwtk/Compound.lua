@@ -5,8 +5,8 @@ local intersectRects      = Rect.intersectRects
 local getWrappingParent   = lwtk.get.wrappingParent
 local ignored             = lwtk.get.ignored
 
-local Super    = lwtk.Widget
-local Compound = lwtk.newClass("lwtk.Compound", Super, lwtk.Styleable.ADOPT_PARENT_STYLE)
+local Super    = lwtk.Component
+local Compound = lwtk.newClass("lwtk.Compound", Super)
 
 local _processChanges
 local _processDraw

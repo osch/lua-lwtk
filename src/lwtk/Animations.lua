@@ -31,7 +31,8 @@ processAnimations = function(self)
     for i = #self, 1, -1 do
         local a = self[i]
         if a.animationActive then
-            a.animationActive = false
+            a.animationActive  = false
+            a.animationUpdated = false
             a:triggerRedraw()
         else
             remove(self, i)

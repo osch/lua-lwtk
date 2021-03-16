@@ -33,6 +33,7 @@ build = {
         ["lwtk.ChildLookup"]         = "src/lwtk/ChildLookup.lua",
         ["lwtk.Color"]               = "src/lwtk/Color.lua",
         ["lwtk.Column"]              = "src/lwtk/Column.lua",
+        ["lwtk.Component"]           = "src/lwtk/Component.lua",
         ["lwtk.Compound"]            = "src/lwtk/Compound.lua",
         ["lwtk.Control"]             = "src/lwtk/Control.lua",
         ["lwtk.DefaultKeyBinding"]   = "src/lwtk/DefaultKeyBinding.lua",

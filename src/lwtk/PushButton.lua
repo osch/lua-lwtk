@@ -62,8 +62,8 @@ function PushButton:onFocusOut()
 end
 
 local function simulateButtonClick2(self)
-    self:setState("hover",   self.wasHovered)
     self:setState("pressed", self.wasPressed)
+    self:setState("hover",   self.wasHovered)
     self.wasHovered = nil
     self.wasPressed = nil
     if self.onClicked then

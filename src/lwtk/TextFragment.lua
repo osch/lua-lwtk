@@ -1,7 +1,7 @@
 local lwtk = require"lwtk"
 
-local Super        = lwtk.Widget
-local TextFragment = lwtk.newClass("lwtk.TextFragment", Super, lwtk.Styleable.ADOPT_PARENT_STYLE)
+local Super        = lwtk.Component
+local TextFragment = lwtk.newClass("lwtk.TextFragment", Super)
 
 function TextFragment:new(initParams)
     Super.new(self, initParams)

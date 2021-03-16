@@ -117,5 +117,11 @@ function Color.__add(color1, color2)
                  color1.b + color2.b)
 end
 
+function Color.__eq(color1, color2) 
+    return floor(color1.r * 0xff) == floor(color2.r * 0xff)
+       and floor(color1.g * 0xff) == floor(color2.g * 0xff)
+       and floor(color1.b * 0xff) == floor(color2.b * 0xff)
+end
+
 return Color
 
