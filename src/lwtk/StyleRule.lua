@@ -43,12 +43,12 @@ function StyleRule.toPattern(rule, typeList)
         if invalidChar then
             errorf("Error in style rule pattern %q: invalid character %q", patternString, invalidChar)
         end
-        local paramName, classPath, statePath = match(p, "^([^@:]*)@([^@:]*):([^@:]*)$")
+        local paramName, classPath, statePath, stateEnd = match(p, "^([^@:]*)@([^@:]*):([^@:]*)(:?)$")
         if not paramName then
             paramName, classPath = match(p, "^([^@:]*)@([^@:]*)$")
         end
         if not paramName then
-            paramName, statePath = match(p, "^([^@:]*):([^@:]*)$")
+            paramName, statePath, stateEnd = match(p, "^([^@:]*):([^@:]*)(:?)$")
         end
         if not paramName then
             paramName = match(p, "^([^@:]*)$")
@@ -79,14 +79,11 @@ function StyleRule.toPattern(rule, typeList)
         if statePath then
             if  #statePath > 0 then
                 local stateNames = {}
-                local hasWildcard = false
                 for statePattern, sep in gmatch(statePath, "([^+]*)(%+?)") do
                     if statePattern == "" then
                         if sep == "+" then
                             errorf("Invalid style rule pattern %q: contains empty state name", patternString)
                         end
-                    elseif find(statePattern, "^%*+$") then
-                        hasWildcard = true
                     elseif find(statePattern, "%*") then
                         errorf("Invalid style rule pattern %q: state name must not contain wildcard %q",
                                patternString, "*")
@@ -95,7 +92,7 @@ function StyleRule.toPattern(rule, typeList)
                     end
                 end
                 sort(stateNames)
-                if hasWildcard then
+                if stateEnd == "" then
                     if #stateNames > 0 then
                         statePath = ".*<"..concat(stateNames, ">.*<")..">.*"
                     else
@@ -108,8 +105,10 @@ function StyleRule.toPattern(rule, typeList)
                         statePath = ""
                     end
                 end
-            else
+            elseif stateEnd == ":" then
                 statePath = ""
+            else
+                statePath =".*"
             end
         else
             statePath =".*"
