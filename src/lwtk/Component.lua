@@ -213,7 +213,7 @@ function Component:getSize()
     return self.w, self.h
 end
 
-function Component:changeFrame(...)
+function Component:animateFrame(...)
     local x, y, w, h, isLayoutTransition = ...
     local nx, ny, nw, nh
     if type(x) == "number" then
@@ -230,7 +230,7 @@ function Component:changeFrame(...)
             isLayoutTransition = y
         end
     end
-    Animatable.changeFrame(self, nx, ny, nw, nh, isLayoutTransition)
+    Animatable.animateFrame(self, nx, ny, nw, nh, isLayoutTransition)
 end
 
 function Component:triggerLayout()

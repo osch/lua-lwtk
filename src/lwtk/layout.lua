@@ -100,7 +100,7 @@ local function callRelayout2(widget)
             c.x, c.y, c.w, c.h = o[1], o[2], o[3], o[4]
             c._needsRelayout = false
             c._isRelayouting = false
-            c:changeFrame(nx, ny, nw, nh, true)
+            c:animateFrame(nx, ny, nw, nh, true)
         end
     end
     widget._needsRelayout = false

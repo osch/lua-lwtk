@@ -149,12 +149,12 @@ local win = app:newWindow {
                                 root.child.b1:setText("Clicked "..counter) 
                                 local g2 = root.child.g2
                                 local x, y, w, h = g2:getFrame()
-                                g2:changeFrame(x + 5, y, w + 5, h)
+                                g2:animateFrame(x + 5, y, w + 5, h)
                                 local x, y, w, h = self:getFrame()
-                                self:changeFrame(x + scale(2), y + scale(2), w, h)
+                                self:animateFrame(x + scale(2), y + scale(2), w, h)
                                 local b5 = root.child.b5
                                 local x, y, w, h = b5:getFrame()
-                                b5:changeFrame(x, y + scale(5), w + scale(5), h)
+                                b5:animateFrame(x, y + scale(5), w + scale(5), h)
                             end
             }
         },

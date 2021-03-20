@@ -54,7 +54,7 @@ function Animatable:updateFrameTransition()
     end
 end
 
-function Animatable:changeFrame(newX, newY, newW, newH, isLayoutTransition)
+function Animatable:animateFrame(newX, newY, newW, newH, isLayoutTransition)
     if    self.x ~= newX or self.y ~= newY 
        or self.w ~= newW or self.h ~= newH
     then

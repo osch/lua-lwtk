@@ -84,8 +84,7 @@ function Widget:_setParent(parent)
     end
 end
 
-local _setFrame   = Super._setFrame
-local changeFrame = Animatable.changeFrame
+local _setFrame = Super._setFrame
 
 function Widget:_setFrame(newX, newY, newW, newH, fromFrameAnimation)
     if not fromFrameAnimation and self._frameTransition then
