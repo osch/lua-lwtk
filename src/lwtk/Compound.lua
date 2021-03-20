@@ -3,7 +3,6 @@ local lwtk = require"lwtk"
 local Rect                = lwtk.Rect
 local intersectRects      = Rect.intersectRects
 local getWrappingParent   = lwtk.get.wrappingParent
-local ignored             = lwtk.get.ignored
 
 local Super    = lwtk.Component
 local Compound = lwtk.newClass("lwtk.Compound", Super)
@@ -31,9 +30,9 @@ function Compound:_processChanges(x0, y0, cx, cy, cw, ch, damagedArea)
     local x, y, w, h = x0 + self.x, y0 + self.y, self.w, self.h
     local cx, cy, cw, ch = intersectRects(x, y, w, h, cx, cy, cw, ch)
     for _, child in ipairs(self) do
-        if child.hasChanges then
-            child.hasChanges = false
-            child.positionsChanged = false 
+        if child._hasChanges then
+            child._hasChanges = false
+            child._positionsChanged = false 
             assert(child._processChanges, "xx "..tostring(child))
             child:_processChanges(x, y, cx, cy, cw, ch, damagedArea)
         end
@@ -55,7 +54,7 @@ function Compound:_processDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
     local cx, cy, cw, ch = intersectRects(x0, y0, self.w, self.h, cx, cy, cw, ch)
     if cw > 0 and ch > 0 then
         for _, child in ipairs(self) do
-            if not ignored[child] then
+            if not child._ignored then
                 local childX, childY = child.x, child.y
                 local x, y, w, h = x0 + childX, y0 + childY, child.w, child.h
                 local x1, y1, w1, h1 = intersectRects(x, y, w, h, cx, cy, cw, ch)

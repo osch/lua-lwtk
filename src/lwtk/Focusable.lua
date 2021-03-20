@@ -18,7 +18,7 @@ function Focusable:setFocus()
     if handler then
         handler:setFocus(self)
     else
-        lwtk.get.wantsFocus[self] = true
+        self._wantsFocus = true
     end
 end
 

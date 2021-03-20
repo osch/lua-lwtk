@@ -116,7 +116,7 @@ function WidgetWrapper(className, WrappingParentClass)
             c = newWrapperClass(className,
                                 WrappedChildClass, 
                                 WrappingParentClass, 
-                                { "frame" }, { "changeFrame", "setVisible", "isVisible" })
+                                { "frame" }, { "changeFrame", "setVisible", "isVisible", "triggerLayout" })
             wrappedClasses[WrappedChildClass] = c
         end
         return c

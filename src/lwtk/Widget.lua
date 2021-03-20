@@ -16,7 +16,6 @@ local getFocusHandler      = lwtk.get.focusHandler
 local getFocusableChildren = lwtk.get.focusableChildren
 local getActions           = lwtk.get.actions
 local wantsFocus           = lwtk.get.wantsFocus
-local callOnLayout         = lwtk.layout.callOnLayout
 local getStylePath         = lwtk.get.stylePath
 local getFontInfos         = lwtk.get.fontInfos
 
@@ -83,6 +82,16 @@ function Widget:_setParent(parent)
             setStyleParams(self, styleParams)
         end
     end
+end
+
+local _setFrame   = Super._setFrame
+local changeFrame = Animatable.changeFrame
+
+function Widget:_setFrame(newX, newY, newW, newH, fromFrameAnimation)
+    if not fromFrameAnimation and self._frameTransition then
+        self._frameTransition = false
+    end
+    _setFrame(self, newX, newY, newW, newH)
 end
 
 return Widget

@@ -9,6 +9,7 @@ local fillRect        = lwtk.draw.fillRect
 local FocusHandler    = lwtk.FocusHandler
 local getFocusHandler = lwtk.get.focusHandler
 local getMeasures     = lwtk.layout.getMeasures
+local callRelayout    = lwtk.layout.callRelayout
 local call            = lwtk.call
 
 local Super        = lwtk.Object
@@ -24,7 +25,6 @@ local getApp          = lwtk.get.app
 local getRoot         = lwtk.get.root
 local getKeyBinding   = lwtk.get.keyBinding
 local getFontInfos    = lwtk.get.fontInfos
-local ignored         = lwtk.get.ignored
 
 function Window.newClass(className, baseClass)
     local newClass = Super.newClass(className, baseClass)
@@ -117,9 +117,9 @@ end
 function Window:setColor(color)
     if self.color ~= color then
         self.color = color
-        self.hasChanges = true
+        self._hasChanges = true
         local p = getParent[self]
-        if p then p.hasChanges = true end
+        if p then p._hasChanges = true end
     end
 end
 
@@ -171,7 +171,7 @@ function Window:_handleExpose(x, y, w, h, count)
         end
         for i = 1, #self do
             local child = self[i]
-            if not ignored[child] then
+            if not child._ignored then
                 child:_processDraw(ctx, 0, 0, 0, 0, self.w, self.h, self.exposedArea)
             end
         end
@@ -280,8 +280,17 @@ function Window:_clearChildLookup()
 end
 
 function Window:_processChanges()
-    if self.positionsChanged then
-        self.positionsChanged = false
+    if self._needsRelayout then
+        self._needsRelayout = false
+        for i = 1, #self do
+            local child = self[i]
+            if child._needsRelayout then
+                callRelayout(child)
+            end
+        end
+    end
+    if self._positionsChanged then
+        self._positionsChanged = false
         if self.mouseEntered then
             local mx, my = self.mouseX, self.mouseY
             if mx then
@@ -291,9 +300,9 @@ function Window:_processChanges()
     end
     for i = 1, #self do
         local child = self[i]
-        if child.hasChanges then
-            child.hasChanges       = false
-            child.positionsChanged = false
+        if child._hasChanges then
+            child._hasChanges       = false
+            child._positionsChanged = false
             if self.w then
                 local damagedArea = self.damagedArea
                 child:_processChanges(0, 0, 0, 0, self.w, self.h, damagedArea)

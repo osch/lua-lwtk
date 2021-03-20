@@ -14,7 +14,6 @@ local getParent            = lwtk.get.parent
 local getFocusHandler      = lwtk.get.focusHandler
 local getFocusableChildren = lwtk.get.focusableChildren
 local getActions           = lwtk.get.actions
-local wantsFocus           = lwtk.get.wantsFocus
 local callOnLayout         = lwtk.layout.callOnLayout
 local getFontInfos         = lwtk.get.fontInfos
 
@@ -81,9 +80,9 @@ local function setAppAndRoot(self, app, root)
             getFocusHandler[self] = handler
             local focusableChildren = getFocusableChildren[handler]
             focusableChildren[#focusableChildren + 1] = self
-            if wantsFocus[self] then
+            if self._wantsFocus then
                 handler:setFocus(self)
-                wantsFocus[self] = nil
+                self._wantsFocus = nil
             end
             local handleHasFocusHandler = self._handleHasFocusHandler
             if handleHasFocusHandler then
@@ -102,13 +101,15 @@ function Component:_setParent(parent)
     getParent[self] = parent
     setAppAndRoot(self, getApp[parent],
                         getRoot[parent])
-    if self.hasChanges then
+    local _needsRelayout = self._needsRelayout
+    if self._hasChanges then
         local w = parent
         repeat
-            if w.hasChanges then
+            if w._hasChanges and w._needsRelayout == _needsRelayout then
                 break
             end
-            w.hasChanges = true
+            w._hasChanges    = true
+            w._needsRelayout = _needsRelayout
             w = getParent[w]
         until not w
     end
@@ -153,37 +154,43 @@ function Component:transformXY(x, y, parent)
 end
 
 function Component:_setFrame(newX, newY, newW, newH)
-    local x, y, w, h = self.x, self.y, self.w, self.h
-    local needsLayout = (w ~= newW or h ~= newH)
-    if x ~= newX or y ~= newY or needsLayout then
-        self.needsRedraw = true
-        if not self.oldX then
-            self.oldX = x
-            self.oldY = y
-            self.oldW = w
-            self.oldH = h
-            local w = self
-            repeat
-                if w.hasChanges and w.positionsChanged then
-                    break
-                end
-                w.hasChanges = true
-                w.positionsChanged = true
-                w = getParent[w]
-            until not w
+    if not self._isRelayouting then
+        local x, y, w, h = self.x, self.y, self.w, self.h
+        local needsLayout = (w ~= newW or h ~= newH)
+        if x ~= newX or y ~= newY or needsLayout then
+            self._needsRedraw = true
+            if not self.oldX then
+                self.oldX = x
+                self.oldY = y
+                self.oldW = w
+                self.oldH = h
+                local w = self
+                repeat
+                    if w._hasChanges and w._positionsChanged then
+                        break
+                    end
+                    w._hasChanges = true
+                    w._positionsChanged = true
+                    w = getParent[w]
+                until not w
+            end
+            self.x, self.y, self.w, self.h = newX, newY, newW, newH
+            local trans = self._frameTransition
+            local isLayoutTrans = trans and trans.isLayoutTransition
+            if needsLayout and not isLayoutTrans and getApp[self] then
+                callOnLayout(self, newW, newH)
+            end
         end
-        self.x = newX
-        self.y = newY
-        self.w = newW
-        self.h = newH
-        if needsLayout and getApp[self] then
+    else
+        local needsLayout = (self.w ~= newW or self.h ~= newH)
+        self.x, self.y, self.w, self.h = newX, newY, newW, newH
+        if needsLayout or self._needsRelayout then
             callOnLayout(self, newW, newH)
         end
     end
 end
 
 function Component:setFrame(...)
-    self.frameTransition = nil
     local x, y, w, h = ...
     if type(x) == "number" then
         self:_setFrame(roundRect(x, y, w, h))
@@ -207,48 +214,51 @@ function Component:getSize()
 end
 
 function Component:changeFrame(...)
-    local x, y, w, h = ...
+    local x, y, w, h, isLayoutTransition = ...
+    local nx, ny, nw, nh
     if type(x) == "number" then
-        Animatable.changeFrame(self, roundRect(x, y, w, h))
+        nx, ny, nw, nh = roundRect(x, y, w, h)
     else
         if x[1] then
-            Animatable.changeFrame(self, roundRect(x[1], x[2], x[3], x[4]))
+            nx, ny, nw, nh = roundRect(x[1], x[2], x[3], x[4])
+            isLayoutTransition = y
         elseif x.w then
-            Animatable.changeFrame(self, roundRect(x.x, x.y, x.w, x.h))
+            nx, ny, nw, nh = roundRect(x.x, x.y, x.w, x.h)
+            isLayoutTransition = y
         else
-            Animatable.changeFrame(self, roundRect(x.x, x.y, x.width, x.height))
+            nx, ny, nw, nh = roundRect(x.x, x.y, x.width, x.height)
+            isLayoutTransition = y
         end
     end
+    Animatable.changeFrame(self, nx, ny, nw, nh, isLayoutTransition)
 end
 
-function Component:triggerParentLayout()
+function Component:triggerLayout()
     local p = getParent[self]
-    while p do
-        if p.onLayout then
-            callOnLayout(p, p.w, p.h)
-            break
-        end
+    while p and not p._needsRelayout do
+        p._hasChanges = true
+        p._needsRelayout = true
         p = getParent[p]
     end
 end
 
 function Component:triggerRedraw()
-    if not self.needsRedraw then
-        self.needsRedraw = true
+    if not self._needsRedraw then
+        self._needsRedraw = true
         local w = self
         repeat
-            if w.hasChanges then
+            if w._hasChanges then
                 break
             end
-            w.hasChanges = true
+            w._hasChanges = true
             w = getParent[w]
         until not w
     end
 end
 
 function Component:_processChanges(x0, y0, cx, cy, cw, ch, damagedArea)
-    if self.needsRedraw then
-        self.needsRedraw = false
+    if self._needsRedraw then
+        self._needsRedraw = false
         local x, y, w, h = self.x + x0, self.y + y0, self.w, self.h
         local x1, y1, w1, h1 = intersectRects(x, y, w, h, cx, cy, cw, ch)
         if w1 > 0 and h1 > 0 then

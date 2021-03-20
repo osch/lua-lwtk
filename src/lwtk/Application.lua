@@ -9,19 +9,27 @@ local Application = lwtk.newClass("lwtk.Application")
 local getStyleParams  = lwtk.get.styleParams
 local getKeyBinding   = lwtk.get.keyBinding
 local getFontInfos    = lwtk.get.fontInfos
-local getAnimations   = lwtk.get.animations
 
 local isClosed        = setmetatable({}, { __mode = "k" })
 local createClosures
 
-function Application:new(appName, styleRules)
+function Application:new(appName, styleParams)
     
     isClosed[self] = false
     self.world     = lpugl.newWorld(appName)
     
-    styleRules = styleRules or lwtk.DefaultStyleRules{ screenScale = self.world:getScreenScale() }
+    if not lwtk.Object.is(styleParams, lwtk.StyleRules) then
+        if not styleParams then
+            styleParams = { screenScale = self.world:getScreenScale() }
+        end
+        if not styleParams.screenScale then
+            styleParams.screenScale = self.world:getScreenScale()
+        end
+        styleParams = lwtk.DefaultStyleRules(styleParams)
+    end
+
     getStyleParams[self] = lwtk.StyleParams(lwtk.DefaultStyleTypes(),
-                                            styleRules)
+                                            styleParams)
     getKeyBinding[self]  = lwtk.DefaultKeyBinding()
 
     self.appName       = appName
@@ -149,23 +157,23 @@ createClosures = function(self)
 
     local animations     = lwtk.Animations(self)
     local animationTimer = animations.timer
-    getAnimations[self]  = animations
+    self._animations     = animations
 
     function self:getCurrentTime()
         return world:getTime() 
     end
     
     local function _processAllChanges()
-        if self.hasChanges then
-            self.hasChanges = false
+        if self._hasChanges then
+            self._hasChanges = false
             local windows = self.windows
             for _, w in ipairs(windows) do
-                if w.hasChanges then
-                    w.hasChanges = false
+                if w._hasChanges then
+                    w._hasChanges = false
                     w:_processChanges()
                 end
             end
-            assert(not self.hasChanges)
+            assert(not self._hasChanges)
         end
     end
     

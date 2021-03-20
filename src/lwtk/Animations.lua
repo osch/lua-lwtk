@@ -7,7 +7,6 @@ local processAnimations
 
 local Animations = lwtk.newClass("lwtk.Animations")
 
-
 function Animations:new(app)
     self.app      = app
     self.setTimer = app.setTimer
@@ -30,13 +29,20 @@ end
 processAnimations = function(self)
     for i = #self, 1, -1 do
         local a = self[i]
-        if a.animationActive then
-            a.animationActive  = false
-            a.animationUpdated = false
+        local inactive = true
+        if a._frameTransition then
+            inactive = false
+            a:updateFrameTransition()
+        end
+        if a._animationActive then
+            inactive = false
+            a._animationActive  = false
+            a._animationUpdated = false
             a:triggerRedraw()
-        else
+        end
+        if inactive then
             remove(self, i)
-            a.animationTriggered = false
+            a._animationTriggered = false
         end
     end
     if #self > 0 then

@@ -39,16 +39,20 @@ function PushButton:setText(text)
     self:triggerRedraw()
 end
 function PushButton:onMouseEnter(x, y)
+    self.mouseEntered = true
     self:setState("hover", true)
 end
 function PushButton:onMouseLeave(x, y)
+    self.mouseEntered = false
     self:setState("hover", false)
 end
 function PushButton:onMouseDown(x, y, button, modState)
+    self.mousePressed = true
     self:setState("pressed", true)
     self:setFocus()
 end
 function PushButton:onMouseUp(x, y, button, modState)
+    self.mousePressed = false
     self:setState("pressed", false)
     if self.state.hover and self.onClicked then
         self:onClicked()
@@ -62,18 +66,14 @@ function PushButton:onFocusOut()
 end
 
 local function simulateButtonClick2(self)
-    self:setState("pressed", self.wasPressed)
-    self:setState("hover",   self.wasHovered)
-    self.wasHovered = nil
-    self.wasPressed = nil
+    self:setState("pressed", self.mousePressed)
+    self:setState("hover",   self.mouseEntered)
     if self.onClicked then
         self:onClicked()
     end
 end
 
 local function simulateButtonClick1(self)
-    self.wasHovered = self.state.hover
-    self.wasPressed = self.state.pressed
     self:setState("hover",   true)
     self:setState("pressed", true)
     self:setTimer(self:getStyleParam("SimulateButtonClickSeconds") or 0.1, 

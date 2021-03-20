@@ -5,10 +5,10 @@ local abs                  = math.abs
 local btest                = lpugl.btest
 local MOD_ALT              = lpugl.MOD_ALT
 local getFocusableChildren = lwtk.get.focusableChildren
-local getFocusedChild      = lwtk.get.focusedChild
 local getActions           = lwtk.get.actions
-local hasFocus             = lwtk.get.hasFocus
 local getHotkeys           = lwtk.get.hotKeys
+
+local getFocusedChild      = lwtk.WeakKeysTable()
 
 local Super        = lwtk.Actionable
 local FocusHandler = lwtk.newClass("lwtk.FocusHandler", Super)
@@ -195,8 +195,8 @@ function FocusHandler:onActionFocusPrev()
 end
 
 function FocusHandler:_handleFocusIn()
-    if not hasFocus[self] then
-        hasFocus[self] = true
+    if not self._hasFocus then
+        self._hasFocus = true
         local focusedChild = getFocusedChild[self]
         if focusedChild then
             focusedChild:_handleFocusIn()
@@ -238,8 +238,8 @@ function FocusHandler:_handleFocusIn()
 end
 
 function FocusHandler:_handleFocusOut()
-    if hasFocus[self] then
-        hasFocus[self] = false
+    if self._hasFocus then
+        self._hasFocus = false
         local focusedChild = getFocusedChild[self]
         if focusedChild then
             focusedChild:_handleFocusOut()
@@ -260,7 +260,7 @@ function FocusHandler:setFocus(newFocusChild)
     local focusedChild = getFocusedChild[self]
     if focusedChild ~= newFocusChild then
         getFocusedChild[self] = newFocusChild
-        if hasFocus[self] then
+        if self._hasFocus then
             if focusedChild then
                 focusedChild:_handleFocusOut()
             end
@@ -375,7 +375,7 @@ function FocusHandler:deregisterHotkeys(widget, hotkeys)
                     if list[n] == widget then
                         list[n] = nil
                         n = n - 1
-                        if n > 0 and hasFocus[self] then
+                        if n > 0 and self._hasFocus then
                             list[n]:onHotkeyEnabled(hotkey)
                         end
                     else

@@ -37,7 +37,7 @@ function Color:new(...)
                 g = tonumber(g, 16) / 0xff
                 b = tonumber(b, 16) / 0xff
                 if a then
-                    b = tonumber(a, 16) / 0xff
+                    a = tonumber(a, 16) / 0xff
                 end
             elseif type(arg) == "table" then
                 r = arg.r or 0
@@ -58,12 +58,14 @@ function Color:new(...)
 end
 
 local function assureRange(value)
-    if value < 0 then
-        return 0
-    elseif value > 1 then
-        return 1
-    else
-        return value
+    if value then
+        if value < 0 then
+            return 0
+        elseif value > 1 then
+            return 1
+        else
+            return value
+        end
     end
 end
 
@@ -75,11 +77,11 @@ local function assureRanges(r,g,b,a)
 end
 
 function Color:lighten(amount)
-    return Color(assureRanges(vivid.lighten(amount, self.r, self.g, self.b, 1.0)))
+    return Color(assureRanges(vivid.lighten(amount, self.r, self.g, self.b, self.a)))
 end
 
 function Color:saturate(amount)
-    return Color(assureRanges(vivid.saturate(amount, self:toRGBA())))
+    return Color(assureRanges(vivid.saturate(amount, self.r, self.g, self.b, self.a)))
 end
 
 function Color:toRGB()
@@ -94,7 +96,7 @@ function Color:toHex()
     return format("%02x", floor(self.r * 0xff))
          ..format("%02x", floor(self.g * 0xff))
          ..format("%02x", floor(self.b * 0xff))
-         ..(self.a and format("$02x", floor(self.a * 0xff)) or "")
+         ..(self.a and format("%02x", floor(self.a * 0xff)) or "")
 end
 
 function Color:__tostring()
@@ -121,6 +123,9 @@ function Color.__eq(color1, color2)
     return floor(color1.r * 0xff) == floor(color2.r * 0xff)
        and floor(color1.g * 0xff) == floor(color2.g * 0xff)
        and floor(color1.b * 0xff) == floor(color2.b * 0xff)
+       and (   (color1.a == nil and color2.a == nil)
+            or (color1.a ~= nil and color2.a ~= nil
+                and floor(color1.a * 0xff) == floor(color2.a * 0xff)))
 end
 
 return Color
