@@ -20,7 +20,7 @@ function StyleRule.checkValue(patternString, paramName, value, typeList)
             if match(paramName, rule[j]) then
                 local t = type(value)
                 if t ~= "function" and t ~= rule[#rule] then
-                    errof("Illegal type for style rule pattern %q: expected %q but %q was given",
+                    errorf("Illegal type for style rule pattern %q: expected %q but %q was given",
                           patternString, type(rule[#rule]), t)
                 end
                 return rule

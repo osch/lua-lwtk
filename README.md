@@ -14,7 +14,8 @@ future.
 
 
 #### Further reading:
-   TODO
+   * [Documentation](doc/README.md)
+   * TODO
 
 ## First Example
 
@@ -75,27 +76,27 @@ future.
         end
     end
     
-    local app = Application("example01.lua")
-    
-    app:setStyle {
-        { "*TransitionSeconds",               0.05 },
-        { "HoverTransitionSeconds:",          0.20 },
-        { "HoverTransitionSeconds:hover",     0.20 },
-        { "PressedTransitionSeconds:pressed", 0.20 },
+    local app = Application {
+        name  = "example01.lua", 
+        style = {
+            { "*TransitionSeconds",               0.05 },
+            { "HoverTransitionSeconds:",          0.20 },
+            { "HoverTransitionSeconds:hover",     0.20 },
+            { "PressedTransitionSeconds:pressed", 0.20 },
+            
+            { "TextSize",                  13            },
+            { "TextOffset",                 0            },
+            { "TextOffset:pressed+hover",   1            },
+            
+            { "BackgroundColor",           Color"f9f9fa" },
+            { "TextColor",                 Color"000000" },
         
-        { "TextSize",                  13            },
-        { "TextOffset",                 0            },
-        { "TextOffset:pressed+hover",   1            },
-        
-        { "BackgroundColor",           Color"f9f9fa" },
-        { "TextColor",                 Color"000000" },
-    
-        { "Color@MyButton",                 Color"e1e1e2" },
-        { "Color@MyButton:hover",
-          "Color@MyButton:pressed",         Color"c9c9ca" },
-        { "Color@MyButton:pressed+hover",   Color"b1b1b2" },
+            { "Color@MyButton",                 Color"e1e1e2" },
+            { "Color@MyButton:hover",
+              "Color@MyButton:pressed",         Color"c9c9ca" },
+            { "Color@MyButton:pressed+hover",   Color"b1b1b2" },
+        }
     }
-    
     local win = app:newWindow {
         title = "example01",
         Group {

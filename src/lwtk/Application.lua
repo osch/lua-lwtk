@@ -6,30 +6,54 @@ local Window      = lwtk.Window
 local FontInfos   = lwtk.FontInfos
 local Application = lwtk.newClass("lwtk.Application")
 
-local getStyleParams  = lwtk.get.styleParams
+local getApp          = lwtk.get.app
+local getStyle        = lwtk.get.style
 local getKeyBinding   = lwtk.get.keyBinding
 local getFontInfos    = lwtk.get.fontInfos
 
 local isClosed        = setmetatable({}, { __mode = "k" })
 local createClosures
 
-function Application:new(appName, styleParams)
-    
+function Application:new(arg1, arg2)
+    local appName
+    local initParams
+    if type(arg1) == "string" then
+        appName = arg1
+        if lwtk.Object.is(arg2, lwtk.Style) then
+            initParams =  { style = arg2 }
+        else
+            initParams = arg2 or {}
+        end
+    else
+        initParams = arg1 or {}
+        appName = initParams.name
+        initParams.name = nil
+    end
+
     isClosed[self] = false
     self.world     = lpugl.newWorld(appName)
     
-    if not lwtk.Object.is(styleParams, lwtk.StyleRules) then
-        if not styleParams then
-            styleParams = { screenScale = self.world:getScreenScale() }
+    local style = initParams.style
+    if style then
+        initParams.style = nil
+        if lwtk.Object.is(style, lwtk.Style) then
+            style:setScaleFactor(style.scaleFactor * self.world:getScreenScale())
+        else
+            style.scaleFactor = (style.scaleFactor or 1) * self.world:getScreenScale()
+            style = lwtk.Style(style)
         end
-        if not styleParams.screenScale then
-            styleParams.screenScale = self.world:getScreenScale()
+    else
+        if not initParams.screenScale then
+            initParams.screenScale = self.world:getScreenScale()
         end
-        styleParams = lwtk.DefaultStyleRules(styleParams)
+        style = lwtk.DefaultStyle(initParams)
     end
-
-    getStyleParams[self] = lwtk.StyleParams(lwtk.DefaultStyleTypes(),
-                                            styleParams)
+    
+    if getApp[style] then
+        error("Style was alread added to app")
+    end
+    getApp[style]  = self
+    getStyle[self] = style
     getKeyBinding[self]  = lwtk.DefaultKeyBinding()
 
     self.appName       = appName
@@ -39,6 +63,8 @@ function Application:new(appName, styleParams)
     getFontInfos[self]   = FontInfos(self.world:getDefaultBackend():getLayoutContext())
 
     createClosures(self)
+
+    self:setAttributes(initParams)
 end
 
 function Application:close()
@@ -77,12 +103,49 @@ function Application:getScreenScaleFunc()
     return f
 end
 
-function Application:setStyle(styleRules) 
-    getStyleParams[self]:setStyleRules(styleRules)
+local function resetStyle2(p, style)
+    for i = 1, #p do
+        local c = p[i]
+        if c._resetStyle then
+            c:_resetStyle(style)
+        end
+        c.hasChanges = true
+        c.needsRedraw = true
+        resetStyle2(c, style)
+    end
+end
+
+function Application:_resetStyle(style)
+    local windows = self.windows
+    for i = 1, #windows do
+        local w = windows[i]
+        w.hasChanges = true
+        w.needsRelayout = true
+        if w._resetStyle then
+            w:_resetStyle(style)
+        end
+        resetStyle2(w, style)
+    end
+end
+
+function Application:setStyle(style) 
+    if getApp[style] then
+        error("Style was alread added to app")
+    end
+    if lwtk.Object.is(style, lwtk.Style) then
+        style:setScaleFactor(style.scaleFactor * self.world:getScreenScale())
+    else
+        style = lwtk.Style(style)
+    end
+    getApp[style]          = self
+    getApp[getStyle[self]] = nil
+    getStyle[self]         = style
+    self:_resetStyle(style)
 end
 
 function Application:addStyle(styleRules) 
-    getStyleParams[self]:addStyleRules(styleRules)
+    getStyle[self]:addRules(styleRules)
+    resetStyle(self)
 end
 
 function Application:newWindow(attributes)

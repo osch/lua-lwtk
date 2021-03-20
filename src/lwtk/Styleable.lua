@@ -6,7 +6,7 @@ local match  = string.match
 local lower  = string.lower
 
 local getParent      = lwtk.get.parent
-local getStyleParams = lwtk.get.styleParams
+local getStyle       = lwtk.get.style
 local getStylePath   = lwtk.get.stylePath
 local toPattern      = lwtk.StyleRule.toPattern
 
@@ -56,7 +56,7 @@ function Styleable:setState(name, flag)
 end
 
 function Styleable:setStyle(styleRules)
-    local typeList = getStyleParams[self].typeList
+    local typeList = getStyle[self].typeList
     local rules = {}
     for i, r in ipairs(styleRules) do
         rules[i] = toPattern(r, typeList)
@@ -91,34 +91,39 @@ end
 
 local getStateStyleSelectorPath = Styleable.getStateStyleSelectorPath
 
+local function _getStyleParam(self, style, paramName)
+    local stylePath = getStylePath[self]
+    if not stylePath then
+        local p = getParent[self]
+        while p do
+            stylePath = getStylePath[p]
+            if stylePath then
+                getStylePath[self] = stylePath
+                self.state = p.state
+                break
+            else
+                p = getParent[p]
+            end
+        end
+    end
+    assert(stylePath, "Widget not connected to parent")
+    local statePath = getStateStyleSelectorPath(self)
+    local rslt = style:_getStyleParam(paramName, stylePath, statePath, self.styleRules)
+    if not rslt and paramName:match("^.*Opacity$") then
+        return 1
+    else
+        return rslt
+    end
+end
+Styleable._getStyleParam = _getStyleParam
+
 function Styleable:getStyleParam(paramName)
     if not self.visible and paramName == "Opacity" then
         return 0
     end
-    local styleParams = getStyleParams[self]
-    if styleParams then
-        local stylePath = getStylePath[self]
-        if not stylePath then
-            local p = getParent[self]
-            while p do
-                stylePath = getStylePath[p]
-                if stylePath then
-                    getStylePath[self] = stylePath
-                    self.state = p.state
-                    break
-                else
-                    p = getParent[p]
-                end
-            end
-        end
-        local statePath = getStateStyleSelectorPath(self)
-        assert(stylePath, "Widget not connected to parent")
-        local rslt = styleParams:getStyleParam(paramName, stylePath, statePath, self.styleRules)
-        if not rslt and paramName:match("^.*Opacity$") then
-            return 1
-        else
-            return rslt
-        end
+    local style = getStyle[self]
+    if style then
+        return _getStyleParam(self, style, paramName)
     end
 end
 

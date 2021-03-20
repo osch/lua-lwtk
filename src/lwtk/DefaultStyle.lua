@@ -5,16 +5,27 @@ local get      = lwtk.StyleParamRef.get
 local lighten  = lwtk.StyleParamRef.lighten
 local saturate = lwtk.StyleParamRef.saturate
 
-local Super             = lwtk.StyleRules
-local DefaultStyleRules = lwtk.newClass("lwtk.DefaultStyleRules", Super)
+local Super        = lwtk.Style
+local DefaultStyle = lwtk.newClass("lwtk.DefaultStyle", Super)
 
-function DefaultStyleRules:new(params)
+function DefaultStyle:new(initParams)
     
-    params = params or {}
+    local function par(name)
+        local rslt = initParams and initParams[name]
+        if rslt ~= nil then
+            initParams[name] = nil
+            return rslt
+        end
+    end
+    
+    local scaleFactor = par"scaleFactor" or 1
+    local screenScale = par"screenScale" or 1
+    local color       = par"color"       or Color"f9f9fa"
+    local textColor   = par"textColor"   or Color"000000"
     
     local ruleList = {
         
-        scaleFactor = (params.scaleFactor or 1) * (params.screenScale or 1),
+        scaleFactor = scaleFactor * screenScale,
         
         { "*TransitionSeconds",                    0.05 },
         { "VisibilityTransitionSeconds",           0.05 },
@@ -33,8 +44,8 @@ function DefaultStyleRules:new(params)
         { "LeftPadding@PushButton",
           "RightPadding@PushButton",   10 },
 
-        { "BackgroundColor",           params.color      or Color"f9f9fa" },
-        { "TextColor",                 params.textColor  or Color"000000" },
+        { "BackgroundColor",           color       },
+        { "TextColor",                 textColor   },
 
         { "TextOffset",                   0            },
         { "TextOffset:pressed+hover",     0.3            },
@@ -63,4 +74,4 @@ function DefaultStyleRules:new(params)
     Super.new(self, ruleList)
 end
 
-return DefaultStyleRules
+return DefaultStyle

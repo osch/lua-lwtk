@@ -20,7 +20,7 @@ Window:implementFrom(KeyHandler)
 Window.color = true
 
 local getParent       = lwtk.get.parent
-local getStyleParams  = lwtk.get.styleParams
+local getStyle        = lwtk.get.style
 local getApp          = lwtk.get.app
 local getRoot         = lwtk.get.root
 local getKeyBinding   = lwtk.get.keyBinding
@@ -46,7 +46,7 @@ function Window:new(app, initParms)
     self.setTimer        = app.setTimer
     getParent[self]      = app
     getKeyBinding[self]  = getKeyBinding[app]
-    getStyleParams[self] = getStyleParams[app]
+    getStyle[self]       = getStyle[app]
     KeyHandler.new(self)
     self.child = ChildLookup(self)
     self.exposedArea = Area()

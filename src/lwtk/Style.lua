@@ -10,66 +10,59 @@ local TypeRule         = lwtk.TypeRule
 local StyleRule        = lwtk.StyleRule
 local StyleRuleContext = lwtk.StyleRuleContext
 
-local StyleParams = lwtk.newClass("lwtk.StyleParams", lwtk.Object)
+local Style = lwtk.newClass("lwtk.Style", lwtk.Object)
 
 local toTypePattern  = TypeRule.toPattern
 local toStylePattern = StyleRule.toPattern
 
-function StyleParams:new(typeList, ruleList)
-    self:setTypeRules(typeList)
-    self:setStyleRules(ruleList)
+function Style:new(ruleList)
+    self:setRules(ruleList)
 end
 
-function StyleParams:setTypeRules(typeList)
-    local types = {}
-    for i, t in ipairs(typeList) do
-        types[i] = toTypePattern(t)
-    end
-    self.typeList = types
-    local ruleList = self.ruleList
-    if ruleList then
-        self.ruleList = nil
-        self:setStyleRules(ruleList)
-    end
-end
-
-function StyleParams:addTypeRules(newRules)
-    local typeList = self.typeList
-    local n = #typeList
-    local types = self.typeList
-    for i = 1, #newRules do
-        types[n + i] = toTypePattern(newRules[i])
-    end
-    local ruleList = self.ruleList
-    self.ruleList = nil
-    self:setStyleRules(ruleList)
-end
-
-function StyleParams:setStyleRules(ruleList)
-    self.scaleFactor = ruleList.scaleFactor or 1
-    local typeList = self.typeList
-    local rules = {}
-    for i, rule in ipairs(ruleList) do
-        rules[i] = toStylePattern(rule, typeList)
-    end
-    self.ruleList = rules
-    self:clearCache()
-end
-
-function StyleParams:addStyleRules(ruleList)
-    local typeList = self.typeList
-    local rules = self.ruleList
-    local n = #rules
-    for i, rule in ipairs(ruleList) do
-        rules[n + i] = toStylePattern(rule[i], typeList)
-    end
-    self:clearCache()
-end
-
-function StyleParams:clearCache()
+local function clearCache(self)
     self.cache = {}
     self.animatable = {}
     self.scalable   = {}
+end
+
+function Style:setScaleFactor(scaleFactor)
+    self.scaleFactor = scaleFactor
+    clearCache(self)
+end
+
+function Style:setRules(rules)
+    local typeList = {}
+    do
+        local types = rules.types or lwtk.DefaultStyleTypes()
+        for i, t in ipairs(types) do
+            typeList[i] = toTypePattern(t)
+        end
+    end
+    self.typeList    = typeList
+    self.scaleFactor = rules.scaleFactor or 1
+    local ruleList = {}
+    for i, rule in ipairs(rules) do
+        ruleList[i] = toStylePattern(rule, typeList)
+    end
+    self.ruleList = ruleList
+    clearCache(self)
+end
+
+function Style:addRules(rules)
+    local typeList = self.typeList
+    if rules.types then
+        local types = rules.types
+        local n = #typeList
+        for i = 1, #types do
+            typeList[n + i] = toTypePattern(types[i])
+        end
+    end
+    local ruleList = self.ruleList
+    local n = #ruleList
+    for i, rule in ipairs(rules) do
+        ruleList[n + i] = toStylePattern(rule, typeList)
+    end
+    clearCache(self)
 end
 
 local function findTypeRule(self, parName)
@@ -89,7 +82,7 @@ local function findTypeRule(self, parName)
 end
 
 
-function StyleParams:isAnimatable(parName)
+function Style:isAnimatable(parName)
     local result = self.animatable[parName]
     if result == nil then
         findTypeRule(self, parName)
@@ -99,7 +92,7 @@ function StyleParams:isAnimatable(parName)
     end
 end
 
-function StyleParams:isScalable(parName)
+function Style:isScalable(parName)
     local result = self.scalable[parName]
     if result == nil then
         findTypeRule(self, parName)
@@ -162,12 +155,12 @@ local function _getStyleParam(self, selector, parName, classSelectorPath, stateS
     end
 end
 
-function StyleParams:_getStyleParam(parName, classSelectorPath, stateSelectorPath, localStyleRules)
+function Style:_getStyleParam2(parName, classSelectorPath, stateSelectorPath, localStyleRules)
     local selector = lower(parName).."@"..classSelectorPath..":"..lower(stateSelectorPath)
     return _getStyleParam(self, selector, parName, classSelectorPath, stateSelectorPath, localStyleRules)
 end
 
-function StyleParams:getStyleParam(parName, classSelectorPath, stateSelectorPath, localStyleRules)
+function Style:_getStyleParam(parName, classSelectorPath, stateSelectorPath, localStyleRules)
     local cache
     if localStyleRules then
         cache = localStyleRules.cache
@@ -199,5 +192,8 @@ function StyleParams:getStyleParam(parName, classSelectorPath, stateSelectorPath
     end
 end
 
+function Style:getStyleParam(widget, parName)
+    return widget:_getStyleParam(self, parName)
+end
 
-return StyleParams
+return Style

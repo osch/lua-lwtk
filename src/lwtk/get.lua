@@ -7,7 +7,7 @@ local get = {}
 get.app                = WeakKeysTable()
 get.root               = WeakKeysTable()
 get.parent             = WeakKeysTable()
-get.styleParams        = WeakKeysTable()
+get.style              = WeakKeysTable()
 get.focusHandler       = WeakKeysTable()
 
 get.wrapper            = WeakKeysTable()

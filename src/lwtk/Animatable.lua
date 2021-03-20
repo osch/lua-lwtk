@@ -5,8 +5,8 @@ local floor = math.floor
 local Super       = lwtk.Styleable
 local Animatable  = lwtk.newClass("lwtk.Animatable", Super)
 
-local getApp             = lwtk.get.app
-local getStyleParams     = lwtk.get.styleParams
+local getApp       = lwtk.get.app
+local getStyle     = lwtk.get.style
 
 local callOnLayout       = lwtk.layout.callOnLayout
 
@@ -244,6 +244,11 @@ function Animatable:setStates(stateNames)
     end
 end
 
+function Animatable:_resetStyle(style)
+    getStyle[self] = style
+    currentValues[self] = {}
+end
+
 function Animatable:getStyleParam(paramName)
     local value = currentValues[self][paramName]
     local wasInCache = value
@@ -251,7 +256,7 @@ function Animatable:getStyleParam(paramName)
         value = getStyleParam(self, paramName)
         if value ~= nil then
             currentValues[self][paramName] = value
-            local animatable = getStyleParams[self].animatable[paramName]
+            local animatable = getStyle[self].animatable[paramName]
             if animatable or paramName:match("^.*Opacity") then
                 paramTransitions[self][paramName] = true
             else

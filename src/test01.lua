@@ -1,6 +1,6 @@
 local inspect    = require"inspect"
 local lwtk       = require"lwtk"
-local StyleParams= lwtk.StyleParams
+local Style      = lwtk.Style
 local Color      = lwtk.Color
 local Timer      = lwtk.Timer
 
@@ -12,7 +12,7 @@ local get      = lwtk.StyleParamRef.get
 local lighten  = lwtk.StyleParamRef.lighten
 local saturate = lwtk.StyleParamRef.saturate
 
-local styleParams = lwtk.StyleParams(lwtk.DefaultStyleTypes(), lwtk.StyleRules {
+local style = lwtk.Style(lwtk.DefaultStyleTypes(), lwtk.Style {
     { "backgroundColor",                      Color"ffffff" },
     
     { "textColor",                            Color"000000" },
@@ -29,17 +29,17 @@ local styleParams = lwtk.StyleParams(lwtk.DefaultStyleTypes(), lwtk.StyleRules {
 
 local selector = "textColor@<Widget><Button><PushButton>:<focus><hover>"
 
-print(styleParams:getStyleParam("borderColor", "<xxx>", "<active><hover>"))
-print(styleParams:getStyleParam("borderColor", "<Widget><Button><PushButton>", ""))
-print(styleParams:getStyleParam("borderColor", "<Widget><Button><PushButton>", "<active>"))
-print(styleParams:getStyleParam("borderColor", "<Widget><Button><PushButton>", "<active><hover>"))
-print(styleParams:getStyleParam("borderColor", "<Widget><Button><PushButton>", "<active><hover2>"))
+print(style:getStyleParam("borderColor", "<xxx>", "<active><hover>"))
+print(style:getStyleParam("borderColor", "<Widget><Button><PushButton>", ""))
+print(style:getStyleParam("borderColor", "<Widget><Button><PushButton>", "<active>"))
+print(style:getStyleParam("borderColor", "<Widget><Button><PushButton>", "<active><hover>"))
+print(style:getStyleParam("borderColor", "<Widget><Button><PushButton>", "<active><hover2>"))
 
 local Button     = lwtk.Button
 local PushButton = lwtk.PushButton
 local Group      = lwtk.Group
 
-local app  = lwtk.Application("test01.lua", lwtk.StyleRules {
+local app  = lwtk.Application("test01.lua", lwtk.Style {
         { "TextSize",                  13            },
         { "BackgroundColor",           Color"ffffff" },
         { "TextColor",                 Color"000000" },

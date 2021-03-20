@@ -11,7 +11,7 @@ local roundRect           = Rect.round
 local getApp               = lwtk.get.app
 local getRoot              = lwtk.get.root
 local getParent            = lwtk.get.parent
-local getStyleParams       = lwtk.get.styleParams
+local getStyle             = lwtk.get.style
 local getFocusHandler      = lwtk.get.focusHandler
 local getFocusableChildren = lwtk.get.focusableChildren
 local getActions           = lwtk.get.actions
@@ -52,19 +52,19 @@ end
 
 
 
-local function setStyleParams(self, styleParams)
-    getStyleParams[self] = styleParams
+local function setStyleParams(self, style)
+    getStyle[self] = style
     for _, child in ipairs(self) do
-        setStyleParams(child, styleParams)
+        setStyleParams(child, style)
     end
 end
 
 function Widget:_setApp(app)
     Super._setApp(self, app)
-    if not getStyleParams[self] then
-        local styleParams = getStyleParams[app]
-        if styleParams then
-            setStyleParams(self, styleParams)
+    if not getStyle[self] then
+        local style = getStyle[app]
+        if style then
+            setStyleParams(self, style)
         end
     end
     local style = self.style
@@ -76,10 +76,10 @@ end
 
 function Widget:_setParent(parent)
     Super._setParent(self, parent)
-    if not getStyleParams[self] then
-        local styleParams = getStyleParams[parent]
-        if styleParams then
-            setStyleParams(self, styleParams)
+    if not getStyle[self] then
+        local style = getStyle[parent]
+        if style then
+            setStyleParams(self, style)
         end
     end
 end

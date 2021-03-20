@@ -5,8 +5,8 @@ local errorf = lwtk.errorf
 
 local StyleRuleContext = lwtk.newClass("lwtk.StyleRuleContext")
 
-function StyleRuleContext:new(styleParams, classSelectorPath, stateSelectorPath, localStyleRules)
-    self.styleParams  = styleParams
+function StyleRuleContext:new(style, classSelectorPath, stateSelectorPath, localStyleRules)
+    self.style             = style
     self.classSelectorPath = classSelectorPath
     self.stateSelectorPath = stateSelectorPath
     self.localStyleRules   = localStyleRules
@@ -22,9 +22,9 @@ function StyleRuleContext:get(paramRef)
         end
         local name, statePath = match(paramRef, "^([^@]*)%:(.*)$") 
         if name then
-            return self.styleParams:_getStyleParam(name, self.classSelectorPath, statePath, self.localStyleRules)
+            return self.style:_getStyleParam2(name, self.classSelectorPath, statePath, self.localStyleRules)
         else
-            return self.styleParams:_getStyleParam(paramRef, self.classSelectorPath, "", self.localStyleRules)
+            return self.style:_getStyleParam2(paramRef, self.classSelectorPath, "", self.localStyleRules)
         end
     end
 end
