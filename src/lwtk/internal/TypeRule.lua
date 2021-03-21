@@ -12,16 +12,7 @@ local errorf = lwtk.errorf
 
 local TypeRule = {}
 
-local attributes = { "SCALABLE", "ANIMATABLE" }
-
-local toAttrName = {}
-
-for _, a in ipairs(attributes) do
-    local id = {}
-    TypeRule[a] = id
-    toAttrName[id] = a
-end
-
+local toAttrName = lwtk.StyleTypeAttributes.toAttrName
 
 function TypeRule.toPattern(rule)
     local n = #rule

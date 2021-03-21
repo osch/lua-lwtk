@@ -1,9 +1,7 @@
 local lwtk = require"lwtk"
 
-local TypeRule = lwtk.TypeRule
-
-local SCALABLE   = TypeRule.SCALABLE
-local ANIMATABLE = TypeRule.ANIMATABLE
+local SCALABLE   = lwtk.StyleTypeAttributes.SCALABLE
+local ANIMATABLE = lwtk.StyleTypeAttributes.ANIMATABLE
 
 local function DefaultStyleTypes()
     return {

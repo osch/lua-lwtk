@@ -6,9 +6,9 @@ local errorf = lwtk.errorf
 local type   = lwtk.type
 local floor  = math.floor
 
-local TypeRule         = lwtk.TypeRule
-local StyleRule        = lwtk.StyleRule
-local StyleRuleContext = lwtk.StyleRuleContext
+local TypeRule         = lwtk.internal.TypeRule
+local StyleRule        = lwtk.internal.StyleRule
+local StyleRuleContext = lwtk.internal.StyleRuleContext
 
 local Style = lwtk.newClass("lwtk.Style", lwtk.Object)
 

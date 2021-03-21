@@ -8,7 +8,7 @@ local lower  = string.lower
 local getParent      = lwtk.get.parent
 local getStyle       = lwtk.get.style
 local getStylePath   = lwtk.get.stylePath
-local toPattern      = lwtk.StyleRule.toPattern
+local toPattern      = lwtk.internal.StyleRule.toPattern
 
 local getStateStylePath = setmetatable({}, { __mode = "k" })
 
@@ -66,7 +66,7 @@ end
 
 
 
-function Styleable:getStateStyleSelectorPath()
+function Styleable:getStateString()
     local state = self.state
     local path = getStateStylePath[state]
     if not path then
@@ -89,7 +89,7 @@ function Styleable:getStateStyleSelectorPath()
     return path
 end
 
-local getStateStyleSelectorPath = Styleable.getStateStyleSelectorPath
+local getStateString = Styleable.getStateString
 
 local function _getStyleParam(self, style, paramName)
     local stylePath = getStylePath[self]
@@ -107,7 +107,7 @@ local function _getStyleParam(self, style, paramName)
         end
     end
     assert(stylePath, "Widget not connected to parent")
-    local statePath = getStateStyleSelectorPath(self)
+    local statePath = getStateString(self)
     local rslt = style:_getStyleParam(paramName, stylePath, statePath, self.styleRules)
     if not rslt and paramName:match("^.*Opacity$") then
         return 1
