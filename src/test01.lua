@@ -12,7 +12,7 @@ local get      = lwtk.StyleParamRef.get
 local lighten  = lwtk.StyleParamRef.lighten
 local saturate = lwtk.StyleParamRef.saturate
 
-local style = lwtk.Style(lwtk.DefaultStyleTypes(), lwtk.Style {
+local style = lwtk.Style(lwtk.Style {
     { "backgroundColor",                      Color"ffffff" },
     
     { "textColor",                            Color"000000" },
@@ -29,11 +29,11 @@ local style = lwtk.Style(lwtk.DefaultStyleTypes(), lwtk.Style {
 
 local selector = "textColor@<Widget><Button><PushButton>:<focus><hover>"
 
-print(style:getStyleParam("borderColor", "<xxx>", "<active><hover>"))
-print(style:getStyleParam("borderColor", "<Widget><Button><PushButton>", ""))
-print(style:getStyleParam("borderColor", "<Widget><Button><PushButton>", "<active>"))
-print(style:getStyleParam("borderColor", "<Widget><Button><PushButton>", "<active><hover>"))
-print(style:getStyleParam("borderColor", "<Widget><Button><PushButton>", "<active><hover2>"))
+print(style:_getStyleParam("borderColor", "<xxx>", "<active><hover>"))
+print(style:_getStyleParam("borderColor", "<Widget><Button><PushButton>", ""))
+print(style:_getStyleParam("borderColor", "<Widget><Button><PushButton>", "<active>"))
+print(style:_getStyleParam("borderColor", "<Widget><Button><PushButton>", "<active><hover>"))
+print(style:_getStyleParam("borderColor", "<Widget><Button><PushButton>", "<active><hover2>"))
 
 local Button     = lwtk.Button
 local PushButton = lwtk.PushButton

@@ -19,8 +19,6 @@ local ADOPT_PARENT_STYLE = {}
 Styleable.ADOPT_PARENT_STYLE = ADOPT_PARENT_STYLE
 
 local function addToStyleSelectorClassPath(path, name)
-    local n = match(name, "^.*%.([^.]*)$")
-    name = n or name
     return (path or "").."<"..lower(name)..">"
 end
 

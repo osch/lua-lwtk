@@ -36,10 +36,11 @@ function StyleRule.toPattern(rule, typeList)
     local n = #rule
     local value = rule[n]
     local result = {}
+    local j = 1
     for i = 1, n - 1 do
         local patternString = rule[i]
         local p = lower(patternString)
-        local invalidChar = match(p, "[^a-zA-Z0-9_*@:+()]")
+        local invalidChar = match(p, "[^a-zA-Z0-9_*@:+().]")
         if invalidChar then
             errorf("Error in style rule pattern %q: invalid character %q", patternString, invalidChar)
         end
@@ -65,16 +66,28 @@ function StyleRule.toPattern(rule, typeList)
                    patternString, invalid)
         end
         paramName = gsub(paramName, "%*", ".*")
+        local classPathWithDot = false
         if classPath then
             if find(classPath, "%+") then
                 errorf("Invalid style rule pattern %q: class name contains invalid character %q", 
                        patternString, "+")
             end
-            classPath = gsub(classPath, "%*", ".*")
-            classPath = gsub(classPath, "[()]", "%%%0")
-            classPath = ".*<"..classPath..">.*"
-        else
-            classPath = ".*"
+            local packageName, className = match(classPath, "^(.*)%.([^.]*)$")
+            if packageName then
+                classPathWithDot = true
+                packageName = gsub(packageName,  "[.()]", "%%%0")
+                className   = gsub(className,    "[()]",  "%%%0")
+                packageName = gsub(packageName,  "%*", ".*")
+                className   = gsub(className,    "%*", "[^.]*")
+                if #packageName > 0 then
+                    classPath   = packageName.."%."..className
+                else
+                    classPath   = className
+                end
+            else
+                classPath = gsub(classPath, "[()]", "%%%0")
+                classPath = gsub(classPath, "%*", "[^.]*")
+            end
         end
         if statePath then
             if  #statePath > 0 then
@@ -113,11 +126,20 @@ function StyleRule.toPattern(rule, typeList)
         else
             statePath =".*"
         end
-        result[i] = "^"..paramName.."@"..classPath..":"..statePath.."$"
+        if classPath then
+            if not classPathWithDot then
+                result[j] = "^"..paramName.."@.*<.*%."..classPath..">.*:"..statePath.."$"
+                j = j + 1
+            end
+            result[j] = "^"..paramName.."@.*<"..classPath..">.*:"..statePath.."$"
+        else
+            result[j] = "^"..paramName.."@.*:"..statePath.."$"
+        end
+        j = j + 1
         local t = checkValue(patternString, paramName, value, typeList)
     end
     result.type = t
-    result[n] = value
+    result[j] = value
     return result
 end
 
