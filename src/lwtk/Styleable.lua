@@ -53,13 +53,42 @@ function Styleable:setState(name, flag)
     getStateStylePath[state] = false
 end
 
-function Styleable:setStyle(styleRules)
-    local typeList = getStyle[self].typeList
-    local rules = {}
-    for i, r in ipairs(styleRules) do
-        rules[i] = toPattern(r, typeList)
+function Styleable:_setStyleFromParent(parentStyle)
+    self._hasChanges = true
+    self._needsRelayout = true
+    local style
+    if self._hasOwnStyle then
+        style = getStyle[self]
+        style:_replaceParentStyle(parentStyle)
+    else
+        style = parentStyle
+        getStyle[self] = style
     end
-    self.styleRules = rules
+    for _, child in ipairs(self) do
+        local _setStyleFromParent = child._setStyleFromParent
+        if _setStyleFromParent then
+            _setStyleFromParent(child, style)
+        end
+    end
+end
+
+function Styleable:setStyle(style)
+    self._hasChanges = true
+    self._needsRelayout = true
+    if not lwtk.Object.is(style, lwtk.Style) then
+        style = lwtk.Style(style)
+    end
+    if self._hasOwnStyle then
+        local parent = getStyle[self].parent
+        style:_setParentStyle(parent)
+    else
+        self._hasOwnStyle = true
+        style:_setParentStyle(getStyle[self])
+    end
+    getStyle[self] = style
+    for _, child in ipairs(self) do
+        child:_setStyleFromParent(style)
+    end
 end
 
 
@@ -106,7 +135,7 @@ local function _getStyleParam(self, style, paramName)
     end
     assert(stylePath, "Widget not connected to parent")
     local statePath = getStateString(self)
-    local rslt = style:_getStyleParam(paramName, stylePath, statePath, self.styleRules)
+    local rslt = style:_getStyleParam(paramName, stylePath, statePath)
     if not rslt and paramName:match("^.*Opacity$") then
         return 1
     else

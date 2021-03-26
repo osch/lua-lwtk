@@ -30,6 +30,17 @@ function Style:setScaleFactor(scaleFactor)
     clearCache(self)
 end
 
+function Style:_replaceParentStyle(parentStyle)
+    if self.parent then
+        clearCache(self)
+    end
+    self.parent = parentStyle
+end 
+function Style:_setParentStyle(parentStyle)
+    assert(not self.parent, "style was already added to another parent")
+    self.parent = parentStyle
+end 
+
 function Style:setRules(rules)
     local typeList = {}
     do
@@ -78,7 +89,10 @@ local function findTypeRule(self, parName)
             end
         end
     end
-
+    local parent = self.parent
+    if parent then
+        return findTypeRule(parent, parName)
+    end
 end
 
 
@@ -102,7 +116,7 @@ function Style:isScalable(parName)
     end
 end
 
-local function _getStyleParam(self, selector, parName, classSelectorPath, stateSelectorPath, localStyleRules)
+local function _getStyleParam(self, selector, parName, classSelectorPath, stateSelectorPath, localStyle)
     local typeRule
     local context
     local function evalRule(rule)
@@ -118,12 +132,12 @@ local function _getStyleParam(self, selector, parName, classSelectorPath, stateS
             local param = rule[n]
             if type(param) == "function" then
                 if not context then
-                    context = StyleRuleContext(self, classSelectorPath, stateSelectorPath, localStyleRules)
+                    context = StyleRuleContext(localStyle, classSelectorPath, stateSelectorPath)
                 end
                 param = param(context)
             end
             if not typeRule then
-                typeRule = findTypeRule(self, parName)
+                typeRule = findTypeRule(localStyle, parName)
                 if not typeRule then
                     errorf("Cannot deduce type for style parameter name %q", parName)
                 end
@@ -135,16 +149,6 @@ local function _getStyleParam(self, selector, parName, classSelectorPath, stateS
             return param
         end
     end
-    if localStyleRules then
-        for i = #localStyleRules, 1, -1 do
-            local rule = localStyleRules[i]
-            local rslt = evalRule(rule)
-            if rslt then 
-                --print(">>>>>>>>>1", selector, typeRule[#typeRule]) 
-                return rslt, typeRule
-            end
-        end
-    end
     for i = #self.ruleList, 1, -1 do
         local rule = self.ruleList[i]
         local rslt = evalRule(rule)
@@ -153,30 +157,25 @@ local function _getStyleParam(self, selector, parName, classSelectorPath, stateS
             return rslt, typeRule
         end
     end
-end
-
-function Style:_getStyleParam2(parName, classSelectorPath, stateSelectorPath, localStyleRules)
-    local selector = lower(parName).."@"..classSelectorPath..":"..lower(stateSelectorPath)
-    return _getStyleParam(self, selector, parName, classSelectorPath, stateSelectorPath, localStyleRules)
-end
-
-function Style:_getStyleParam(parName, classSelectorPath, stateSelectorPath, localStyleRules)
-    local cache
-    if localStyleRules then
-        cache = localStyleRules.cache
-        if not cache then
-            cache = {}
-            localStyleRules.cache = cache
-        end
-    else
-        cache = self.cache
+    local parent = self.parent
+    if parent then
+        return _getStyleParam(parent, selector, parName, classSelectorPath, stateSelectorPath, localStyle)
     end
+end
+
+function Style:_getStyleParam2(parName, classSelectorPath, stateSelectorPath)
+    local selector = lower(parName).."@"..classSelectorPath..":"..lower(stateSelectorPath)
+    return _getStyleParam(self, selector, parName, classSelectorPath, stateSelectorPath, self)
+end
+
+function Style:_getStyleParam(parName, classSelectorPath, stateSelectorPath)
+    local cache = self.cache
     local selector = lower(parName).."@"..classSelectorPath..":"..lower(stateSelectorPath)
     local cached = cache[selector]
     if cached then
         return cached
     else
-        local rslt, typeRule = _getStyleParam(self, selector, parName, classSelectorPath, stateSelectorPath, localStyleRules)
+        local rslt, typeRule = _getStyleParam(self, selector, parName, classSelectorPath, stateSelectorPath, self)
         
         if rslt then
             if typeRule.SCALABLE then

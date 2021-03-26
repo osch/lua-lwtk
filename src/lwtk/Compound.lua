@@ -32,7 +32,6 @@ function Compound:_processChanges(x0, y0, cx, cy, cw, ch, damagedArea)
     for _, child in ipairs(self) do
         if child._hasChanges then
             child._hasChanges = false
-            child._positionsChanged = false 
             assert(child._processChanges, "xx "..tostring(child))
             child:_processChanges(x, y, cx, cy, cw, ch, damagedArea)
         end

@@ -29,7 +29,7 @@ function Application:new(arg1, arg2)
         appName = initParams.name
         initParams.name = nil
     end
-
+    assert(appName, "Application object needs name attribute")
     isClosed[self] = false
     self.world     = lpugl.newWorld(appName)
     
@@ -103,28 +103,11 @@ function Application:getScreenScaleFunc()
     return f
 end
 
-local function resetStyle2(p, style)
-    for i = 1, #p do
-        local c = p[i]
-        if c._resetStyle then
-            c:_resetStyle(style)
-        end
-        c.hasChanges = true
-        c.needsRedraw = true
-        resetStyle2(c, style)
-    end
-end
-
-function Application:_resetStyle(style)
+local function resetStyle(self, style)
     local windows = self.windows
     for i = 1, #windows do
         local w = windows[i]
-        w.hasChanges = true
-        w.needsRelayout = true
-        if w._resetStyle then
-            w:_resetStyle(style)
-        end
-        resetStyle2(w, style)
+        w:_setStyleFromParent(style)
     end
 end
 
@@ -140,12 +123,13 @@ function Application:setStyle(style)
     getApp[style]          = self
     getApp[getStyle[self]] = nil
     getStyle[self]         = style
-    self:_resetStyle(style)
+    resetStyle(self, style)
 end
 
-function Application:addStyle(styleRules) 
-    getStyle[self]:addRules(styleRules)
-    resetStyle(self)
+function Application:addStyle(additionalStyle) 
+    local style = getStyle[self]
+    style:addRules(additionalStyle)
+    resetStyle(self, style)
 end
 
 function Application:newWindow(attributes)
@@ -232,8 +216,8 @@ createClosures = function(self)
             local windows = self.windows
             for _, w in ipairs(windows) do
                 if w._hasChanges then
-                    w._hasChanges = false
                     w:_processChanges()
+                    assert(not w._hasChanges)
                 end
             end
             assert(not self._hasChanges)

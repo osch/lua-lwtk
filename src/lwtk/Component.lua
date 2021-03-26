@@ -67,6 +67,11 @@ function Component:_setApp(app)
 end
 
 local function setAppAndRoot(self, app, root)
+    local oldRoot = getRoot[self]
+    if oldRoot and oldRoot._positionsChanged then
+        root._positionsChanged = true
+        oldRoot._positionsChanged = nil
+    end
     getRoot[self] = root
     if app then
         self:_setApp(app)
@@ -165,12 +170,15 @@ function Component:_setFrame(newX, newY, newW, newH)
                 self.oldW = w
                 self.oldH = h
                 local w = self
+                local root = getRoot[self]
+                if root then
+                    root._positionsChanged = true
+                end
                 repeat
-                    if w._hasChanges and w._positionsChanged then
+                    if w._hasChanges then
                         break
                     end
                     w._hasChanges = true
-                    w._positionsChanged = true
                     w = getParent[w]
                 until not w
             end

@@ -244,9 +244,14 @@ function Animatable:setStates(stateNames)
     end
 end
 
-function Animatable:_resetStyle(style)
-    getStyle[self] = style
+function Animatable:_setStyleFromParent(parentStyle)
     currentValues[self] = {}
+    Super._setStyleFromParent(self, parentStyle)
+end
+
+function Animatable:setStyle(style)
+    currentValues[self] = {}
+    Super.setStyle(self, style)
 end
 
 function Animatable:getStyleParam(paramName)

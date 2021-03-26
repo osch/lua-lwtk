@@ -40,11 +40,6 @@ function Widget:new(initParams)
             self.id = id
             initParams.id = nil
         end
-        local style = initParams.style
-        if style then
-            self.style = style
-            initParams.style = nil
-        end
     end
     Super.new(self, initParams)
     Animatable.new(self)
@@ -52,36 +47,29 @@ end
 
 
 
-local function setStyleParams(self, style)
-    getStyle[self] = style
-    for _, child in ipairs(self) do
-        setStyleParams(child, style)
-    end
-end
-
 function Widget:_setApp(app)
-    Super._setApp(self, app)
-    if not getStyle[self] then
-        local style = getStyle[app]
-        if style then
-            setStyleParams(self, style)
+    if self._hasOwnStyle then
+        local ownStyle = getStyle[self]
+        if not ownStyle.parent then
+            ownStyle:_setParentStyle(getStyle[app])
         end
+    elseif not getStyle[self] then
+        getStyle[self] = getStyle[app]
     end
-    local style = self.style
-    if style then
-        self.style = nil
-        self:setStyle(style)
-    end
+    Super._setApp(self, app)
 end
 
 function Widget:_setParent(parent)
-    Super._setParent(self, parent)
-    if not getStyle[self] then
-        local style = getStyle[parent]
-        if style then
-            setStyleParams(self, style)
+    if self._hasOwnStyle then
+        local ownStyle    = getStyle[self]
+        local parentStyle = getStyle[parent]
+        if parentStyle then
+            ownStyle:_setParentStyle(parentStyle)
         end
+    elseif not getStyle[self] then
+        getStyle[self] = getStyle[parent]
     end
+    Super._setParent(self, parent)
 end
 
 local _setFrame = Super._setFrame

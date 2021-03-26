@@ -11,6 +11,9 @@ objects of type *lwtk.Style*.
    * [Matching Class Names](#matching-class-names)
    * [Matching Package Names](#matching-package-names)
    * [Matching Widget States](#matching-widget-states)
+   * [Connecting Style to Application](#connecting-style-to-application)
+   * [Individual Widget Style](#individual-widget-style)
+   * [Style for Widget Groups](#style-for-widget-groups)
 
 <!-- ---------------------------------------------------------------------------------------- -->
 ##   Basic Usage
@@ -93,9 +96,10 @@ assert(not ok and err:match("Cannot deduce parameter type"))
 Let's define more widget classes:
 
 ```lua
-local MyWidget1 = lwtk.newClass("MyWidget1",     lwtk.Widget)
-local MyWidget2 = lwtk.newClass("MyWidget2",     lwtk.Widget)
-local MyWidget3 = lwtk.newClass("MyWidget3",     MyWidget2)   -- MyWidget3 is derived from MyWidget2
+local MyWidget1 = lwtk.newClass("MyWidget1", lwtk.Widget)
+local MyWidget2 = lwtk.newClass("MyWidget2", lwtk.Widget)
+local MyWidget3 = lwtk.newClass("MyWidget3", MyWidget2)   -- MyWidget3 is derived from MyWidget2
+local MyWidget4 = lwtk.newClass("MyWidget4", lwtk.Widget)
 ```
 
 <!-- ---------------------------------------------------------------------------------------- -->
@@ -105,6 +109,7 @@ And then create widget objects of theses classes:
 local w1 = MyWidget1()
 local w2 = MyWidget2()
 local w3 = MyWidget3()
+local w4 = MyWidget4()
 ```
 <!-- ---------------------------------------------------------------------------------------- -->
 
@@ -379,6 +384,158 @@ assert(not ok and err:match("state name must not contain wildcard"))
 ```
 
 <!-- ---------------------------------------------------------------------------------------- -->
+##   Connecting Style to Application
+<!-- ---------------------------------------------------------------------------------------- -->
+
+Usually a style object is connected to the application and is used for all widgets:
+```lua
+local app = lwtk.Application { 
+    name  = "example",
+    style = { { "*Width",           10 },
+              { "*Width@MyWidget2", 20 } }
+}
+local win = app:newWindow { w1, w2 }
+assert(w1:getStyleParam("FooWidth") == 10)
+assert(w2:getStyleParam("FooWidth") == 20)
+```
+
+If no style is specified, the application object gets the default style 
+[lwtk.DefaultStyle](../src/lwtk/DefaultStyle.lua):
+
+```lua
+local app = lwtk.Application { 
+    name  = "example"
+}
+local w1, w2, w4 = MyWidget1(), MyWidget2(), MyWidget4()
+local win = app:newWindow { w1, w2, w4 }
+assert(w1:getStyleParam("TextSize") == 12)
+```
+
+Style rules can be added to existing style:
+```lua
+app:addStyle { { "TextSize@MyWidget1", 10 },
+               { "TextSize@MyWidget2", 20 } }
+assert(w1:getStyleParam("TextSize") == 10)
+assert(w2:getStyleParam("TextSize") == 20)
+assert(w4:getStyleParam("TextSize") == 12)
+```
+
+
+<!-- ---------------------------------------------------------------------------------------- -->
+##   Individual Widget Style
+<!-- ---------------------------------------------------------------------------------------- -->
+
+Style rules can be specified for individual widgets:
+```lua
+local app = lwtk.Application { 
+    name  = "example",
+    style = { { "*Width",  10 },
+              { "*Height", 15 } }
+}
+local w1a = MyWidget1 {}
+local w1b = MyWidget1 {
+    style = { { "*Width", 20 } } -- individual style for w1b
+}
+local win = app:newWindow { w1a, w1b }
+assert(w1a:getStyleParam("FooWidth")  == 10)
+assert(w1a:getStyleParam("FooHeight") == 15)
+assert(w1b:getStyleParam("FooWidth")  == 20)
+assert(w1b:getStyleParam("FooHeight") == 15)
+```
+
+<!-- ---------------------------------------------------------------------------------------- -->
+
+Style can be replaced:
+```lua
+app:setStyle { { "*Width",  100 },
+               { "*Height", 200 } }           -- replaces style for whole ap
+assert(w1a:getStyleParam("FooWidth")  == 100)
+assert(w1a:getStyleParam("FooHeight") == 200)
+assert(w1b:getStyleParam("FooWidth")  == 20)  -- individual style for w1b is still active
+assert(w1b:getStyleParam("FooHeight") == 200)
+
+w1b:setStyle { { "*Width", 300 } }            -- replaces individual style for w1b
+assert(w1b:getStyleParam("FooWidth")  == 300)
+assert(w1b:getStyleParam("FooHeight") == 200)
+```
+
+<!-- ---------------------------------------------------------------------------------------- -->
+## Style for Widget Groups
+<!-- ---------------------------------------------------------------------------------------- -->
+
+Style rules can also be specified for widget groups:
+```lua
+local app = lwtk.Application { 
+    name  = "example",
+    style = { { "*Width",   10 },
+              { "*Height",  15 },
+              { "*rHeight", 16 },}
+}
+local w1a = MyWidget1 {}
+local w1b = MyWidget1 {
+    style = { { "*oWidth",   21 } }  -- individual style for w1b
+}
+local w2a = MyWidget2 {}
+local w2b = MyWidget2 {
+    style = { { "*oWidth",   22 } }  -- individual style for w2b
+}
+local g1 = lwtk.Group { w1a, w1b }
+local g2 = lwtk.Group { w2a, w2b,
+    style = { { "*oHeight",  33 } }  -- style for widget group g2
+}
+local win = app:newWindow { g1, g2 }
+
+assert(w1a:getStyleParam("FooWidth")  == 10)  -- from app
+assert(w1a:getStyleParam("FooHeight") == 15)  -- from app
+
+assert(w1b:getStyleParam("FooWidth")  == 21)  -- from widget
+assert(w1b:getStyleParam("FooHeight") == 15)  -- from app
+
+assert(w2a:getStyleParam("FooWidth")  == 10)  -- from app
+assert(w2a:getStyleParam("FooHeight") == 33)  -- from group
+
+assert(w2b:getStyleParam("FooWidth")  == 22)  -- from widget
+assert(w2b:getStyleParam("FooHeight") == 33)  -- from group
+assert(w2b:getStyleParam("BarHeight") == 16)  -- from app
+```
+
+<!-- ---------------------------------------------------------------------------------------- -->
+
+Replacing style in widget groups is also possible:
+```lua
+g1:setStyle { { "*oWidth", 17 } }
+
+assert(w1a:getStyleParam("FooWidth")  == 17)  -- from group
+assert(w1a:getStyleParam("FooHeight") == 15)  -- from app
+
+assert(w1b:getStyleParam("FooWidth")  == 21)  -- from widget
+assert(w1b:getStyleParam("FooHeight") == 15)  -- from app
+
+g2:setStyle { { "BarHeight", 34 },
+              { "*oHeight",  36 } }
+              
+assert(w2a:getStyleParam("FooWidth")  == 10)  -- from app
+assert(w2a:getStyleParam("FooHeight") == 36)  -- from group
+
+assert(w2b:getStyleParam("FooWidth")  == 22)  -- from widget
+assert(w2b:getStyleParam("FooHeight") == 36)  -- from group
+assert(w2b:getStyleParam("BarHeight") == 34)  -- from group
+assert(w2b:getStyleParam("FarHeight") == 16)  -- from app
+
+app:setStyle { { "*Width",   18 },
+               { "*rHeight", 19 } }
+
+assert(w2a:getStyleParam("FooWidth")  == 18)  -- from app
+assert(w2a:getStyleParam("FooHeight") == 36)  -- from group
+
+assert(w2b:getStyleParam("FooWidth")  == 22)  -- from widget
+assert(w2b:getStyleParam("FooHeight") == 36)  -- from group
+assert(w2b:getStyleParam("BarHeight") == 34)  -- from group
+assert(w2b:getStyleParam("FarHeight") == 19)  -- from app
+```
+
+<!-- ---------------------------------------------------------------------------------------- -->
+
 TODO
 
 <!-- ---------------------------------------------------------------------------------------- -->

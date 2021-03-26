@@ -12,7 +12,7 @@ local getMeasures     = lwtk.layout.getMeasures
 local callRelayout    = lwtk.layout.callRelayout
 local call            = lwtk.call
 
-local Super        = lwtk.Object
+local Super        = lwtk.Styleable
 local Window       = lwtk.newClass("lwtk.Window", Super)
 
 Window:implementFrom(Styleable)
@@ -288,6 +288,7 @@ function Window:_processChanges()
                 callRelayout(child)
             end
         end
+        assert(not self._needsRelayout)
     end
     if self._positionsChanged then
         self._positionsChanged = false
@@ -298,11 +299,11 @@ function Window:_processChanges()
             end
         end
     end
+    self._hasChanges = false
     for i = 1, #self do
         local child = self[i]
         if child._hasChanges then
-            child._hasChanges       = false
-            child._positionsChanged = false
+            child._hasChanges = false
             if self.w then
                 local damagedArea = self.damagedArea
                 child:_processChanges(0, 0, 0, 0, self.w, self.h, damagedArea)
