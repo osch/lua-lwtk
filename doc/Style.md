@@ -3,6 +3,9 @@
 The appearance of gui widgets can be configured for the whole application using
 objects of type *lwtk.Style*. 
 
+*Style* objects contain rule sets for determining the values of named parameters
+for a widget according to the widget's class name and the widget's state.
+
 <!-- ---------------------------------------------------------------------------------------- -->
 ##   Contents
 <!-- ---------------------------------------------------------------------------------------- -->
@@ -18,9 +21,6 @@ objects of type *lwtk.Style*.
 <!-- ---------------------------------------------------------------------------------------- -->
 ##   Basic Usage
 <!-- ---------------------------------------------------------------------------------------- -->
-
-*Style* objects contain rule sets for determining the values of named parameters
-for a widget according to the widget's class name and the widget's state.
 
 Let's start by constructing our first widget class and create a widget object of this class:
 
@@ -77,7 +77,7 @@ assert(style:getStyleParam(w1, "BarWidth")  == 20)
 The type of the style parameter value is determined
 by the parameter name ending. Therefore only certain parameter names are valid, 
 e.g. names ending with *...Width*, *...Height* or *...Color*. The known parameter
-types are defined in [lwtk.DefaultStyleTypes](../src/lwtk/DefaultStyleTypes.lua).
+types are defined in [lwtk.BuiltinStyleTypes](../src/lwtk/BuiltinStyleTypes.lua).
 An error is raised if a parameter name with unknown suffix is used:
 ```lua
 local ok, err = pcall(  function() 

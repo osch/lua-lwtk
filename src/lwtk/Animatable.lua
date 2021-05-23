@@ -10,8 +10,6 @@ local getStyle     = lwtk.get.style
 
 local callOnLayout       = lwtk.layout.callOnLayout
 
-local UPDATE_INTERVAL = 0.010 -- seconds
-
 local paramTransitions = lwtk.WeakKeysTable()
 local stateTransitions = lwtk.WeakKeysTable()
 local currentValues    = lwtk.WeakKeysTable()

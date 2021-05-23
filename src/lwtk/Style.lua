@@ -44,7 +44,7 @@ end
 function Style:setRules(rules)
     local typeList = {}
     do
-        local types = rules.types or lwtk.DefaultStyleTypes()
+        local types = rules.types or lwtk.BuiltinStyleTypes()
         for i, t in ipairs(types) do
             typeList[i] = toTypePattern(t)
         end

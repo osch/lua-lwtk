@@ -3,7 +3,7 @@ local lwtk = require"lwtk"
 local SCALABLE   = lwtk.StyleTypeAttributes.SCALABLE
 local ANIMATABLE = lwtk.StyleTypeAttributes.ANIMATABLE
 
-local function DefaultStyleTypes()
+local function BuiltinStyleTypes()
     return {
         { "*Family",  "string" },
         
@@ -23,4 +23,4 @@ local function DefaultStyleTypes()
           "*Height",  "number",     SCALABLE, ANIMATABLE },
     }
 end
-return DefaultStyleTypes
+return BuiltinStyleTypes
