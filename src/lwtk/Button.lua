@@ -11,19 +11,21 @@ function Button:new(initParams)
 end
 
 function Button:setHotkey(hotkey)
-    local hotkeys
-    if type(hotkey) == "string" then
-        hotkeys = { [hotkey] = true }
-    else
-        hotkeys = {}
-        for _, h in ipairs(hotkey) do
-            hotkeys[h] = true
+    if hotkey then
+        local hotkeys
+        if type(hotkey) == "string" then
+            hotkeys = { [hotkey] = true }
+        else
+            hotkeys = {}
+            for _, h in ipairs(hotkey) do
+                hotkeys[h] = true
+            end
         end
-    end
-    getHotkeys[self] = hotkeys
-    local focusHandler = getFocusHandler[self]
-    if focusHandler and self.visible then
-        focusHandler:registerHotkeys(self, hotkeys)
+        getHotkeys[self] = hotkeys
+        local focusHandler = getFocusHandler[self]
+        if focusHandler and self.visible then
+            focusHandler:registerHotkeys(self, hotkeys)
+        end
     end
 end
 

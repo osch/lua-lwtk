@@ -72,6 +72,15 @@ function Application:close()
     isClosed[self] = true
 end
 
+function Application:setErrorFunc(...)
+    return self.world:setErrorFunc(...)
+end
+
+
+function Application:getLayoutContext()
+    return self.world:getDefaultBackend():getLayoutContext()
+end
+
 function Application:getFontInfo(family, slant, weight, size)
     return getFontInfos[self]:getFontInfo(family, slant, weight, size)
 end
@@ -134,6 +143,10 @@ end
 
 function Application:newWindow(attributes)
     return Window(self, attributes)
+end
+
+function Application:hasWindows()
+    return self.world:hasViews()
 end
 
 function Application:_addWindow(win)

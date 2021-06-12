@@ -1,6 +1,7 @@
 local lwtk = require"lwtk"
 
 local format    = string.format
+local floor     = math.floor
 local type      = lwtk.type
 local getParent = lwtk.get.parent
 
@@ -31,6 +32,14 @@ function layout.getOuterMargins(widget)
         return m[1], m[2], m[3], m[4]
     else
         return 0, 0, 0, 0
+    end
+end
+
+local function round(f)
+    if f and f > 0 then
+        return floor(f + 0.5)
+    else
+        return f
     end
 end
 
@@ -68,7 +77,14 @@ local function getMeasures2(widget)
         elseif not maxH then
             maxH = bestH
         end
+        
+        minW, minH, bestW, bestH, maxW, maxH = round(minW), round(minH), 
+                                               round(bestW), round(bestH), 
+                                               round(maxW), round(maxH)
 
+        topMargin, rightMargin, bottomMargin, leftMargin = round(topMargin),    round(rightMargin), 
+                                                           round(bottomMargin), round(leftMargin)
+        
         cached[1], cached[2], cached[3], cached[4], cached[5], cached[6],
         cached[7], cached[8], cached[9], cached[10]  = minW, minH, bestW, bestH, maxW, maxH,
                                                        topMargin, rightMargin, bottomMargin, leftMargin
@@ -114,19 +130,19 @@ local function msgh(err)
     end
 end
 
-function layout.callOnLayout(widget, w, h)
+function layout.callOnLayout(widget, w, h, isLayoutTransition)
     local onLayout = widget.onLayout
     if onLayout then
         if isInLayout then
-            onLayout(widget, w, h)
+            onLayout(widget, w, h, isLayoutTransition)
         else
             isInLayout = true
             layoutCounter = layoutCounter + 1
             local ok, err
             if _VERSION == "Lua 5.1" then
-                ok, err = xpcall(function() onLayout(widget, w, h) end, msgh)
+                ok, err = xpcall(function() onLayout(widget, w, h, isLayoutTransition) end, msgh)
             else
-                ok, err = xpcall(onLayout, msgh, widget, w, h)
+                ok, err = xpcall(onLayout, msgh, widget, w, h, isLayoutTransition)
             end
             isInLayout = false
             if not ok then error(err) end

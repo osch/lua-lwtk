@@ -106,17 +106,21 @@ end
 function Color.__mul(factor, color) 
     assert(Object.is(color, Color))
     assert(type(factor) == "number" and 0 <= factor and factor <= 1)
+    local a = color.a or 1
     return Color(factor * color.r,
                  factor * color.g,
-                 factor * color.b)
+                 factor * color.b,
+                 factor * a)
 end
 
 function Color.__add(color1, color2) 
     assert(Object.is(color1, Color))
     assert(Object.is(color2, Color))
+    local a1, a2 = color1.a or 1, color2.a or 1
     return Color(color1.r + color2.r,
                  color1.g + color2.g,
-                 color1.b + color2.b)
+                 color1.b + color2.b,
+                 a1 + a2)
 end
 
 function Color.__eq(color1, color2) 

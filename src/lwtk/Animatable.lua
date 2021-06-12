@@ -32,31 +32,11 @@ local function addToAnimations(self)
     app._animations:add(self)
 end
 
-function Animatable:updateFrameTransition()
-    local trans = self._frameTransition
-    if trans then
-        local now = self:getCurrentTime()
-        local T = trans.endTime - trans.startTime
-        local t = now - trans.startTime
-        if T > 0 and t > 0 and now < trans.endTime then
-            t = t / T
-            local x = (1-t) * trans.oldX + t * trans.newX
-            local y = (1-t) * trans.oldY + t * trans.newY
-            local w = (1-t) * trans.oldW + t * trans.newW
-            local h = (1-t) * trans.oldH + t * trans.newH
-            self:_setFrame(x, y, w, h, true)
-        else
-            self:_setFrame(trans.newX, trans.newY, trans.newW, trans.newH)
-            self._frameTransition = false
-        end
-    end
-end
-
 function Animatable:animateFrame(newX, newY, newW, newH, isLayoutTransition)
     if    self.x ~= newX or self.y ~= newY 
        or self.w ~= newW or self.h ~= newH
     then
-        local duration = getStyleParam(self, "FrameTransitionSeconds") or 0
+        local duration = self:getStyleParam("FrameTransitionSeconds") or 0
         if duration > 0 then
             local trans = self._frameTransition
             if not trans then

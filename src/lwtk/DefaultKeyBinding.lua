@@ -3,8 +3,8 @@ local lwtk = require"lwtk"
 return function()
     return lwtk.KeyBinding 
     {
-        { "F,Right",           "FocusRight"   }, -- TODO: WIP just for playing around
-        { "Ctrl+F,Left,Space", "FocusLeft"    }, -- TODO: WIP just for playing around
+        { "Ctrl+F,Right",      "FocusRight"   }, -- TODO: WIP just for playing around
+        { "Ctrl+F,Left",       "FocusLeft"    }, -- TODO: WIP just for playing around
         
         
         { "Tab",      "FocusNext"          },
@@ -31,7 +31,26 @@ return function()
 
         { "Left", 
           "KP_Left",  "CursorLeft"          },
+        
+        { "Backspace",
+                      "DeleteCharLeft"      },
 
+        { "Delete",
+                      "DeleteCharRight"     },
+
+        { "Home",
+                      "CursorToBeginOfLine" },
+
+        { "End",
+                      "CursorToEndOfLine"   },
+
+        { "Return",
+                      "InputNext"           },
+        { "Shift+Return",
+                      "InputPrev"           },
+
+        { "Return",
+                      "DefaultButton"       },
     }
 end
 

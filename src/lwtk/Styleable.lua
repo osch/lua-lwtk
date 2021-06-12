@@ -5,6 +5,7 @@ local concat = table.concat
 local match  = string.match
 local lower  = string.lower
 
+local call           = lwtk.call
 local getParent      = lwtk.get.parent
 local getStyle       = lwtk.get.style
 local getStylePath   = lwtk.get.stylePath
@@ -65,10 +66,7 @@ function Styleable:_setStyleFromParent(parentStyle)
         getStyle[self] = style
     end
     for _, child in ipairs(self) do
-        local _setStyleFromParent = child._setStyleFromParent
-        if _setStyleFromParent then
-            _setStyleFromParent(child, style)
-        end
+        call("_setStyleFromParent", child, style)
     end
 end
 
@@ -87,7 +85,7 @@ function Styleable:setStyle(style)
     end
     getStyle[self] = style
     for _, child in ipairs(self) do
-        child:_setStyleFromParent(style)
+        call("_setStyleFromParent", child, style)
     end
 end
 

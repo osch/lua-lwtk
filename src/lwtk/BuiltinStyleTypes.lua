@@ -8,7 +8,9 @@ local function BuiltinStyleTypes()
         { "*Family",  "string" },
         
         { "*Seconds", 
-          "*Columns", "number" },
+          "*Columns", "number"  },
+          
+        { "*Visible", "boolean" },
         
         { "*Opacity",               ANIMATABLE },
         

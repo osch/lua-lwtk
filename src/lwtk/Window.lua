@@ -90,11 +90,13 @@ function Window:addChild(child)
             if bw > 0 and bh > 0 then
                 self.view:setMinSize(mw, mh)
                 self.view:setSize(bw, bh)
+                self.minW, self.minH = mw, mh
             end
             if maxW > 0 or maxH > 0 then
                 local mxw = maxW > 0 and ((childLeft or 0) + maxW + (childRight  or 0)) or -1
                 local mxh = maxH > 0 and ((childTop  or 0) + maxH + (childBottom or 0)) or -1
                 self.view:setMaxSize(mxw, mxh)
+                self.maxW, self.maxH = mxw, mxh
             end
         end
     end
@@ -286,6 +288,20 @@ function Window:_processChanges()
             local child = self[i]
             if child._needsRelayout then
                 callRelayout(child)
+                if child.getMeasures then
+                    local minW, minH, bestW, bestH, maxW, maxH, 
+                          childTop, childRight, childBottom, childLeft = getMeasures(child)
+                    local mw = (childLeft or 0) + minW  + (childRight  or 0)
+                    local mh = (childTop  or 0) + minH  + (childBottom or 0)
+                    local bw = (childLeft or 0) + bestW + (childRight  or 0)
+                    local bh = (childTop  or 0) + bestH + (childBottom or 0)
+                    if bw > 0 and bh > 0 then
+                        --if not self.minW or (mw > self.minW or mh > self.minH) then
+                            self.view:setMinSize(mw, mh)
+                            self.minW, self.minH = mw, mh
+                        --end
+                    end
+                end
             end
         end
         assert(not self._needsRelayout)

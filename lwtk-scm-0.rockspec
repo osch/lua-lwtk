@@ -60,6 +60,7 @@ build = {
         ["lwtk.TextCursor"]                = "src/lwtk/TextCursor.lua",
         ["lwtk.TextFragment"]              = "src/lwtk/TextFragment.lua",
         ["lwtk.TextInput"]                 = "src/lwtk/TextInput.lua",
+        ["lwtk.TextLabel"]                 = "src/lwtk/TextLabel.lua",
         ["lwtk.Timer"]                     = "src/lwtk/Timer.lua",
         ["lwtk.WeakKeysTable"]             = "src/lwtk/WeakKeysTable.lua",
         ["lwtk.Widget"]                    = "src/lwtk/Widget.lua",

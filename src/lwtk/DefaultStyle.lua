@@ -35,40 +35,58 @@ function DefaultStyle:new(initParams)
         { "PressedTransitionSeconds",              0.05 },
         { "SimulateButtonClickSeconds",            0.10 },
 
-        { "TextSize",                  12 },
-        { "*Margin@Control",            8 },
-        { "Height@Control",            24 },
-        { "Width@PushButton",          80 },
-        { "BorderSize@PushButton",      1 },
-        { "BorderSize@PushButton:focused",      2 },
-        { "LeftPadding@PushButton",
-          "RightPadding@PushButton",   10 },
+        { "TextSize",                            12 },
+        { "FontFamily",                "sans-serif" },
 
         { "BackgroundColor",           color       },
         { "TextColor",                 textColor   },
 
         { "TextOffset",                   0            },
-        { "TextOffset:pressed+hover",     0.3            },
         
-        { "BackgroundColor@PushButton",                 Color"e1e1e1" },
-        { "BackgroundColor@PushButton:hover",
-          "BackgroundColor@PushButton:pressed",         Color"c9c9ca" },
-        { "BackgroundColor@PushButton:pressed+hover",   Color"b1b1b2" },
-        { "BorderColor@PushButton",                     Color"adadad" },
-        { "BorderColor@PushButton:focused",             Color"0078d7" },
-        
-        { "MinColumns@TextInput",                4 },
-        { "Columns@TextInput",                  20 },
-        { "MaxColumns@TextInput",               -1 },
-        { "BorderColor@TextInput",            Color"adadad" },
-        { "BorderColor@TextInput:focused",    Color"0078d7" },
-        { "BorderSize@TextInput",               1 },
-        { "BorderSize@TextInput:focused",     2 },
-        { "BorderPadding@TextInput",            3 },
-        { "FontFamily@TextInput",               "monospace" }, -- sans-serif
-        { "CursorColor",                      Color"adadad" },
+        { "CursorColor",                      Color"00000000" }, -- Color"adadad" },
         { "CursorColor:focused",              Color"000000" },
         { "CursorWidth",                        2 },
+
+        {         "*Margin@Control",       8 },
+        {          "Height@Control",      24 },
+        {   "BorderPadding@Control",       3 },
+        { "TextFullVisible@Control",    true },
+        
+        { "BorderPadding@TextLabel",      0 },
+        {    "BorderSize@TextLabel",      0 },
+        {   "BorderColor@TextLabel",    nil },
+
+        {        "Width@PushButton",                 80   },
+        {   "BorderSize@PushButton",                  1   },
+        {   "BorderSize@PushButton:focused",          2  },
+        {   "BorderSize@PushButton:default",          1   },
+        
+        {  "LeftPadding@PushButton",
+          "RightPadding@PushButton",                 10   },
+        {   "TextOffset@PushButton:pressed+hover",    0.3 },
+
+        { "BackgroundColor@PushButton",                 Color"e1e1e1" },
+        { "BackgroundColor@PushButton:default",         Color"e5f1fb" },
+        { "BackgroundColor@PushButton:hover",           Color"c9c9ca" },
+        { "BackgroundColor@PushButton:pressed",         Color"c9c9ca" },
+        { "BackgroundColor@PushButton:pressed+hover",   Color"b1b1b2" },
+        { "BackgroundColor@PushButton:focused",         Color"e5f1fb" },
+        { "BackgroundColor@PushButton:focused+hover",   Color"d5e1eb" },
+        { "BackgroundColor@PushButton:focused+pressed", Color"c5d1db" },
+        
+        {     "BorderColor@PushButton",                 Color"adadad" },
+        {     "BorderColor@PushButton:focused",         Color"0078d7" },
+        {     "BorderColor@PushButton:default",         Color"0078d7" },
+        
+        {     "MinColumns@TextInput",                        10 },
+        {        "Columns@TextInput",                        20 },
+        {      "MaxColumns@TextInput",                       -1 },
+        {     "BorderColor@TextInput",            Color"adadad" },
+        {     "BorderColor@TextInput:focused",    Color"0078d7" },
+        {      "BorderSize@TextInput",                        1 },
+        {      "BorderSize@TextInput:focused",                2 },
+        {      "FontFamily@TextInput",              "monospace" }, -- sans-serif
+        { "TextFullVisible@TextInput",                    false },
     }
     
     Super.new(self, ruleList)

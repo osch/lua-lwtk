@@ -21,6 +21,14 @@ local Super       = lwtk.Actionable
 local Component   = lwtk.newClass("lwtk.Component", Super)
 
 function Component:new(initParams)
+    if initParams then
+        local id = initParams.id
+        if id then
+            assert(type(id) == "string", "id must be string")
+            self.id = id
+            initParams.id = nil
+        end
+    end
     Super.new(self, initParams)
     getApp[self]  = false
     getRoot[self] = self
@@ -79,7 +87,7 @@ local function setAppAndRoot(self, app, root)
     for _, child in ipairs(self) do
         setAppAndRoot(child, app, root)
     end 
-    if self._handleFocusIn and not getFocusHandler[self] then
+    if (self._handleFocusIn or self.onHotkeyEnabled) and not getFocusHandler[self] then
         local handler = self:getFocusHandler()
         if handler then
             getFocusHandler[self] = handler
@@ -184,9 +192,9 @@ function Component:_setFrame(newX, newY, newW, newH)
             end
             self.x, self.y, self.w, self.h = newX, newY, newW, newH
             local trans = self._frameTransition
-            local isLayoutTrans = trans and trans.isLayoutTransition
-            if needsLayout and not isLayoutTrans and getApp[self] then
-                callOnLayout(self, newW, newH)
+            if needsLayout and getApp[self] then
+                local isLayoutTransition = trans and trans.isLayoutTransition
+                callOnLayout(self, newW, newH, isLayoutTransition)
             end
         end
     else
@@ -241,12 +249,35 @@ function Component:animateFrame(...)
     Animatable.animateFrame(self, nx, ny, nw, nh, isLayoutTransition)
 end
 
+function Component:updateFrameTransition()
+    local trans = self._frameTransition
+    if trans then
+        local now = self:getCurrentTime()
+        local T = trans.endTime - trans.startTime
+        local t = now - trans.startTime
+        if T > 0 and t > 0 and now < trans.endTime then
+            t = t / T
+            local x = (1-t) * trans.oldX + t * trans.newX
+            local y = (1-t) * trans.oldY + t * trans.newY
+            local w = (1-t) * trans.oldW + t * trans.newW
+            local h = (1-t) * trans.oldH + t * trans.newH
+            self:_setFrame(x, y, w, h, true)
+        else
+            self:_setFrame(trans.newX, trans.newY, trans.newW, trans.newH)
+            self._frameTransition = false
+        end
+    end
+end
+
+
 function Component:triggerLayout()
-    local p = getParent[self]
-    while p and not p._needsRelayout do
-        p._hasChanges = true
-        p._needsRelayout = true
-        p = getParent[p]
+    if getApp[self] then
+        local p = getParent[self]
+        while p and not p._needsRelayout do
+            p._hasChanges = true
+            p._needsRelayout = true
+            p = getParent[p]
+        end
     end
 end
 

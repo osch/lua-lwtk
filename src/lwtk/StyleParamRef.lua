@@ -14,7 +14,7 @@ function StyleParamRef.round(paramRef)
     end
 end
 
-function StyleParamRef.mul(factor, paramRef)
+function StyleParamRef.scale(factor, paramRef)
     return function(ctx)
         return factor * ctx:get(paramRef)
     end

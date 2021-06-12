@@ -116,7 +116,7 @@ function Style:isScalable(parName)
     end
 end
 
-local function _getStyleParam(self, selector, parName, classSelectorPath, stateSelectorPath, localStyle)
+local function _getStyleParam(self, selector, parName, classSelectorPath, stateSelectorPath, localStyle, ctxRules)
     local typeRule
     local context
     local function evalRule(rule)
@@ -128,11 +128,18 @@ local function _getStyleParam(self, selector, parName, classSelectorPath, stateS
                 break
             end
         end
-        if matched then
+        if matched and (not ctxRules or not ctxRules[rule]) then
             local param = rule[n]
             if type(param) == "function" then
                 if not context then
-                    context = StyleRuleContext(localStyle, classSelectorPath, stateSelectorPath)
+                    local cr = {}
+                    if ctxRules then
+                        for k,v in pairs(ctxRules) do
+                            cr[k] = v
+                        end
+                    end
+                    cr[rule] = true
+                    context = StyleRuleContext(cr, localStyle, classSelectorPath, stateSelectorPath)
                 end
                 param = param(context)
             end
@@ -146,26 +153,26 @@ local function _getStyleParam(self, selector, parName, classSelectorPath, stateS
                 errorf("Type mismatch for style parameter %q: expected %q but given %q", 
                       parName, tostring(typeRule[#typeRule]), type(param))
             end
-            return param
+            return true, param
         end
     end
     for i = #self.ruleList, 1, -1 do
         local rule = self.ruleList[i]
-        local rslt = evalRule(rule)
-        if rslt then
+        local found, rslt = evalRule(rule)
+        if found then
             --print(">>>>>>>>>2", selector, typeRule[#typeRule]) 
             return rslt, typeRule
         end
     end
     local parent = self.parent
     if parent then
-        return _getStyleParam(parent, selector, parName, classSelectorPath, stateSelectorPath, localStyle)
+        return _getStyleParam(parent, selector, parName, classSelectorPath, stateSelectorPath, localStyle, ctxRules)
     end
 end
 
-function Style:_getStyleParam2(parName, classSelectorPath, stateSelectorPath)
+function Style:_getStyleParam2(parName, classSelectorPath, stateSelectorPath, ctxRules)
     local selector = lower(parName).."@"..classSelectorPath..":"..lower(stateSelectorPath)
-    return _getStyleParam(self, selector, parName, classSelectorPath, stateSelectorPath, self)
+    return _getStyleParam(self, selector, parName, classSelectorPath, stateSelectorPath, self, ctxRules)
 end
 
 function Style:_getStyleParam(parName, classSelectorPath, stateSelectorPath)
@@ -175,7 +182,7 @@ function Style:_getStyleParam(parName, classSelectorPath, stateSelectorPath)
     if cached then
         return cached
     else
-        local rslt, typeRule = _getStyleParam(self, selector, parName, classSelectorPath, stateSelectorPath, self)
+        local rslt, typeRule = _getStyleParam(self, selector, parName, classSelectorPath, stateSelectorPath, self, nil)
         
         if rslt then
             if typeRule.SCALABLE then

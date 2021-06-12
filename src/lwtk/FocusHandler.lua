@@ -4,11 +4,13 @@ local lwtk   = require"lwtk"
 local abs                  = math.abs
 local btest                = lpugl.btest
 local MOD_ALT              = lpugl.MOD_ALT
+local call                 = lwtk.call
 local getFocusableChildren = lwtk.get.focusableChildren
 local getActions           = lwtk.get.actions
 local getHotkeys           = lwtk.get.hotKeys
 
 local getFocusedChild      = lwtk.WeakKeysTable()
+local getDefault           = lwtk.WeakKeysTable()
 
 local Super        = lwtk.Actionable
 local FocusHandler = lwtk.newClass("lwtk.FocusHandler", Super)
@@ -16,6 +18,7 @@ local FocusHandler = lwtk.newClass("lwtk.FocusHandler", Super)
 function FocusHandler:new(baseWidget)
     Super.new(self)
     self.baseWidget = baseWidget
+    self.child = baseWidget.child
     getFocusableChildren[self] = {}
 end
 
@@ -46,13 +49,13 @@ local function findNextFocusableChild1(self, direction)
         local fx, fy, fw, fh
         for i = 1, #focusableChildren do
             local child = focusableChildren[i]
-            if child.visible and child ~= focusedChild then
+            if child.visible and child._handleFocusIn and not child._focusDisabled and child ~= focusedChild then
                 local nx, ny = child:transformXY(0, 0, baseWidget)
                 local nw, nh = child.w, child.h
                 if direction == "right" then
                     if ny + nh > cy  and ny < cy + ch then
                         if nx >= cx and (not found or  nx - cx <  fx - cx 
-                                                   or (nx - cx == fx - cx and dist(cy, ch, ny, nh) < dist(cy, ch, fy, fh)))
+                                                   or (nx - cx == fx - cx and ny < fy))
                         then
                             found, fx, fy, fw, fh = child, nx, ny, nw, nh
                         end
@@ -60,7 +63,7 @@ local function findNextFocusableChild1(self, direction)
                 elseif direction == "left" then
                     if ny + nh >= cy  and ny < cy + ch then
                         if nx < cx and (not found or  cx - nx <  cx - fx
-                                                  or (cx - nx == cx - fx and dist(cy, ch, ny, nh) < dist(cy, ch, fy, fh)))
+                                                  or (cx - nx == cx - fx and ny < fy))
                         then
                             found, fx, fy, fw, fh = child, nx, ny, nw, nh
                         end
@@ -68,7 +71,7 @@ local function findNextFocusableChild1(self, direction)
                 elseif direction == "up" then
                     if nx + nw >= cx  and nx < cx + cw then
                         if ny < cy and (not found or  cy - ny  < cy - fy
-                                                  or (cy - ny == cy - fy and dist(cx, cw, nx, nw) < dist(cx, cw, fx, fw)))
+                                                  or (cy - ny == cy - fy and nx < fx))
                         then
                             found, fx, fy, fw, fh = child, nx, ny, nw, nh
                         end
@@ -76,7 +79,7 @@ local function findNextFocusableChild1(self, direction)
                 elseif direction == "down" then
                     if nx + nw > cx  and nx < cx + cw then
                         if ny >= cy and (not found or  ny - cy <  fy - cy
-                                                  or (ny - cy == fy - cy and dist(cx, cw, nx, nw) < dist(cx, cw, fx, fw)))
+                                                  or (ny - cy == fy - cy and nx < fx))
                         then
                             found, fx, fy, fw, fh = child, nx, ny, nw, nh
                         end
@@ -85,20 +88,38 @@ local function findNextFocusableChild1(self, direction)
             end
         end
     end
-    if not found and (direction == "up" or direction == "down") then
+    if not found  then
         local fx, fy, fw, fh
         for i = 1, #focusableChildren do
             local child = focusableChildren[i]
-            if child.visible and child ~= focusedChild then
+            if child.visible and child._handleFocusIn and not child._focusDisabled and child ~= focusedChild then
                 local nx, ny = child:transformXY(0, 0, baseWidget)
                 local nw, nh = child.w, child.h
-                if direction == "up" then
-                    if ny < cy and (not found or dist(cx, cw, nx, nw) < dist(cx, cw, fx, fw)) then
-                        found, fx, fy, fw, fh = child, nx, ny, nw, nh
+                if direction == "right" then
+                    if     not (nx + nw >= cx  and nx < cx + cw) -- up
+                       and not (nx + nw > cx  and nx < cx + cw) -- down
+                    then
+                    end
+                elseif direction == "left" then
+                    if     not (nx + nw >= cx  and nx < cx + cw) -- up
+                       and not (nx + nw > cx  and nx < cx + cw) -- down
+                    then
+                    end
+                elseif direction == "up" then
+                    if     not (ny + nh >= cy  and ny < cy + ch) -- left
+                       and not (ny + nh > cy  and ny < cy + ch) -- right
+                    then
+                        if ny < cy and (not found or nx < fx) then
+                            found, fx, fy, fw, fh = child, nx, ny, nw, nh
+                        end
                     end
                 elseif direction == "down" then
-                    if ny >= cy + ch and (not found or dist(cx, cw, nx, nw) < dist(cx, cw, fx, fw)) then
-                        found, fx, fy, fw, fh = child, nx, ny, nw, nh
+                    if     not (ny + nh >= cy  and ny < cy + ch) -- left
+                       and not (ny + nh > cy  and ny < cy + ch) -- right
+                    then
+                        if ny >= cy + ch and (not found or nx < fx) then
+                            found, fx, fy, fw, fh = child, nx, ny, nw, nh
+                        end
                     end
                 end
             end
@@ -107,44 +128,58 @@ local function findNextFocusableChild1(self, direction)
     return found
 end
 
-local function findNextFocusableChild2(self, direction)
+local function isFocusableChild(child)
+    return child.visible and child._handleFocusIn and not child._focusDisabled
+end
+
+local function isFocusableInputChild(child)
+    return child._isInput and child.visible and child._handleFocusIn and not child._focusDisabled
+end
+
+local function findNextFocusableChild2(self, focusedChild, direction, condition)
     local isForw = (direction == "next")
     local cx, cy = 0, 0
-    local focusedChild = getFocusedChild[self]
     local baseWidget = self.baseWidget
     if focusedChild then
         cx, cy = focusedChild:transformXY(0, 0, baseWidget)
     end
     local focusableChildren = getFocusableChildren[self]
     local found
-    for try = 1, 2 do
-        local fx, fy
+    do
         for i = 1, #focusableChildren do
             local child = focusableChildren[i]
-            if child.visible and child ~= focusedChild then
+            if condition(child) and child ~= focusedChild then
                 local nx, ny = child:transformXY(0, 0, baseWidget)
                 if isForw then
-                    if nx > cx and ny >= cy and (not found or ny < fy or (ny == fy and nx < fx)) then
+                    if nx > cx and ny == cy and (not found or nx < fx) then
                         found = child
                         fx, fy = nx, ny
                     end
                 else
-                    if nx < cx and ny <= cy and (not found or ny > fy or (ny == fy and nx > fx)) then
+                    if nx < cx and ny == cy and (not found or nx > fx) then
                         found = child
                         fx, fy = nx, ny
                     end
                 end
             end
         end
-        if found then
-            break
-        elseif try == 1 then
-            if isForw then
-                cx = -1
-                cy = cy + 1
-            else
-                cx = baseWidget.w + 1
-                cy = cy - 1
+    end
+    if not found then
+        for i = 1, #focusableChildren do
+            local child = focusableChildren[i]
+            if condition(child) and child ~= focusedChild then
+                local nx, ny = child:transformXY(0, 0, baseWidget)
+                if isForw then
+                    if ny > cy and (not found or ny < fy or (ny == fy and nx < fx)) then
+                        found = child
+                        fx, fy = nx, ny
+                    end
+                else
+                    if ny < cy and (not found or ny > fy or (ny == fy and nx > fx)) then
+                        found = child
+                        fx, fy = nx, ny
+                    end
+                end
             end
         end
     end
@@ -180,18 +215,33 @@ function FocusHandler:onActionFocusDown()
     return true
 end
 function FocusHandler:onActionFocusNext()
-    local found = findNextFocusableChild2(self, "next")
+    local found = findNextFocusableChild2(self, getFocusedChild[self], "next", isFocusableChild)
     if found then
         self:setFocus(found)
     end
     return true    
 end
 function FocusHandler:onActionFocusPrev()
-    local found = findNextFocusableChild2(self, "prev")
+    local found = findNextFocusableChild2(self, getFocusedChild[self], "prev", isFocusableChild)
     if found then
         self:setFocus(found)
     end
     return true    
+end
+
+
+function FocusHandler:findNextInput(child)
+    return findNextFocusableChild2(self, child, "next", isFocusableInputChild)
+end
+function FocusHandler:findPrevInput(child)
+    return findNextFocusableChild2(self, child, "prev", isFocusableInputChild)
+end
+
+function FocusHandler:setFocusToNextInput(child)
+    self:setFocus(self:findNextInput(child))
+end
+function FocusHandler:setFocusToPrevInput(child)
+    self:setFocus(self:findPrevInput(child))
 end
 
 function FocusHandler:_handleFocusIn()
@@ -206,7 +256,7 @@ function FocusHandler:_handleFocusIn()
             local focusableChildren = getFocusableChildren[self]
             for i = 1, #focusableChildren do
                 local child = focusableChildren[i]
-                if child.visible then
+                if isFocusableChild(child) then
                     if found then
                         local childX, childY = child:transformXY(0, 0, baseWidget)
                         if childY < foundY or childY == foundY and childX < foundX then
@@ -257,15 +307,17 @@ function FocusHandler:_handleFocusOut()
 end
 
 function FocusHandler:setFocus(newFocusChild)
-    local focusedChild = getFocusedChild[self]
-    if focusedChild ~= newFocusChild then
-        getFocusedChild[self] = newFocusChild
-        if self._hasFocus then
-            if focusedChild then
-                focusedChild:_handleFocusOut()
-            end
-            if newFocusChild then
-                newFocusChild:_handleFocusIn()
+    if newFocusChild then
+        local focusedChild = getFocusedChild[self]
+        if focusedChild ~= newFocusChild then
+            getFocusedChild[self] = newFocusChild
+            if self._hasFocus then
+                if focusedChild then
+                    focusedChild:_handleFocusOut()
+                end
+                if newFocusChild then
+                    newFocusChild:_handleFocusIn()
+                end
             end
         end
     end
@@ -398,5 +450,31 @@ function FocusHandler:filterKeyDown(key, modifier, ...)
     end
 end
 
+
+function FocusHandler:setDefault(id)
+    local newD = id and self.child[id]
+    local oldD = getDefault[self]
+    if oldD and oldD ~= newD then
+        call("onDefaultChanged", oldD, false)
+    end
+    if newD and oldD ~= newD then
+        call("onDefaultChanged", newD, true)
+    end
+    getDefault[self] = newD
+end
+
+function FocusHandler:isDefault(id)
+    local d = id and self.child[id]
+    local currD = getDefault[self]
+    return currD == d
+end
+
+function FocusHandler:onActionDefaultButton()
+    local currD = getDefault[self]
+    if currD then
+        call("onHotkeyDown", currD)
+        return true
+    end
+end
 
 return FocusHandler

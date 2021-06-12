@@ -20,7 +20,7 @@ local win = app:newWindow {
             Row {
                 Column {
                     PushButton { text = "&OK",     onClicked = printClicked },
-                    TextInput  { text = "Enter Name iii12312312312312321321321321!" },
+                    TextInput  { id = "inp", text = "Enter Name iii12312312312312321321321321!" },
                 },
                 Column {
                     PushButton { text = "Click no&g and here!", onClicked = printClicked },
@@ -34,21 +34,6 @@ local win = app:newWindow {
         --Space {}
     }
 }
-
-
-do
-    local info = app:getFontInfo("sans-serif", "normal", "normal", 20)
-    local text = "t€stü!"
-    local w = 0
-    for p, c in utf8.codes(text) do
-        local next = utf8.offset(text, 2, p)
-        local char = text:sub(p, next - 1)
-        print(">", p, next - p, char, c, ">>", info:getStringWidth(char), info:getCharWidth(c))
-        w = w + info:getCharWidth(c)
-    end
-    print("=============", info:getStringWidth(text, 2, 1))
-    print(">>>>>>>>>>>>>", w, info:getStringWidth(text))
-end
 
 
 win:show()

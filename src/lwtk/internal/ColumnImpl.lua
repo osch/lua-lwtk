@@ -96,29 +96,31 @@ function ColumnImpl.implementColumn(class, isRow)
                topMargin, rightMargin, bottomMargin, leftMargin
     end
 
-    function class:onLayout(width, height)
-        local topMargin, rightMargin, bottomMargin, leftMargin = getOuterMargins(self)
-        if isRow then
-            width, height = height, width
-            topMargin, rightMargin, bottomMargin, leftMargin = rotateMargins(topMargin, rightMargin, bottomMargin, leftMargin)
-        end
-        local lrCache = lr4Caches[self]; if not lrCache then lrCache = {}; lr4Caches[self] = lrCache; end
-        local tbCache = tb4Caches[self]; if not tbCache then tbCache = {}; tb4Caches[self] = tbCache; end
-        applyLRLayout(self, width,  leftMargin, rightMargin,  lrCache, getChildLRMeasures)
-        applyTBLayout(self, height, topMargin,  bottomMargin, tbCache, getChildTBMeasures)
-        for i = 1, #self do
-            local child = self[i]
-            if child.visible then
-                local ncTop, ncRight, ncBottom, ncLeft
-                local childX, childY, childW, childH
-                ncLeft, ncRight,  childX, childW = get4Cache(lrCache, i)
-                ncTop,  ncBottom, childY, childH = get4Cache(tbCache, i)
-                if isRow then
-                    ncTop, ncRight, ncBottom, ncLeft = rotateMargins(ncTop, ncRight, ncBottom, ncLeft)
-                    childX, childY, childW, childH = childY, childX, childH, childW
+    function class:onLayout(width, height, isLayoutTransition)
+        if not isLayoutTransition then
+            local topMargin, rightMargin, bottomMargin, leftMargin = getOuterMargins(self)
+            if isRow then
+                width, height = height, width
+                topMargin, rightMargin, bottomMargin, leftMargin = rotateMargins(topMargin, rightMargin, bottomMargin, leftMargin)
+            end
+            local lrCache = lr4Caches[self]; if not lrCache then lrCache = {}; lr4Caches[self] = lrCache; end
+            local tbCache = tb4Caches[self]; if not tbCache then tbCache = {}; tb4Caches[self] = tbCache; end
+            applyLRLayout(self, width,  leftMargin, rightMargin,  lrCache, getChildLRMeasures)
+            applyTBLayout(self, height, topMargin,  bottomMargin, tbCache, getChildTBMeasures)
+            for i = 1, #self do
+                local child = self[i]
+                if child.visible then
+                    local ncTop, ncRight, ncBottom, ncLeft
+                    local childX, childY, childW, childH
+                    ncLeft, ncRight,  childX, childW = get4Cache(lrCache, i)
+                    ncTop,  ncBottom, childY, childH = get4Cache(tbCache, i)
+                    if isRow then
+                        ncTop, ncRight, ncBottom, ncLeft = rotateMargins(ncTop, ncRight, ncBottom, ncLeft)
+                        childX, childY, childW, childH = childY, childX, childH, childW
+                    end
+                    setOuterMargins(child, ncTop, ncRight, ncBottom, ncLeft)
+                    child:setFrame(childX, childY, childW, childH)
                 end
-                setOuterMargins(child, ncTop, ncRight, ncBottom, ncLeft)
-                child:setFrame(childX, childY, childW, childH)
             end
         end
     end

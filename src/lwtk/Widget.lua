@@ -13,11 +13,10 @@ local getRoot              = lwtk.get.root
 local getParent            = lwtk.get.parent
 local getStyle             = lwtk.get.style
 local getFocusHandler      = lwtk.get.focusHandler
-local getFocusableChildren = lwtk.get.focusableChildren
 local getActions           = lwtk.get.actions
 local wantsFocus           = lwtk.get.wantsFocus
 local getStylePath         = lwtk.get.stylePath
-local getFontInfos         = lwtk.get.fontInfos
+local initParam            = lwtk.initParam
 
 local Super       = lwtk.Component
 local Widget      = lwtk.newClass("lwtk.Widget", Super)
@@ -33,16 +32,8 @@ function Widget.newClass(className, baseClass, additionalStyleSelector, ...)
 end
 
 function Widget:new(initParams)
-    if initParams then
-        local id = initParams.id
-        if id then
-            assert(type(id) == "string", "id must be string")
-            self.id = id
-            initParams.id = nil
-        end
-    end
-    Super.new(self, initParams)
     Animatable.new(self)
+    Super.new(self, initParams)
 end
 
 

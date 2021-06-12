@@ -128,22 +128,24 @@ end
 
 -------------------------------------------------------------------------------------------------
 
-function Matrix:onLayout(width, height)
-    local topMargin, rightMargin, bottomMargin, leftMargin = getOuterMargins(self)
-    local rowAdapters    = getRowAdapters[self]
-    local columnAdapters = getColumnAdapters[self]
-    local rowCache = row4Caches[self]; if not rowCache then rowCache = {}; row4Caches[self] = rowCache; end
-    local colCache = col4Caches[self]; if not colCache then colCache = {}; col4Caches[self] = colCache; end
-    applyTBLayout(rowAdapters,    height, topMargin,  bottomMargin, rowCache, getRowTBMeasures)
-    applyTBLayout(columnAdapters, width,  leftMargin, rightMargin,  colCache, getColumnTBMeasures)
-    for r = 1, #rowAdapters do
-        local rowAdapter = rowAdapters[r]
-        local ncTop,  ncBottom, childY, childH = get4Cache(rowCache, r)
-        for c = 1, #columnAdapters do
-            local child = rowAdapter[c]
-            local ncLeft, ncRight,  childX, childW = get4Cache(colCache, c)
-            setOuterMargins(child, ncTop, ncRight, ncBottom, ncLeft)
-            child:setFrame(childX, childY, childW, childH)
+function Matrix:onLayout(width, height, isLayoutTransition)
+    if not isLayoutTransition then
+        local topMargin, rightMargin, bottomMargin, leftMargin = getOuterMargins(self)
+        local rowAdapters    = getRowAdapters[self]
+        local columnAdapters = getColumnAdapters[self]
+        local rowCache = row4Caches[self]; if not rowCache then rowCache = {}; row4Caches[self] = rowCache; end
+        local colCache = col4Caches[self]; if not colCache then colCache = {}; col4Caches[self] = colCache; end
+        applyTBLayout(rowAdapters,    height, topMargin,  bottomMargin, rowCache, getRowTBMeasures)
+        applyTBLayout(columnAdapters, width,  leftMargin, rightMargin,  colCache, getColumnTBMeasures)
+        for r = 1, #rowAdapters do
+            local rowAdapter = rowAdapters[r]
+            local ncTop,  ncBottom, childY, childH = get4Cache(rowCache, r)
+            for c = 1, #columnAdapters do
+                local child = rowAdapter[c]
+                local ncLeft, ncRight,  childX, childW = get4Cache(colCache, c)
+                setOuterMargins(child, ncTop, ncRight, ncBottom, ncLeft)
+                child:setFrame(childX, childY, childW, childH)
+            end
         end
     end
 end
