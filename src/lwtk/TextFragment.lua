@@ -5,16 +5,17 @@ local Super        = lwtk.Component
 local TextFragment = lwtk.newClass("lwtk.TextFragment", Super)
 
 function TextFragment:new(initParams)
-    Super.new(self, initParams)
     self.tx = false
     self.ty = false
+    self.label = ""
+    Super.new(self, initParams)
 end
 
 function TextFragment:setText(text)
     if self.text ~= text then
         local a, b, c 
         if self.considerHotkey then
-            a, b, c = string.match(text, "^([^&]*)&().*$")
+            a, b = string.match(text, "^([^&]*)&().*$")
         end
         if not a then
             a = ""

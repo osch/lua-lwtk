@@ -33,6 +33,7 @@ end
 -------------------------------------------------------------------------------------------------
 
 local function getChildLRMeasuresForColumn(child)
+    -- luacheck: ignore 211
     local minW, minH, bestW, bestH, maxW, maxH,
           childTop, childRight, childBottom, childLeft = getMeasures(child)
     return minW, bestW, maxW,
@@ -40,6 +41,7 @@ local function getChildLRMeasuresForColumn(child)
 end
 
 local function getChildLRMeasuresForRow(child)
+    -- luacheck: ignore 311
     local minW, minH, bestW, bestH, maxW, maxH,
           childTop, childRight, childBottom, childLeft = getMeasures(child)
     minW, bestW, maxW = minH, bestH, maxH
@@ -51,6 +53,7 @@ end
 -------------------------------------------------------------------------------------------------
 
 local function getChildTBMeasuresForColumn(child)
+    -- luacheck: ignore 211
     local minW, minH, bestW, bestH, maxW, maxH,
           childTop, childRight, childBottom, childLeft = getMeasures(child)
     return minH, bestH, maxH,
@@ -58,6 +61,7 @@ local function getChildTBMeasuresForColumn(child)
 end
 
 local function getChildTBMeasuresForRow(child)
+    -- luacheck: ignore 311
     local minW, minH, bestW, bestH, maxW, maxH,
           childTop, childRight, childBottom, childLeft = getMeasures(child)
     minH, bestH, maxH = minW, bestW, maxW
@@ -80,10 +84,12 @@ function ColumnImpl.implementColumn(class, isRow)
 
         local minHeight, bestHeight, maxHeight,
               topMargin, bottomMargin, 
-              flexCount, unlmCount1, unlmCount2, maxContentHeight = calculateTBMeasures(self, getChildTBMeasures)
+              flexCount, unlmCount1, unlmCount2, maxContentHeight = calculateTBMeasures(self, getChildTBMeasures) -- luacheck: ignore 211/flexCount 211/maxContentHeight
 
         if unlmCount1 > 0 then
             maxHeight = -1
+        elseif unlmCount2 > 0 then
+            maxHeight = -2
         end
         if isRow then
             minWidth, minHeight, bestWidth, bestHeight, maxWidth, maxHeight =

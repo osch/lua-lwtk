@@ -3,120 +3,113 @@
 [![Install](https://img.shields.io/badge/Install-LuaRocks-brightgreen.svg)](https://luarocks.org/modules/osch/lwtk)
 
 This toolkit provides a foundation for building cross platform GUI widgets in
-Lua on top of [LPugl]. For now only the cairo drawing backend is supported. 
+pure [Lua] on top of [LPugl]. For now only the cairo drawing backend is supported. 
 Backend abstraction and support for other backends could be possible in the
 future.
 
+This project is work in progress. First aim is to provide a basic infrastructure
+for creating and customizing widgets. Second aim is to implement a reasonable set 
+of standard widgets. So far only very simple standard widgets are provided, e.g. 
+`lwtk.TextInput` and `lwtk.PushButton`.
+
+<!-- ---------------------------------------------------------------------------------------- -->
+
 #### Supported platforms: 
-   * X11
+   * Linux (X11)
    * Windows
    * Mac OS X 
 
 
+<!-- ---------------------------------------------------------------------------------------- -->
+
 #### Further reading:
    * [Documentation](doc/README.md)
-   * TODO
+   * [Examples](./example/README.md#lwtk-examples)
+
+<!-- ---------------------------------------------------------------------------------------- -->
 
 ## First Example
 
-* Simple example that shows how a simple button widget class `MyButton` can
-  be implemented using lwtk. Widget classes can define arbitrary states, i.e. the state 
-  names `hover` and `pressed` are not known in the lwtk base classes, they
-  could have also been called `foo` or `bar`.
-  
+* The first example demonstrates a simple dialog using the `lwtk.TextInput` widget.
+  The appearance of the widgets is configured in [lwtk.DefaultStyle](src/lwtk/DefaultStyle.lua).
+  The key bindings are configured in [lwtk.DefaultKeyBinding](src/lwtk/DefaultKeyBinding.lua).
+
+     ![Screenshot example01](./example/screenshot01.png)
 
     ```lua
     local lwtk = require("lwtk")
     
-    local Application = lwtk.Application
-    local Group       = lwtk.Group
-    local Widget      = lwtk.Widget
-    local Color       = lwtk.Color
-    local newClass    = lwtk.newClass
-    local fillRect    = lwtk.draw.fillRect
+    local Application    = lwtk.Application
+    local Column         = lwtk.Column
+    local Row            = lwtk.Row
+    local PushButton     = lwtk.PushButton
+    local TextInput      = lwtk.TextInput
+    local TitleText      = lwtk.TitleText
+    local Space          = lwtk.Space
     
-    local MyButton = newClass("MyButton", Widget)
-    do
-        function MyButton:setOnClicked(onClicked)
-            self.onClicked = onClicked
-        end
-        function MyButton:setText(text)
-            self.text = text
-            self:triggerRedraw()
-        end
-        function MyButton:onMouseEnter(x, y)
-            self:setState("hover", true)
-        end
-        function MyButton:onMouseLeave(x, y)
-            self:setState("hover", false)
-        end
-        function MyButton:onMouseDown(x, y, button, modState)
-            self:setState("pressed", true)
-        end
-        function MyButton:onMouseUp(x, y, button, modState)
-            self:setState("pressed", false)
-            if self.state.hover and self.onClicked then
-                self:onClicked()
-            end
-        end
-        function MyButton:onDraw(ctx)
-            local w, h = self:getSize()
-            fillRect(ctx, self:getStyleParam("Color"), 0, 0, w, h)
-            ctx:set_source_rgba(self:getStyleParam("TextColor"):toRGBA())
-            if self.text then
-                ctx:select_font_face("sans-serif", "normal", "normal")
-                ctx:set_font_size(self:getStyleParam("TextSize"))
-                local ext = ctx:text_extents(self.text)
-                local offs = self:getStyleParam("TextOffset")
-                local tx = (w - ext.width)/2
-                local ty = (h - ext.height)/2 + ext.height
-                ctx:move_to(offs + math.floor(tx+0.5), offs + math.floor(ty+0.5))
-                ctx:show_text(self.text)
-            end
-        end
+    local app = Application("example01.lua")
+    
+    local function quit()
+        app:close()
     end
     
-    local app = Application {
-        name  = "example01.lua", 
-        style = {
-            { "*TransitionSeconds",               0.05 },
-            { "HoverTransitionSeconds:",          0.20 },
-            { "HoverTransitionSeconds:hover",     0.20 },
-            { "PressedTransitionSeconds:pressed", 0.20 },
-            
-            { "TextSize",                  13            },
-            { "TextOffset",                 0            },
-            { "TextOffset:pressed+hover",   1            },
-            
-            { "BackgroundColor",           Color"f9f9fa" },
-            { "TextColor",                 Color"000000" },
-        
-            { "Color@MyButton",                 Color"e1e1e2" },
-            { "Color@MyButton:hover",
-              "Color@MyButton:pressed",         Color"c9c9ca" },
-            { "Color@MyButton:pressed+hover",   Color"b1b1b2" },
-        }
-    }
     local win = app:newWindow {
         title = "example01",
-        Group {
-            MyButton {
-                frame = {  10, 10, 100, 30 },
-                text  = "OK",
-                onClicked = function() print("Button Clicked") end
-            },
-            MyButton {
-                frame = { 120, 10, 100, 30 },
-                text  = "Exit",
-                onClicked = function() app:close() end
+        Column {
+            id = "c1",
+            TitleText { text = "What's your name?" },
+            TextInput { id = "i1", focus = true, style = { Columns = 40 } },
+            Row {
+                Space {},
+                PushButton { id = "b1", text = "&OK",   disabled = true, 
+                                                        default  = true },
+    
+                PushButton { id = "b2", text = "&Quit", onClicked = quit },
+                Space {}
+            }
+        },
+        Column {
+            id = "c2",
+            visible = false,
+            Space {},
+            TitleText { id = "t2", style = { TextAlign = "center" } },
+            Space {},
+            Row {
+                Space {},
+                PushButton { id = "b3", text = "&Again" },
+    
+                PushButton { id = "b4", text = "&Quit", default = true,
+                                                        onClicked = quit },
+                Space {}
             }
         }
     }
+    
+    win:childById("c1"):setOnInputChanged(function(widget, input)
+        widget:childById("b1"):setDisabled(input.text == "")
+    end)
+    
+    win:childById("b1"):setOnClicked(function(widget)
+        win:childById("t2"):setText("Hello "..win:childById("i1").text.."!") 
+        win:childById("c1"):setVisible(false)
+        win:childById("c2"):setVisible(true)
+    end)
+    
+    win:childById("b3"):setOnClicked(function(widget)
+        win:childById("i1"):setText("")
+        win:childById("i1"):setFocus()
+        win:childById("c1"):setVisible(true)
+        win:childById("c2"):setVisible(false)
+    end)
     
     win:show()
     
     app:runEventLoop()
     ```
 
+<!-- ---------------------------------------------------------------------------------------- -->
+
+[lua]:                      https://www.lua.org/
 [lpugl]:                    https://github.com/osch/lua-lpugl#lpugl
 
+<!-- ---------------------------------------------------------------------------------------- -->

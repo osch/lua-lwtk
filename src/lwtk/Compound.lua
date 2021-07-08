@@ -4,38 +4,32 @@ local Rect                = lwtk.Rect
 local intersectRects      = Rect.intersectRects
 local getWrappingParent   = lwtk.get.wrappingParent
 
-local Super    = lwtk.Component
-local Compound = lwtk.newClass("lwtk.Compound", Super)
+local Compound = lwtk.newMixin("lwtk.Compound", lwtk.Styleable.NO_STYLE_SELECTOR)
 
-local _processChanges
-local _processDraw
+Compound.extra = {}
 
-function Compound.implementInto(class)
-    local superClass = class.super
-    class._processChanges = function(self, x0, y0, cx, cy, cw, ch, damagedArea)
-        superClass._processChanges(self, x0, y0, cx, cy, cw, ch, damagedArea)
-        _processChanges(self, x0, y0, cx, cy, cw, ch, damagedArea)
+function Compound.initClass(Compound, Super)  -- luacheck: ignore 431/Compound
+
+    function Compound:_processChanges(x0, y0, cx, cy, cw, ch, damagedArea)
+        Super._processChanges(self, x0, y0, cx, cy, cw, ch, damagedArea)
+        local x, y, w, h = x0 + self.x, y0 + self.y, self.w, self.h
+        cx, cy, cw, ch = intersectRects(x, y, w, h, cx, cy, cw, ch)
+        for _, child in ipairs(self) do
+            if child._hasChanges then
+                child._hasChanges = false
+                child:_processChanges(x, y, cx, cy, cw, ch, damagedArea)
+            end
+        end
     end
-    class._processDraw = _processDraw
+    
 end
 
-function Compound:addChild(child)
+
+function Compound.extra:addChild(child)
     local myChild = getWrappingParent[child] or child
     self[#self + 1] = myChild
     myChild:_setParent(self)
     return child
-end
-
-function Compound:_processChanges(x0, y0, cx, cy, cw, ch, damagedArea)
-    local x, y, w, h = x0 + self.x, y0 + self.y, self.w, self.h
-    local cx, cy, cw, ch = intersectRects(x, y, w, h, cx, cy, cw, ch)
-    for _, child in ipairs(self) do
-        if child._hasChanges then
-            child._hasChanges = false
-            assert(child._processChanges, "xx "..tostring(child))
-            child:_processChanges(x, y, cx, cy, cw, ch, damagedArea)
-        end
-    end
 end
 
 function Compound:_processDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
@@ -44,13 +38,14 @@ function Compound:_processDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
         ctx:push_group()
     end
 
+    self:updateAnimation()
+
     local onDraw = self.onDraw
     if onDraw then
-        self:updateAnimation()
         onDraw(self, ctx, x0, y0, cx, cy, cw, ch, exposedArea)
     end
 
-    local cx, cy, cw, ch = intersectRects(x0, y0, self.w, self.h, cx, cy, cw, ch)
+    cx, cy, cw, ch = intersectRects(x0, y0, self.w, self.h, cx, cy, cw, ch)
     if cw > 0 and ch > 0 then
         for _, child in ipairs(self) do
             if not child._ignored then
@@ -76,8 +71,5 @@ function Compound:_processDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
         ctx:paint_with_alpha(opacity)
     end
 end
-
-_processChanges = Compound._processChanges
-_processDraw    = Compound._processDraw
 
 return Compound

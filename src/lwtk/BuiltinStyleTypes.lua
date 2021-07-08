@@ -5,7 +5,8 @@ local ANIMATABLE = lwtk.StyleTypeAttributes.ANIMATABLE
 
 local function BuiltinStyleTypes()
     return {
-        { "*Family",  "string" },
+        { "*Family",
+          "*Align",   "string" },
         
         { "*Seconds", 
           "*Columns", "number"  },

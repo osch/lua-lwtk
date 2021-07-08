@@ -2,7 +2,6 @@ local lwtk   = require"lwtk"
 
 local find   = string.find
 local match  = string.match
-local sub    = string.sub
 local lower  = string.lower
 local gsub   = string.gsub
 local gmatch = string.gmatch
@@ -37,6 +36,7 @@ function StyleRule.toPattern(rule, typeList)
     local value = rule[n]
     local result = {}
     local j = 1
+    local resultType
     for i = 1, n - 1 do
         local patternString = rule[i]
         local p = lower(patternString)
@@ -136,9 +136,9 @@ function StyleRule.toPattern(rule, typeList)
             result[j] = "^"..paramName.."@.*:"..statePath.."$"
         end
         j = j + 1
-        local t = checkValue(patternString, paramName, value, typeList)
+        resultType = checkValue(patternString, paramName, value, typeList)
     end
-    result.type = t
+    result.type = resultType
     result[j] = value
     return result
 end

@@ -1,32 +1,26 @@
 local lwtk = require"lwtk"
 
 local getFocusHandler = lwtk.get.focusHandler
-local Compound        = lwtk.Compound
 local TextFragment    = lwtk.TextFragment
+
 local Super           = lwtk.Button
 local TextLabel       = lwtk.newClass("lwtk.TextLabel", Super)
 
-TextLabel:implementFrom(Compound)
-
 function TextLabel:new(initParams)
+    Super.new(self)
     self.textFragment = self:addChild(TextFragment { considerHotkey = true })
-    self.align = "left"
-    Super.new(self, initParams)
+    self:setInitParams(initParams)
 end
 
 function TextLabel:setText(text)
     self.text = text
     self.textFragment:setText(text)
     self:setHotkey(self.textFragment.hotkey)
+    self:triggerLayout()
 end
 
 function TextLabel:setInput(inputId)
     self.input = inputId
-end
-
-function TextLabel.setAlign(align)
-    self.align = align
-    self:triggerRedraw()
 end
 
 function TextLabel:onHotkeyEnabled(hotkey)
@@ -46,7 +40,7 @@ end
 function TextLabel:onHotkeyDown()
     local focusHandler = getFocusHandler[self]
     if self.input and focusHandler then
-        local input = focusHandler.child[self.input]
+        local input = self:byId(self.input)
         if input then
             input:setFocus(true)
         end
@@ -103,7 +97,7 @@ function TextLabel:getMeasures()
         minW = tw
     end
     if minW > bestW then
-        minW = bestW
+        bestW = minW
     end
 
     local maxW
@@ -127,7 +121,8 @@ function TextLabel:onLayout(width, height)
     Super.onLayout(self, width, height)
     local iw, ih = self.textFragment:getSize()
     local tw, th, ascent = self.textFragment:getTextMeasures()
-    if self.align == "center" then
+    local align = self:getStyleParam("TextAlign")
+    if align == "center" then
         self.textFragment:setTextPos(math.floor((iw - tw)/2 + 0.5),
                                      math.floor((ih - th)/2 + ascent + 0.5));
     else

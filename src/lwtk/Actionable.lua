@@ -4,11 +4,17 @@ local match       = string.match
 local getActions  = lwtk.get.actions
 
 local Super          = lwtk.Object
-local Actionable     = Super.newClass("lwtk.Actionable", Super)
+local Actionable     = lwtk.newClass("lwtk.Actionable", Super)
 
 function Actionable:new(initParams)
-    local objectActions
     if initParams then
+        self:setInitParams(initParams)
+    end
+end
+
+function Actionable:setInitParams(initParams)
+    if initParams then
+        local objectActions
         for k, v in ipairs(initParams) do
             if type(k) == "string" and match(k, "^onAction") then
                 if not objectActions then objectActions = {} end
@@ -16,9 +22,10 @@ function Actionable:new(initParams)
                 initParams[k] = nil
             end
         end
-    end
-    if objectActions then
-        getActions[self] = objectActions
+        if objectActions then
+            getActions[self] = objectActions
+        end
+        Super.setAttributes(self, initParams)
     end
 end
 

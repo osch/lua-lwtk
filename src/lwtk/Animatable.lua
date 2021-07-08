@@ -1,31 +1,33 @@
 local lwtk = require("lwtk")
 
-local floor = math.floor
+local getApp               = lwtk.get.app
+local getStyle             = lwtk.get.style
+local getVisibilityChanges = lwtk.get.visibilityChanges
 
-local Super       = lwtk.Styleable
-local Animatable  = lwtk.newClass("lwtk.Animatable", Super)
+local callOnLayout = lwtk.layout.callOnLayout
 
-local getApp       = lwtk.get.app
-local getStyle     = lwtk.get.style
+local Styleable  = lwtk.Styleable
+local Animatable = lwtk.newMixin("lwtk.Animatable", Styleable, Styleable.NO_STYLE_SELECTOR)
 
-local callOnLayout       = lwtk.layout.callOnLayout
+local getParamTransitions = lwtk.WeakKeysTable()
+local getStateTransitions = lwtk.WeakKeysTable()
+local getCurrentValues    = lwtk.WeakKeysTable()
 
-local paramTransitions = lwtk.WeakKeysTable()
-local stateTransitions = lwtk.WeakKeysTable()
-local currentValues    = lwtk.WeakKeysTable()
+function Animatable.initClass(Animatable, Super)  -- luacheck: ignore 431/Animatable
 
-function Animatable:new()
-    Super.new(self)
-    paramTransitions[self]    = {}
-    stateTransitions[self]    = {}
-    currentValues[self]       = {}
-    
-    self._animationActive     = false
-    self._animationTriggered  = false
-    self._animationUpdated    = false
+    function Animatable:new(initParams)
+        getParamTransitions[self] = {}
+        getStateTransitions[self] = {}
+        getCurrentValues[self]    = {}
+        
+        self._animationActive     = false
+        self._animationTriggered  = false
+        self._animationUpdated    = false
+        Super.new(self, initParams)
+    end
 end
 
-local getStyleParam = Super.getStyleParam
+local getStyleParam = Styleable.getStyleParam
 
 local function addToAnimations(self)
     local app = assert(getApp[self], "widget not connected to application")
@@ -75,23 +77,51 @@ local function assureActiveAnimation(self)
     self._animationActive = true
 end
 
+local function setEffectiveHidden(self, hidden, changes)
+    if self._hidden ~= hidden then
+        self._hidden = hidden
+        if self.onEffectiveVisibilityChanged then
+            if changes then
+                changes[self] = hidden
+            else
+                self:onEffectiveVisibilityChanged(hidden)
+            end
+        end
+        for i = 1, #self do
+            local child = self[i]
+            setEffectiveHidden(child, hidden, changes)
+        end
+    end
+end
+
 local function _setState(self, name, flag)
     local invisibleState = (name == "invisible")
     flag = flag and true or false
     local oldFlag = self.state[name]
     if oldFlag ~= flag then
+        local app = getApp[self]
         local durationParamName
         if invisibleState then
             durationParamName = "VisibilityTransitionSeconds"
+            if not flag and self._needsRelayout then
+                callOnLayout(self, self.w, self.h)
+            end
             self.visible = not flag
+            setEffectiveHidden(self, flag, getVisibilityChanges[app])
+            if app then
+                app._hasChanges = true
+            end
         else
             durationParamName = name.."TransitionSeconds"
         end
-        if getApp[self] then -- connected to app
-            local currentValues = currentValues[self]
+        local currentValues = getCurrentValues[self]
+        if app then -- connected to app
             local isIgnored = self._ignored
             local duration  = getStyleParam(self, durationParamName) or 0 
             if invisibleState then
+                if not currentValues["Opacity"] then
+                    currentValues["Opacity"] = flag and 1 or 0
+                end
                 if duration > 0 then
                     self._ignored = false
                     isIgnored = false
@@ -99,17 +129,17 @@ local function _setState(self, name, flag)
             elseif isIgnored then
                 duration = 0
             end
-            Super.setState(self, name, flag)
+            Styleable.setState(self, name, flag)
             local now = self:getCurrentTime()
 
-            local stateTrans = stateTransitions[self][name]
+            local stateTrans = getStateTransitions[self][name]
             if not stateTrans and not isIgnored then
                 stateTrans = {
                     targetValue = flag,
                     startTime   = now,
                     endTime     = now + duration
                 }
-                stateTransitions[self][name] = stateTrans
+                getStateTransitions[self][name] = stateTrans
             else
                 if not isIgnored then
                     local newD
@@ -130,7 +160,8 @@ local function _setState(self, name, flag)
             end
             local endTime = now + duration
             local hasTrans = false
-            for paramName, trans in pairs(paramTransitions[self]) do
+            local transitions = getParamTransitions[self]
+            for paramName, trans in pairs(transitions) do
                 local endValue = getStyleParam(self, paramName)
                 if (not trans or trans == true or not trans.endTime)
                    and (duration <= 0 or endValue == currentValues[paramName]) 
@@ -138,9 +169,8 @@ local function _setState(self, name, flag)
                     currentValues[paramName] = endValue
                 else
                     hasTrans = true
-                    local currentValue
                     if not isIgnored then
-                        currentValue = currentValues[paramName]
+                        local currentValue = currentValues[paramName]
                         if trans == true then
                             trans = {
                                 startValue  = currentValue,
@@ -148,7 +178,7 @@ local function _setState(self, name, flag)
                                 startTime   = now,
                                 endTime     = endTime,
                             }
-                            paramTransitions[self][paramName] = trans
+                            transitions[paramName] = trans
                         else
                             if not trans.endTime or trans.endValue ~= endValue then
                                 trans.startValue  = currentValue
@@ -161,7 +191,6 @@ local function _setState(self, name, flag)
                             end
                         end
                     else
-                        currentValue = endValue
                         currentValues[paramName] = endValue
                         if trans then
                             trans.endTime = false
@@ -174,13 +203,13 @@ local function _setState(self, name, flag)
                     assureActiveAnimation(self)
                 end
                 if duration == 0 and not flag then
-                    for paramName, trans in pairs(paramTransitions[self]) do
+                    for paramName, trans in pairs(transitions) do
                         if trans and trans ~= true then
                             currentValues[paramName] = trans.endValue
                             trans.endTime = false
                         end
                     end
-                    for stateName2, stateTrans2 in pairs(stateTransitions[self]) do
+                    for stateName2, stateTrans2 in pairs(getStateTransitions[self]) do
                         stateTrans2.endTime = false
                     end
                 end
@@ -194,9 +223,10 @@ local function _setState(self, name, flag)
                 self:triggerRedraw()
             end
         else
-            Super.setState(self, name, flag)
+            Styleable.setState(self, name, flag)
             if invisibleState then
                 self._ignored = flag
+                getParamTransitions[self]["Opacity"] = true
             end
         end
     end
@@ -223,27 +253,26 @@ function Animatable:setStates(stateNames)
 end
 
 function Animatable:_setStyleFromParent(parentStyle)
-    currentValues[self] = {}
-    Super._setStyleFromParent(self, parentStyle)
+    getCurrentValues[self] = {}
+    Styleable._setStyleFromParent(self, parentStyle)
 end
 
 function Animatable:setStyle(style)
-    currentValues[self] = {}
-    Super.setStyle(self, style)
+    getCurrentValues[self] = {}
+    Styleable.setStyle(self, style)
 end
 
 function Animatable:getStyleParam(paramName)
-    local value = currentValues[self][paramName]
-    local wasInCache = value
+    local value = getCurrentValues[self][paramName]
     if value == nil then
         value = getStyleParam(self, paramName)
         if value ~= nil then
-            currentValues[self][paramName] = value
+            getCurrentValues[self][paramName] = value
             local animatable = getStyle[self].animatable[paramName]
             if animatable or paramName:match("^.*Opacity") then
-                paramTransitions[self][paramName] = true
+                getParamTransitions[self][paramName] = true
             else
-                paramTransitions[self][paramName] = false
+                getParamTransitions[self][paramName] = false
             end
         end
     end
@@ -258,11 +287,11 @@ function Animatable:updateAnimation()
     self._animationUpdated = true
     
     local now          = self:getCurrentTime()
-    local currentValues= currentValues[self]
+    local currentValues= getCurrentValues[self]
     local isIgnored    = self._ignored
     local hasActive    = false
 
-    for paramName, trans in pairs(paramTransitions[self]) do
+    for paramName, trans in pairs(getParamTransitions[self]) do
         if trans and trans ~= true then
             local endTime = trans.endTime
             if endTime then
@@ -293,13 +322,13 @@ function Animatable:updateAnimation()
         end
     end
     if not isIgnored and self._ignored then
-        for paramName, trans in pairs(paramTransitions[self]) do
+        for paramName, trans in pairs(getParamTransitions[self]) do
             if trans and trans ~= true then
                 currentValues[paramName] = trans.endValue
                 trans.endTime = false
             end
         end
-        for stateName, stateTrans in pairs(stateTransitions[self]) do
+        for stateName, stateTrans in pairs(getStateTransitions[self]) do
             stateTrans.endTime = false
         end
     end

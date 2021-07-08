@@ -22,8 +22,8 @@ local function calculateLRMeasures(childList, getChildLRMeasures)
     for i = 1, n do
         local child = childList[i]
         if child.visible then
-            local minW, bestW, maxW,
-                  childLeft, childRight  = getChildLRMeasures(child)
+            local minW, bestW, maxW,                                  -- luacheck: ignore 211/minW 211/maxW
+                  childLeft, childRight  = getChildLRMeasures(child)  -- luacheck: ignore 211/childLeft 211/childRight
             if bestW > bestWidth then bestWidth = bestW end
         end
     end
@@ -34,12 +34,11 @@ local function calculateLRMeasures(childList, getChildLRMeasures)
     for i = 1, n do
         local child = childList[i]
         if child.visible then
-            local minW, bestW, maxW,
+            local minW, bestW, maxW,                                   -- luacheck: ignore 211/minW 211/maxW
                   childLeft, childRight  = getChildLRMeasures(child)
             if bestW > 0 then
                 local w = (childLeft or 0) + bestW + (childRight or 0)
                 if w > bestWidth then
-                    local dw = w - bestWidth
                     if childLeft  and (not leftMargin  or childLeft  < leftMargin)  then 
                         leftMargin  = childLeft  
                     end
@@ -101,23 +100,18 @@ local function calculateTBMeasures(childList, getChildTBMeasures)
     local n = #childList
     
     local topMargin    = nil
-    local bottomMargin = nil
 
     for i = 1, n do
         local child = childList[i]
         if child.visible then
-            local minH, bestH, maxH,
-                  childTop, childBottom = getChildTBMeasures(child)
+            local minH, bestH, maxH,                                  -- luacheck: ignore 211/minH 211/maxH
+                  childTop, childBottom = getChildTBMeasures(child)   -- luacheck: ignore 211/childBottom
             if not topMargin and childTop and bestH > 0 then 
                 topMargin = childTop
-            end
-            if bestH > 0 and childBottom then
-                bottomMargin = childBottom
             end
         end
     end
     topMargin    = topMargin or 0
-    bottomMargin = bottomMargin or 0
     
     local flexCount = 0
     local unlmCount1 = 0
@@ -135,7 +129,6 @@ local function calculateTBMeasures(childList, getChildTBMeasures)
         if child.visible then
             local minH, bestH, maxH,
                   childTop, childBottom = getChildTBMeasures(child)
-            
             if i > 1 then
                 if childTop and prevBottom and childTop > prevBottom then 
                     minHeight  =  minHeight + childTop - prevBottom
@@ -168,7 +161,7 @@ local function calculateTBMeasures(childList, getChildTBMeasures)
             end
         end
     end
-    bottomMargin = prevBottom or 0
+    local bottomMargin = prevBottom or 0
     
     return minHeight, bestHeight, maxHeight, 
            topMargin, bottomMargin, 
@@ -179,7 +172,7 @@ end
 
 function LayoutImpl.applyLRLayout(childList, width, leftMargin, rightMargin, rsltCache, getChildLRMeasures)
 
-    local minWidth, bestWidth, maxWidth,
+    local minWidth, bestWidth, maxWidth,                                         -- luacheck: ignore 211/minWidth 211/bestWidth 211/maxWidth
           myLeft, myRight = calculateLRMeasures(childList, getChildLRMeasures)
 
     local dLeft  = 0
@@ -192,7 +185,7 @@ function LayoutImpl.applyLRLayout(childList, width, leftMargin, rightMargin, rsl
     for i = 1, #childList do
         local child = childList[i]
         if child.visible then
-            local minW, bestW, maxW,
+            local minW, bestW, maxW,                                  -- luacheck: ignore 211/bestW 211/maxW
                   childLeft, childRight = getChildLRMeasures(child)
             local childX
             if childLeft and childLeft > myLeft then childX = dLeft + childLeft - myLeft 
@@ -220,14 +213,18 @@ function LayoutImpl.applyTBLayout(childList, height, topMargin, bottomMargin, rs
     local minHeight, bestHeight, maxHeight, 
           myTop, myBottom, 
           flexCount, unlmCount1, unlmCount2, maxContentHeight = calculateTBMeasures(childList, getChildTBMeasures)
+
+    local dTop = 0
+    local dBottom = 0
     do
-        local dh = 0
-        if myTop    > topMargin    then dh = dh + myTop    - topMargin    end
-        if myBottom > bottomMargin then dh = dh + myBottom - bottomMargin end
+        if myTop    > topMargin    then dTop    = myTop    - topMargin    end
+        if myBottom > bottomMargin then dBottom = myBottom - bottomMargin end
+        local dh = dTop + dBottom
         minHeight  =  minHeight + dh
         bestHeight = bestHeight + dh
         maxHeight  =  maxHeight + dh
     end
+
     local unlmAdd1 = 0
     local unlmAdd2 = 0
     local s = 0
@@ -294,15 +291,10 @@ function LayoutImpl.applyTBLayout(childList, height, topMargin, bottomMargin, rs
             else
                 childH = minH
             end
-            if factor then
-                childH = factor * childH
-            end
             local dy = 0
             if childTop and prevBottom and childTop > prevBottom then
                 dy = childTop - prevBottom
             end
-            prevBottom = childBottom
-            local childY = y + dy
             do
                 local r = floor(childH)
                 roundingError = roundingError + childH - r
@@ -313,7 +305,13 @@ function LayoutImpl.applyTBLayout(childList, height, topMargin, bottomMargin, rs
                     childH = r
                 end
             end
-            y = y + dy + (childBottom or 0) + childH
+            if minH > 0 then
+                prevBottom = childBottom or 0
+            else
+                prevBottom = (prevBottom or 0) + dy
+            end
+            local childY = y + dy
+            y = childY + (childBottom or 0) + childH
             local ncTop, ncBottom = dy + (prevBottom or 0), 
                                     childBottom or 0
             set4Cache(rsltCache, i, ncTop, ncBottom, childY, childH)

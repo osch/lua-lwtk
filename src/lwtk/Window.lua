@@ -3,20 +3,21 @@ local lwtk = require"lwtk"
 local Area        = lwtk.Area
 
 local ChildLookup     = lwtk.ChildLookup
-local Styleable       = lwtk.Styleable
-local KeyHandler      = lwtk.KeyHandler
 local fillRect        = lwtk.draw.fillRect
 local FocusHandler    = lwtk.FocusHandler
 local getFocusHandler = lwtk.get.focusHandler
+local getFocusedChild = lwtk.get.focusedChild
 local getMeasures     = lwtk.layout.getMeasures
 local callRelayout    = lwtk.layout.callRelayout
-local call            = lwtk.call
 
-local Super        = lwtk.Styleable
+local Super        = lwtk.MouseDispatcher(lwtk.KeyHandler(lwtk.Styleable(lwtk.Object)))
 local Window       = lwtk.newClass("lwtk.Window", Super)
 
-Window:implementFrom(Styleable)
-Window:implementFrom(KeyHandler)
+Window.triggerLayout = lwtk.Component.triggerLayout
+Window.triggerRedraw = lwtk.Component.triggerRedraw
+Window.getRoot       = lwtk.Component.getRoot
+Window.childById     = lwtk.Group.childById
+
 Window.color = true
 
 local getParent       = lwtk.get.parent
@@ -25,15 +26,10 @@ local getApp          = lwtk.get.app
 local getRoot         = lwtk.get.root
 local getKeyBinding   = lwtk.get.keyBinding
 local getFontInfos    = lwtk.get.fontInfos
-
-function Window.newClass(className, baseClass)
-    local newClass = Super.newClass(className, baseClass)
-    Styleable:initClass(newClass)
-    return newClass
-end
+local getChildLookup  = lwtk.get.childLookup
 
 function Window:new(app, initParms)
-    Styleable.new(self)
+    Super.new(self)
     self.fullRedisplayOutstanding = true
     getApp[self]  = app
     getRoot[self] = self
@@ -47,8 +43,8 @@ function Window:new(app, initParms)
     getParent[self]      = app
     getKeyBinding[self]  = getKeyBinding[app]
     getStyle[self]       = getStyle[app]
-    KeyHandler.new(self)
-    self.child = ChildLookup(self)
+    Super.new(self)
+    getChildLookup[self] = ChildLookup(self)
     self.exposedArea = Area()
     self.damagedArea = Area() -- as cache
     self.mouseEntered = false
@@ -72,33 +68,42 @@ function Window:new(app, initParms)
     end
 end
 
+function Window:setOnClose(onClose)
+    self.onClose = onClose
+end
+
+function Window:byId(id)
+    return getChildLookup[self][id]
+end
+
 function Window:addChild(child)
     self[#self + 1] = child
-    getFocusHandler[child] = FocusHandler(child)
+    local focusHandler = FocusHandler(child)
+    getApp[focusHandler] = getApp[self]
+    getFocusHandler[child] = focusHandler
     child:_setParent(self)
     self:_clearChildLookup()
+    if child.getMeasures then
+        local minW, minH, bestW, bestH, maxW, maxH, 
+              childTop, childRight, childBottom, childLeft = getMeasures(child)
+        local mw = (childLeft or 0) + minW  + (childRight  or 0)
+        local mh = (childTop  or 0) + minH  + (childBottom or 0)
+        local bw = (childLeft or 0) + bestW + (childRight  or 0)
+        local bh = (childTop  or 0) + bestH + (childBottom or 0)
+        if bw > 0 and bh > 0 then
+            self.view:setMinSize(mw, mh)
+            self.view:setSize(bw, bh)
+            self.minW, self.minH = mw, mh
+        end
+        if maxW > 0 or maxH > 0 then
+            local mxw = maxW > 0 and ((childLeft or 0) + maxW + (childRight  or 0)) or -1
+            local mxh = maxH > 0 and ((childTop  or 0) + maxH + (childBottom or 0)) or -1
+            self.view:setMaxSize(mxw, mxh)
+            self.maxW, self.maxH = mxw, mxh
+        end
+    end
     if self.w > 0 and self.h > 0 then
         child:_setFrame(0, 0, self.w, self.h)
-    else
-        if child.getMeasures then
-            local minW, minH, bestW, bestH, maxW, maxH, 
-                  childTop, childRight, childBottom, childLeft = getMeasures(child)
-            local mw = (childLeft or 0) + minW  + (childRight  or 0)
-            local mh = (childTop  or 0) + minH  + (childBottom or 0)
-            local bw = (childLeft or 0) + bestW + (childRight  or 0)
-            local bh = (childTop  or 0) + bestH + (childBottom or 0)
-            if bw > 0 and bh > 0 then
-                self.view:setMinSize(mw, mh)
-                self.view:setSize(bw, bh)
-                self.minW, self.minH = mw, mh
-            end
-            if maxW > 0 or maxH > 0 then
-                local mxw = maxW > 0 and ((childLeft or 0) + maxW + (childRight  or 0)) or -1
-                local mxh = maxH > 0 and ((childTop  or 0) + maxH + (childBottom or 0)) or -1
-                self.view:setMaxSize(mxw, mxh)
-                self.maxW, self.maxH = mxw, mxh
-            end
-        end
     end
     return child
 end
@@ -125,7 +130,10 @@ function Window:setColor(color)
     end
 end
 
+local processRelayout
+
 function Window:show()
+    processRelayout(self)
     self.view:show()
 end
 
@@ -133,9 +141,15 @@ function Window:hide()
     self.view:hide()
 end
 
+function Window:isClosed()
+    return self.view:isClosed()
+end
+
 function Window:close()
-    self.view:close()
-    getParent[self]:_removeWindow(self)
+    if not self.view:isClosed() then
+        self.view:close()
+        getParent[self]:_removeWindow(self)
+    end
 end
 
 function Window:getLayoutContext()
@@ -185,88 +199,67 @@ function Window:_handleMouseEnter(mx, my)
     self.mouseX = mx
     self.mouseY = my
     self.mouseEntered = true
-    for i = #self, 1, -1 do
-        local child = self[i]
-        if child.visible then
-            child:_processMouseEnter(mx, my)
-            break
-        end
-    end
+    self:_processMouseEnter(mx, my)
 end
 
 function Window:_handleMouseMove(mx, my)
     self.mouseX = mx
     self.mouseY = my
-    for i = #self, 1, -1 do
-        local child = self[i]
-        if child.visible then
-            child:_processMouseMove(self.mouseEntered, mx, my)
-            break
-        end
-    end
+    self:_processMouseMove(self.mouseEntered, mx, my)
 end
 
 function Window:_handleMouseLeave(mx, my)
     self.mouseX = mx
     self.mouseY = my
     self.mouseEntered = false
-    for i = #self, 1, -1 do
-        local child = self[i]
-        if child.visible then
-            child:_processMouseLeave(mx, my)
-            break
-        end
-    end
+    self:_processMouseLeave(mx, my)
 end
 
 function Window:_handleMouseDown(mx, my, button, modState)
     self.mouseX = mx
     self.mouseY = my
-    for i = #self, 1, -1 do
-        local child = self[i]
-        if child.visible then
-            child:_processMouseDown(mx, my, button, modState)
-            break
-        end
-    end
+    self:_processMouseDown(mx, my, button, modState)
 end
 
 function Window:_handleMouseUp(mx, my, button, modState)
     self.mouseX = mx
     self.mouseY = my
-    for i = #self, 1, -1 do
-        local child = self[i]
-        if child.visible then
-            child:_processMouseUp(self.mouseEntered, mx, my, button, modState)
-            break
-        end
-    end
+    self:_processMouseUp(self.mouseEntered, mx, my, button, modState)
 end
 
-function Window:_handleFocusIn()
-    self:resetKeyHandling()
+local function adjustFocusedChild(self, focusedChild)
     for i = #self, 1, -1 do
         local child = self[i]
         if child.visible then
+            if focusedChild and focusedChild ~= child then
+                getFocusHandler[focusedChild]:_handleFocusOut()
+            end
+            getFocusedChild[self] = child
             getFocusHandler[child]:_handleFocusIn()
             break
         end
     end
 end
 
-function Window:_handleFocusOut()
+function Window:_handleFocusIn()
+    self.hasFocus = true
     self:resetKeyHandling()
-    for i = #self, 1, -1 do
-        local child = self[i]
-        if child.visible then
-            getFocusHandler[child]:_handleFocusOut()
-            break
-        end
+    local focusedChild = getFocusedChild[self]
+    adjustFocusedChild(self, focusedChild)
+end
+
+function Window:_handleFocusOut()
+    self.hasFocus = false
+    self:resetKeyHandling()
+    local focusedChild = getFocusedChild[self]
+    if focusedChild then
+        getFocusHandler[focusedChild]:_handleFocusOut()
+        getFocusedChild[self] = false
     end
 end
 
 
-function Window:_handleClose()
+function Window:requestClose()
     local onClose = self.onClose
     if onClose then
         onClose(self)
@@ -275,38 +268,50 @@ function Window:_handleClose()
     end
 end
 
-function Window:_clearChildLookup() 
-    if self.child[0] then
-        self.child = ChildLookup(self)
-    end
+function Window:requestFocus()
+    self.view:grabFocus()
 end
 
-function Window:_processChanges()
-    if self._needsRelayout then
+function Window:_clearChildLookup() 
+    ChildLookup.clear(getChildLookup[self])
+end
+
+function processRelayout(self)
+    local focusedChild = getFocusedChild[self]
+    if focusedChild and not focusedChild.visible and self.hasFocus then
+        adjustFocusedChild(self, focusedChild)
+    end
+    local neededRelayout = self._needsRelayout 
+    if neededRelayout then
         self._needsRelayout = false
         for i = 1, #self do
             local child = self[i]
             if child._needsRelayout then
-                callRelayout(child)
-                if child.getMeasures then
-                    local minW, minH, bestW, bestH, maxW, maxH, 
-                          childTop, childRight, childBottom, childLeft = getMeasures(child)
+                local minW, minH, bestW, bestH, maxW, maxH,                              -- luacheck: ignore 211/maxW 211/maxH
+                      childTop, childRight, childBottom, childLeft = callRelayout(child)
+                if minW then
                     local mw = (childLeft or 0) + minW  + (childRight  or 0)
                     local mh = (childTop  or 0) + minH  + (childBottom or 0)
                     local bw = (childLeft or 0) + bestW + (childRight  or 0)
                     local bh = (childTop  or 0) + bestH + (childBottom or 0)
                     if bw > 0 and bh > 0 then
-                        --if not self.minW or (mw > self.minW or mh > self.minH) then
+                        if self.view:isVisible() then
+                            if not self.minW or (mw > self.minW or mh > self.minH) then
+                                self.view:setMinSize(mw, mh)
+                                self.minW, self.minH = mw, mh
+                            end
+                        else
                             self.view:setMinSize(mw, mh)
+                            self.view:setSize(bw, bh)
                             self.minW, self.minH = mw, mh
-                        --end
+                        end
                     end
                 end
             end
         end
         assert(not self._needsRelayout)
     end
-    if self._positionsChanged then
+    if neededRelayout or self._positionsChanged then
         self._positionsChanged = false
         if self.mouseEntered then
             local mx, my = self.mouseX, self.mouseY
@@ -315,6 +320,10 @@ function Window:_processChanges()
             end
         end
     end
+end
+
+function Window:_processChanges()
+    processRelayout(self)
     self._hasChanges = false
     for i = 1, #self do
         local child = self[i]

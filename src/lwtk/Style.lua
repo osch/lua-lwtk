@@ -52,8 +52,18 @@ function Style:setRules(rules)
     self.typeList    = typeList
     self.scaleFactor = rules.scaleFactor or 1
     local ruleList = {}
-    for i, rule in ipairs(rules) do
-        ruleList[i] = toStylePattern(rule, typeList)
+    if rules[1] then
+        for i, rule in ipairs(rules) do
+            ruleList[i] = toStylePattern(rule, typeList)
+        end
+    else
+        assert(type(rules) == "table", "arg must be list or plain table")
+        for k, v in pairs(rules) do
+            assert(type(k) == "string", "argument to 'setRules' must be list of rules or key value map")
+            if k ~= "types" and k ~= "scaleFactor" then
+                ruleList[#ruleList + 1] = toStylePattern({ k, v }, typeList)
+            end
+        end
     end
     self.ruleList = ruleList
     clearCache(self)
@@ -69,9 +79,18 @@ function Style:addRules(rules)
         end
     end
     local ruleList = self.ruleList
-    local n = #ruleList
-    for i, rule in ipairs(rules) do
-        ruleList[n + i] = toStylePattern(rule, typeList)
+    if rules[1] then
+        local n = #ruleList
+        for i, rule in ipairs(rules) do
+            ruleList[n + i] = toStylePattern(rule, typeList)
+        end
+    else
+        for k, v in pairs(rules) do
+            assert(type(k) == "string", "argument to 'setRules' must be list of rules or key value map")
+            if k ~= "types" and k ~= "scaleFactor" then
+                ruleList[#ruleList + 1] = toStylePattern({ k, v }, typeList)
+            end
+        end
     end
     clearCache(self)
 end

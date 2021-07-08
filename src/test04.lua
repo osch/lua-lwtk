@@ -24,7 +24,7 @@ local win = app:newWindow {
                 PushButton  {   text = "Button2",
                                 onClicked = function(self)
                                     printClicked(self)
-                                    local c = self:getRoot().child.tb
+                                    local c = self:byId("tb")
                                     c:setVisible(not c:isVisible())
                                 end                                 
                             },
@@ -35,15 +35,15 @@ local win = app:newWindow {
                                     id = "b1",
                                     onClicked = function(self)
                                         printClicked(self)
-                                        local c = self:getRoot().child.B1
+                                        local c = self:byId("B1")
                                         c:setVisible(not c:isVisible())
-                                        self:getRoot().child.L1:setVisible(not c:isVisible())
+                                        self:byId("L1"):setVisible(not c:isVisible())
                                     end 
                                 },
                     PushButton  {   text = "C&ancel", id = "b2",
                                     onClicked = function(self)
                                         printClicked(self)
-                                        local c = self:getRoot().child.b4
+                                        local c = self:byId("b4")
                                         c:setVisible(not c:isVisible())
                                     end 
                                 },
@@ -52,7 +52,7 @@ local win = app:newWindow {
                     PushButton { text = "Click no&g and here!", id = "b3",
                                  onClicked = function(self)
                                     printClicked(self)
-                                    local c = self:getRoot().child.b2
+                                    local c = self:byId("b2")
                                     c:setVisible(not c:isVisible())
                                  end },
                     --Space {},

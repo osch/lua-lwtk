@@ -24,7 +24,6 @@ local vivid = {}
 
 local math_min = math.min
 local math_max = math.max
-local math_atan = math.atan
 local math_pi = math.pi
 local math_sqrt = math.sqrt
 local math_atan2 = math.atan2
@@ -344,7 +343,7 @@ function vivid.LabtoXYZ(...)
 end
 
 function vivid.LabtoLCH(...)
-  local L,a,b,alpha = getColorArgs(...)
+  local L,a,b = getColorArgs(...)
   local C,H
   H = math_atan2(b,a)
 
@@ -360,13 +359,13 @@ function vivid.LabtoLCH(...)
 end
 
 function vivid.LCHtoLab(...)
-  local L,C,H,alpha = getColorArgs(...)
+  local L,C,H = getColorArgs(...)
 
   return L,math_cos(math_rad(H))*C,math_sin(math_rad(H))*C
 end
 
 function vivid.XYZtoLuv(...)
-  local x,y,z,alpha = getColorArgs(...)
+  local x,y,z = getColorArgs(...)
   local L,u,v
   u = (4 * x) / (x + (15 * y) + (3 * z))
   v = (9 * y) / (x + (15 * y) + (3 * z))
@@ -386,7 +385,7 @@ function vivid.XYZtoLuv(...)
 end
 
 function vivid.LuvtoXYZ(...)
-  local L,u,v,alpha = getColorArgs(...)
+  local L,u,v = getColorArgs(...)
   local x,y,z
 
   y = (L + 16) / 116
@@ -424,7 +423,7 @@ function vivid.desaturate(amount, ...)
   return vivid.HSVtoRGB(h,s-amount,v,a)
 end
 function vivid.hue(hue, ...)
-  local h,s,l,a = vivid.RGBtoHSL(getColorArgs(...))
+  local h,s,l,a = vivid.RGBtoHSL(getColorArgs(...)) -- luacheck: ignore 211/h
   return vivid.HSLtoRGB(hue,s,l,a)
 end
 function vivid.invert(...)

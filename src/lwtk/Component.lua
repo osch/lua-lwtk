@@ -1,6 +1,5 @@
 local lwtk = require"lwtk"
 
-local Application = lwtk.Application
 local call        = lwtk.call
 local Rect        = lwtk.Rect
 local Animatable  = lwtk.Animatable
@@ -13,23 +12,14 @@ local getRoot              = lwtk.get.root
 local getParent            = lwtk.get.parent
 local getFocusHandler      = lwtk.get.focusHandler
 local getFocusableChildren = lwtk.get.focusableChildren
-local getActions           = lwtk.get.actions
 local callOnLayout         = lwtk.layout.callOnLayout
 local getFontInfos         = lwtk.get.fontInfos
+local getChildLookup       = lwtk.get.childLookup
 
 local Super       = lwtk.Actionable
 local Component   = lwtk.newClass("lwtk.Component", Super)
 
 function Component:new(initParams)
-    if initParams then
-        local id = initParams.id
-        if id then
-            assert(type(id) == "string", "id must be string")
-            self.id = id
-            initParams.id = nil
-        end
-    end
-    Super.new(self, initParams)
     getApp[self]  = false
     getRoot[self] = self
     self.visible  = true
@@ -37,9 +27,28 @@ function Component:new(initParams)
     self.y = 0
     self.w = 0
     self.h = 0
+    Super.new(self, initParams)
+end
+
+function Component:setInitParams(initParams)
     if initParams then
-        assert(initParams[1] == nil, "child objects are not supported")
-        self:setAttributes(initParams)
+        local id = initParams.id
+        if id then
+            assert(type(id) == "string", "id must be string")
+            assert(not id:match("/"), "id must not contain / character")
+            self.id = id
+            initParams.id = nil
+        end
+        local addChild = self.addChild
+        if not addChild then
+            assert(initParams[1] == nil, "child objects are not supported")
+        else
+            for i = 1, #initParams do
+                addChild(self, initParams[i])
+                initParams[i] = nil
+            end
+        end
+        Super.setInitParams(self, initParams)
     end
 end
 
@@ -74,6 +83,31 @@ function Component:_setApp(app)
     getFontInfos[self] = getFontInfos[app]
 end
 
+function Component:byId(id)
+    local id1, id2 = id:match("^([^/]*)/(.*)$")
+    if id1 then
+        local p = self:parentById(id1)
+        if not p then
+            p = self:getRoot():childById(id1)
+        end
+        if p and p.childById then 
+            return p:childById(id2) 
+        end
+    else
+        return getChildLookup[getRoot[self]][id]
+    end
+end
+
+function Component:parentById(id)
+    local p = getParent[self]
+    while p do
+        if p.id == id then
+            return p
+        end
+        p = getParent[p]
+    end
+end
+
 local function setAppAndRoot(self, app, root)
     local oldRoot = getRoot[self]
     if oldRoot and oldRoot._positionsChanged then
@@ -93,10 +127,7 @@ local function setAppAndRoot(self, app, root)
             getFocusHandler[self] = handler
             local focusableChildren = getFocusableChildren[handler]
             focusableChildren[#focusableChildren + 1] = self
-            if self._wantsFocus then
-                handler:setFocus(self)
-                self._wantsFocus = nil
-            end
+            call("_handleHasFocusHandler", self, handler)
             local handleHasFocusHandler = self._handleHasFocusHandler
             if handleHasFocusHandler then
                 handleHasFocusHandler(self, handler)
@@ -166,10 +197,13 @@ function Component:transformXY(x, y, parent)
     until not w
 end
 
-function Component:_setFrame(newX, newY, newW, newH)
+function Component:_setFrame(newX, newY, newW, newH, fromFrameAnimation)
+    if not fromFrameAnimation and self._frameTransition then
+        self._frameTransition = false
+    end
     if not self._isRelayouting then
         local x, y, w, h = self.x, self.y, self.w, self.h
-        local needsLayout = (w ~= newW or h ~= newH)
+        local needsLayout = (w ~= newW or h ~= newH or self._needsRelayout)
         if x ~= newX or y ~= newY or needsLayout then
             self._needsRedraw = true
             if not self.oldX then
@@ -177,18 +211,18 @@ function Component:_setFrame(newX, newY, newW, newH)
                 self.oldY = y
                 self.oldW = w
                 self.oldH = h
-                local w = self
                 local root = getRoot[self]
                 if root then
                     root._positionsChanged = true
                 end
+                local widget = self
                 repeat
-                    if w._hasChanges then
+                    if widget._hasChanges then
                         break
                     end
-                    w._hasChanges = true
-                    w = getParent[w]
-                until not w
+                    widget._hasChanges = true
+                    widget = getParent[widget]
+                until not widget
             end
             self.x, self.y, self.w, self.h = newX, newY, newW, newH
             local trans = self._frameTransition
@@ -272,6 +306,7 @@ end
 
 function Component:triggerLayout()
     if getApp[self] then
+        self._needsRelayout = true
         local p = getParent[self]
         while p and not p._needsRelayout do
             p._hasChanges = true

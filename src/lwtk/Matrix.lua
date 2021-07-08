@@ -10,7 +10,6 @@ local getMeasures     = lwtk.layout.getMeasures
 
 local calculateLRMeasures = lwtk.internal.LayoutImpl.calculateLRMeasures
 local calculateTBMeasures = lwtk.internal.LayoutImpl.calculateTBMeasures
-local applyLRLayout       = lwtk.internal.LayoutImpl.applyLRLayout
 local applyTBLayout       = lwtk.internal.LayoutImpl.applyTBLayout
 
 local getRowAdapters    = setmetatable({}, { __mode = "k" })
@@ -84,14 +83,14 @@ end
 -------------------------------------------------------------------------------------------------
 
 local function getRowLRMeasures(child)
-    local minW, minH, bestW, bestH, maxW, maxH,
-          childTop, childRight, childBottom, childLeft = getMeasures(child)
+    local minW, minH, bestW, bestH, maxW, maxH,                              -- luacheck: ignore 211/minW 211/bestW 211/maxW
+          childTop, childRight, childBottom, childLeft = getMeasures(child)  -- luacheck: ignore 211/childRight 211/childLeft
     return minH, bestH, maxH,
            childTop, childBottom
 end
 local function getColumnLRMeasures(child)
-    local minW, minH, bestW, bestH, maxW, maxH,
-          childTop, childRight, childBottom, childLeft = getMeasures(child)
+    local minW, minH, bestW, bestH, maxW, maxH,                              -- luacheck: ignore 211/minH 211/bestH 211/maxH
+          childTop, childRight, childBottom, childLeft = getMeasures(child)  -- luacheck: ignore 211/childTop 211/childBottom
     return minW, bestW, maxW,
            childLeft, childRight
 end
@@ -110,14 +109,14 @@ function Matrix:getMeasures()
 
     local minHeight, bestHeight, maxHeight,
           topMargin, bottomMargin, 
-          flexCount, rowUnlmCount = calculateTBMeasures(rowAdapters, getRowTBMeasures)
+          flexCount1, rowUnlmCount = calculateTBMeasures(rowAdapters, getRowTBMeasures) -- luacheck: ignore 211/flexCount1
     if rowUnlmCount > 0 then
         maxHeight = -1
     end
 
     local minWidth, bestWidth, maxWidth,
           leftMargin, rightMargin, 
-          flexCount, colUnlmCount = calculateTBMeasures(columnAdapters, getColumnTBMeasures)
+          flexCount2, colUnlmCount = calculateTBMeasures(columnAdapters, getColumnTBMeasures) -- luacheck: ignore 211/flexCount2
     if colUnlmCount > 0 then
         maxWidth = -1
     end

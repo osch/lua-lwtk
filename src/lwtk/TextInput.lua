@@ -3,41 +3,29 @@ local lwtk = require"lwtk"
 local sub             = lwtk.utf8.sub
 local len             = lwtk.utf8.len
 local floor           = math.floor
-local Focusable       = lwtk.Focusable
-local Compound        = lwtk.Compound
+local InnerCompound   = lwtk.InnerCompound
 local TextFragment    = lwtk.TextFragment
 local TextCursor      = lwtk.TextCursor
 local getFocusHandler = lwtk.get.focusHandler
+local getApp          = lwtk.get.app
 
 
-local Super      = lwtk.Control
+local Super      = lwtk.Focusable(lwtk.Control(lwtk.Compound(lwtk.Widget)))
 local TextInput  = lwtk.newClass("lwtk.TextInput", Super)
 
-TextInput:implementFrom(Focusable)
 TextInput.getMeasures = lwtk.TextLabel.getMeasures
 TextInput._isInput    = true
 
 function TextInput:new(initParams)
-    self.inner        = self:addChild(Compound())
+    Super.new(self)
+    self.inner        = self:addChild(InnerCompound())
     self.cursor       = self.inner:addChild(TextCursor())
     self.textFragment = self.inner:addChild(TextFragment())
     self.cursorPos    = 1
     self.tx           = 0
-    Super.new(self, initParams)
-end
-
-function TextInput:setText(text)
-    self.text = text
-    self.textFragment:setText(text)
-end
-
-function TextInput:setDefault(buttonId)
-    self.default = buttonId
-    if self.hasFocus then
-        local focusHandler = getFocusHandler[self]
-        if focusHandler then
-            focusHandler:setDefault(buttonId)
-        end
+    self:setInitParams(initParams)
+    if not self.text then
+        self:setText("")
     end
 end
 
@@ -51,12 +39,17 @@ local function innerLayout(self)
     local dy = floor((ih - fh)/2 + 0.5)
     local cw = self:getStyleParam("CursorWidth") or 1
     textFragment:setFrame(0, 0, iw, ih)
+    local tlen = len(self.text)
+    if cursorPos > tlen + 1 then
+        cursorPos = tlen + 1
+        self.cursorPos = cursorPos
+    end
     local cx = fontInfo:getTextWidth(sub(self.text, 1, cursorPos - 1))
     local pw = 0
     if cursorPos > 1 then
         pw = fontInfo:getTextWidth(sub(self.text, cursorPos - 1, cursorPos - 1))
     end
-    local atEnd = (cursorPos == len(self.text) + 1)
+    local atEnd = (cursorPos == tlen + 1)
     local nw
     if atEnd then
         nw = cw
@@ -85,6 +78,27 @@ local function innerLayout(self)
     self.cursor:setFrame(cx - tx, dy, cw, fh)
 end
 
+function TextInput:setText(text)
+    if self.text ~= text then
+        self.text = text
+        self.textFragment:setText(text)
+        self:notifyInputChanged()
+        if getApp[self] then
+            innerLayout(self)
+        end
+    end
+end
+
+function TextInput:setDefault(buttonId)
+    self.default = buttonId
+    if self.hasFocus then
+        local focusHandler = getFocusHandler[self]
+        if focusHandler then
+            focusHandler:setDefault(buttonId, true)
+        end
+    end
+end
+
 function TextInput:onLayout(width, height)
     Super.onLayout(self, width, height)
     innerLayout(self)
@@ -95,7 +109,7 @@ function TextInput:onFocusIn()
     if self.default then
         local focusHandler = getFocusHandler[self]
         if focusHandler then
-            focusHandler:setDefault(self.default)
+            focusHandler:setDefault(self.default, true)
         end
     end
 end
@@ -104,7 +118,7 @@ function TextInput:onFocusOut()
     if self.default then
         local focusHandler = getFocusHandler[self]
         if focusHandler then
-            focusHandler:setDefault(nil)
+            focusHandler:setDefault(self.default, false)
         end
     end
 end
@@ -219,16 +233,6 @@ function TextInput:onActionInputPrev()
     end
     return true
 end
-
---[[ function TextInput:onActionDefaultButton()
-    if self.default then
-        local focusHandler = getFocusHandler[self]
-        if focusHandler and focusHandler:isDefault(self.default) then
-            
-        end
-    end
-    return true
-end  ]]
 
 function TextInput:onKeyDown(keyName, keyState, keyText)
     if keyText and keyText ~= "" then

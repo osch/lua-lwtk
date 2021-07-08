@@ -11,15 +11,19 @@ return function()
         { "Shift+Tab","FocusPrev"          },
         
         { "Right",
+          "Alt+Right",
           "KP_Right", "FocusRight"         },
 
         { "Left", 
+          "Alt+Left",
           "KP_Left",  "FocusLeft"          },
 
         { "Up", 
+          "Alt+Up",
           "KP_Up",    "FocusUp"            },
 
         { "Down",
+          "Alt+Down",
           "KP_Down",  "FocusDown"          },
 
         { "Return",
@@ -45,12 +49,29 @@ return function()
                       "CursorToEndOfLine"   },
 
         { "Return",
+          "KP_Enter",
                       "InputNext"           },
         { "Shift+Return",
+          "Shift+KP_Enter",
                       "InputPrev"           },
 
         { "Return",
+          "KP_Enter",
                       "DefaultButton"       },
+        
+        { "Escape",
+          "Alt+Escape",
+          "Shift+Escape",
+          "Ctrl+Escape",
+                      "CloseWindow"         },
+                      
+        { "Return",
+          "Space",
+          "KP_Enter",
+                      "EnterFocusGroup"     },
+
+        { "Escape",
+                      "ExitFocusGroup"     },
     }
 end
 

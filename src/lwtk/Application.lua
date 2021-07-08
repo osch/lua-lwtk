@@ -6,10 +6,12 @@ local Window      = lwtk.Window
 local FontInfos   = lwtk.FontInfos
 local Application = lwtk.newClass("lwtk.Application")
 
-local getApp          = lwtk.get.app
-local getStyle        = lwtk.get.style
-local getKeyBinding   = lwtk.get.keyBinding
-local getFontInfos    = lwtk.get.fontInfos
+local getApp               = lwtk.get.app
+local getStyle             = lwtk.get.style
+local getKeyBinding        = lwtk.get.keyBinding
+local getFontInfos         = lwtk.get.fontInfos
+local getVisibilityChanges = lwtk.get.visibilityChanges
+local getDeferredChanges   = lwtk.get.deferredChanges
 
 local isClosed        = setmetatable({}, { __mode = "k" })
 local createClosures
@@ -49,6 +51,9 @@ function Application:new(arg1, arg2)
         style = lwtk.DefaultStyle(initParams)
     end
     
+    getVisibilityChanges[self] = lwtk.WeakKeysTable()
+    getDeferredChanges[self]   = lwtk.WeakKeysTable()
+
     if getApp[style] then
         error("Style was alread added to app")
     end
@@ -156,7 +161,7 @@ end
 function Application:_removeWindow(win)
     for i = 1, #self.windows do
         if self.windows[i] == win then
-            self.windows[i] = nil
+            table.remove(self.windows, i)
         end
     end
 end
@@ -173,12 +178,12 @@ local function unpack(t)
     return unpack2(t, 1, t.n)
 end
 
-createClosures = function(self)
+createClosures = function(app)
 
-    local world  = self.world
+    local world  = app.world
     local timers = {}
     
-    function self:setTimer(seconds, func, ...)
+    function app:setTimer(seconds, func, ...)
         local n = #timers
         local timer
         if type(func) == "table" then
@@ -215,36 +220,46 @@ createClosures = function(self)
         return timer
     end
 
-    local animations     = lwtk.Animations(self)
+    local animations     = lwtk.Animations(app)
     local animationTimer = animations.timer
-    self._animations     = animations
+    app._animations      = animations
 
-    function self:getCurrentTime()
+    function app:getCurrentTime()
         return world:getTime() 
     end
     
     local function _processAllChanges()
-        if self._hasChanges then
-            self._hasChanges = false
-            local windows = self.windows
+        if app._hasChanges then
+            local visibilityChanges = getVisibilityChanges[app]
+            for widget, hidden in pairs(visibilityChanges) do
+                widget:onEffectiveVisibilityChanged(hidden)
+                visibilityChanges[widget] = nil
+            end
+            local deferredChanges = getDeferredChanges[app]
+            for i = 1, #deferredChanges do 
+                deferredChanges[i]:call()
+                deferredChanges[i] = nil
+            end
+            app._hasChanges = false
+            local windows = app.windows
             for _, w in ipairs(windows) do
                 if w._hasChanges then
                     w:_processChanges()
                     assert(not w._hasChanges)
                 end
             end
-            assert(not self._hasChanges)
+            assert(not app._hasChanges)
         end
     end
     
-    function self:runEventLoop(timeout)
+    function app:runEventLoop(timeout)
         local endTime = timeout and (world:getTime() + timeout)
         if not animationTimer.time then
             _processAllChanges()
         end
         while world:hasViews() do
             world:update(endTime and world:getTime() - endTime)
-            if not isClosed[self] and not animationTimer.time then
+            if not isClosed[app] and not animationTimer.time then
                 _processAllChanges()
             end
             if endTime and world:getTime() >= endTime then
@@ -253,7 +268,7 @@ createClosures = function(self)
         end
     end
     
-    function self:update(timeout)
+    function app:update(timeout)
         if not animationTimer.time then
             _processAllChanges()
         end
@@ -262,7 +277,7 @@ createClosures = function(self)
     
     world:setProcessFunc(function()
         local now = world:getTime()
-        local closed = isClosed[self]
+        local closed = isClosed[app]
         while not closed do
             local timer = timers[1]
             if not timer or timer.time > now then
@@ -274,7 +289,7 @@ createClosures = function(self)
             end
             timer.time = false
             timer.func(unpack(timer))
-            closed = isClosed[self]
+            closed = isClosed[app]
         end
         local timer = timers[1]
         if timer then
@@ -289,7 +304,7 @@ createClosures = function(self)
         end
     end)
     
-    function self._eventFunc(window, view, event, ...)
+    function app._eventFunc(window, view, event, ...)
         --print(event, ...)
         if event == "CONFIGURE" then
             window:_handleConfigure(...)
@@ -314,9 +329,9 @@ createClosures = function(self)
         elseif event == "FOCUS_OUT" then
             window:_handleFocusOut(...)
         elseif event == "CLOSE" then
-            window:_handleClose()
+            window:requestClose()
         end
-        if not isClosed[self] and not animationTimer.time then
+        if not isClosed[app] and not animationTimer.time then
             _processAllChanges()
         end
     end

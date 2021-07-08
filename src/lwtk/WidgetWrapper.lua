@@ -43,7 +43,7 @@ local function newWrapperClass(className, WrappedChildClass, WrappingParentClass
     WrappingParentClass = cloneClass(WrappingParentClass, selectorFrag)
     
     for k, v in pairs(WrappedChildClass) do
-        if type(v) == "function" then
+        if type(v) == "function" and type(k) == "string" and not k:match("^__") then
             WrapperClass[k] = function(self, ...)
                 return v(getWrappedChild[self], ...)
             end
@@ -106,7 +106,7 @@ local function newWrapperClass(className, WrappedChildClass, WrappingParentClass
     return WrapperClass
 end
 
-function WidgetWrapper(className, WrappingParentClass)
+local function WidgetWrapper(className, WrappingParentClass)
 
     local wrappedClasses = {}
 

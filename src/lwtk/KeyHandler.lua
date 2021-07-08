@@ -1,7 +1,6 @@
 local lpugl = require"lpugl"
 local lwtk  = require"lwtk"
 
-local match           = string.match
 local btest           = lpugl.btest
 local MOD_SHIFT       = lpugl.MOD_SHIFT
 local MOD_CTRL        = lpugl.MOD_CTRL
@@ -13,7 +12,7 @@ local len             = utf8.len
 local getKeyBinding   = lwtk.get.keyBinding
 local getFocusHandler = lwtk.get.focusHandler
 
-local KeyHandler = lwtk.newClass("lwtk.KeyHandler")
+local KeyHandler = lwtk.newMixin("lwtk.KeyHandler")
 
 local modMap = {}
 local caches = {}
@@ -35,8 +34,13 @@ local isModifier = {
 
 local getState = setmetatable({}, { __mode = "k" })
 
-function KeyHandler:new()
-    getState[self] = { current = false, mod = false }
+function KeyHandler.initClass(KeyHandler, Super)  -- luacheck: ignore 431/KeyHandler
+
+    function KeyHandler:new(...)
+        Super.new(self, ...)
+        getState[self] = { current = false, mod = false }
+    end
+
 end
 
 function KeyHandler:resetKeyHandling()
@@ -135,12 +139,12 @@ function KeyHandler:_handleKeyDown(key, modifier, ...)
             local child = getVisibleChild(self)
             if child then
                 local focusHandler = getFocusHandler[child]
-                local filtered = not current and focusHandler:filterKeyDown(key, modifier, ...)
-                if not filtered then
+                local handled = not current and focusHandler:handleHotkey(key, modifier, ...)
+                if not handled then
                     local modAndKey = toModKeyString(key, modifier)
                     local keyBinding = getKeyBinding[self]
                     local actions    = (current or keyBinding)[modAndKey]
-                    local handled    = invokeActionMethods(focusHandler, actions)
+                    handled = invokeActionMethods(focusHandler, actions)
                     if handled then
                         state.current = false
                     else
@@ -153,6 +157,7 @@ function KeyHandler:_handleKeyDown(key, modifier, ...)
                         end
                     end
                 end
+                return handled
             end
         end
     end
@@ -185,4 +190,3 @@ function KeyHandler:_handleKeyUp(key, modifier, ...)
 end
 
 return KeyHandler
-

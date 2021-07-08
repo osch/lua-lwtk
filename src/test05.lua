@@ -18,7 +18,7 @@ local win = app:newWindow {
                 PushButton { text = "OK" }, 
                 PushButton { text = "Click now and here!",
                              onClicked =    function(self) 
-                                                local c = self:getRoot().child.b5
+                                                local c = self:getRoot():childById("b5")
                                                 c:setVisible(not c:isVisible()) 
                                             end },
             },

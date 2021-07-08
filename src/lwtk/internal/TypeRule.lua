@@ -1,13 +1,8 @@
 local lwtk   = require"lwtk"
 
-local find   = string.find
 local match  = string.match
-local sub    = string.sub
 local lower  = string.lower
 local gsub   = string.gsub
-local gmatch = string.gmatch
-local sort   = table.sort
-local concat = table.concat
 local errorf = lwtk.errorf
 
 local TypeRule = {}
@@ -20,9 +15,9 @@ function TypeRule.toPattern(rule)
     local result = {}
     for i = 1, n do
         local arg = rule[i]
-        local n = toAttrName[arg]
-        if n then
-            result[n] = true
+        local name = toAttrName[arg]
+        if name then
+            result[name] = true
         else
             result[#result + 1] = arg
         end

@@ -3,7 +3,6 @@ local lwtk = require"lwtk"
 local format    = string.format
 local floor     = math.floor
 local type      = lwtk.type
-local getParent = lwtk.get.parent
 
 local outerMargins = lwtk.WeakKeysTable()
 local measureCache = lwtk.WeakKeysTable()
@@ -120,6 +119,9 @@ local function callRelayout2(widget)
         end
     end
     widget._needsRelayout = false
+    if widget.getMeasures then
+        return getMeasures2(widget)
+    end
 end
 
 local function msgh(err)
@@ -166,9 +168,9 @@ function layout.getMeasures(widget)
                 topMargin, rightMargin, bottomMargin, leftMargin = xpcall(getMeasures2, msgh, widget)
         end
         isInLayout = false
-        if not ok then error(minW) end
-        return minW, minH, bestW, bestH, maxW, maxH,
-               topMargin, rightMargin, bottomMargin, leftMargin
+        if ok then return minW, minH, bestW, bestH, maxW, maxH,
+                          topMargin, rightMargin, bottomMargin, leftMargin
+              else error(minW) end
     end
 end
 
@@ -176,14 +178,19 @@ end
 function layout.callRelayout(widget)
     isInLayout = true
     layoutCounter = layoutCounter + 1
-    local ok, err
+    local ok, minW, minH, bestW, bestH, maxW, maxH,
+              topMargin, rightMargin, bottomMargin, leftMargin
     if _VERSION == "Lua 5.1" then
-        ok, err = xpcall(function() return callRelayout2(widget) end, msgh)
+        ok, minW, minH, bestW, bestH, maxW, maxH,
+            topMargin, rightMargin, bottomMargin, leftMargin  = xpcall(function() return callRelayout2(widget) end, msgh)
     else
-        ok, err = xpcall(callRelayout2, msgh, widget)
+        ok, minW, minH, bestW, bestH, maxW, maxH,
+            topMargin, rightMargin, bottomMargin, leftMargin  = xpcall(callRelayout2, msgh, widget)
     end
     isInLayout = false
-    if not ok then error(err) end
+    if ok then return minW, minH, bestW, bestH, maxW, maxH,
+                      topMargin, rightMargin, bottomMargin, leftMargin
+          else error(minW) end
 end
 
 return layout

@@ -8,11 +8,11 @@ local c = Color"ffa0b0"
 print(c)
 print(0.01 * c)
 
-local get      = lwtk.StyleParamRef.get
-local lighten  = lwtk.StyleParamRef.lighten
-local saturate = lwtk.StyleParamRef.saturate
+local get      = lwtk.StyleRef.get
+local lighten  = lwtk.StyleRef.lighten
+local saturate = lwtk.StyleRef.saturate
 
-local style = lwtk.Style(lwtk.Style {
+local style = lwtk.Style {
     { "backgroundColor",                      Color"ffffff" },
     
     { "textColor",                            Color"000000" },
@@ -25,7 +25,7 @@ local style = lwtk.Style(lwtk.Style {
     { "borderColor@PushButton:active", get"textColor" },
     { "borderColor@PushButton:hover",  lighten(0.2, get"textColor") },
     { "borderColor@PushButton:hover2", saturate(0.5, get"textColor") }
-})
+}
 
 local selector = "textColor@<Widget><Button><PushButton>:<focus><hover>"
 
@@ -120,30 +120,30 @@ local win1 = app:newWindow {
     }
 }
 
---local b0 = win1.child.child.xxx
-print(win1.child.b1)
-print(win1.child.mb1)
-assert(win1.child.mb1.__name == "MyBox")
-assert(win1.child.b1.__name == "lwtk.Button")
-assert(win1.child.b2.__name == "lwtk.PushButton")
-assert(win1.child.b2:is(PushButton))
-assert(win1.child.b2:is(Button))
-assert(win1.child.b1:is(Button))
-assert(not win1.child.b1:is(PushButton))
+print(win1:childById("b1"))
+print(win1:childById("mb1"))
+assert(win1:childById("mb1").__name == "MyBox")
+assert(win1:childById("b1").__name == "lwtk.Button")
+assert(win1:childById("b2").__name == "lwtk.PushButton")
+assert(win1:childById("b2"):is(PushButton))
+assert(win1:childById("b2"):is(Button))
+assert(win1:childById("b1"):is(Button))
+assert(not win1:childById("b1"):is(PushButton))
 
 local g1a = Group {
     id = "g1",
     Button {
-        id = "b1"
+        id = "b1a"
     }
 }
 local g1b = Group{ id = "g1"}
 
-local g = win1.child.group:addChild(g1b)
-assert(g1b == win1.child.g1)
+local g = win1:childById("group"):addChild(g1b)
+assert(g == g1b)
+assert(g1b == win1:childById("g1"))
 g:addChild(g1a)
---print(win1.child.b1)
-print(g:addChild(Button()))
+--print(win1:childById("b1"))
+print(g:addChild(Button { id = "b3" }))
 print(g:addChild(Button()):getStyleParam"borderColor")
 local b = g:addChild(PushButton())
 print(b, b.__name, b.className)
@@ -152,9 +152,14 @@ print(b:getStyleParam"borderColor")
 win1:show()
 print(win1:getStyleParam"textSize")
 print(win1:getCurrentTime())
-print(win1.child.group:getCurrentTime())
-print(win1.child.b2:getCurrentTime())
+print(win1:childById("group"):getCurrentTime())
+print(win1:childById("b2"):getCurrentTime())
 
+assert(win1:childById("b3"):parentById("g1") == g1b)
+assert(win1:childById("b3"):parentById("g1") == g1b)
+assert(win1:childById("b1a"):parentById("g1") == g1a)
+assert(win1:childById("b1a"):parentById("g1"):parentById("g1") == g1b)
+assert(g1a:parentById("g1") == g1b)
 
 local t0 = require"mtmsg".time()
 local timer
@@ -162,10 +167,10 @@ timer = Timer(function()
     local t = require"mtmsg".time()
     t0 = t
     app:setTimer(0.020, timer)
-    local x, y, w, h = win1.child.mb2:getFrame()
-    win1.child.mb2:setFrame(-150 + app:getCurrentTime()*20, y, w, h)
+    local x, y, w, h = win1:childById("mb2"):getFrame()
+    win1:childById("mb2"):setFrame(-150 + app:getCurrentTime()*20, y, w, h)
 end)
-win1.child.b2:setTimer(0.015, timer)
+win1:childById("b2"):setTimer(0.015, timer)
 
 
 app:runEventLoop()

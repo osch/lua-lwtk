@@ -1,49 +1,72 @@
 local lwtk = require"lwtk"
 
-local utf8     = lwtk.utf8
-local fillRect = lwtk.draw.fillRect
-
 local TextFragment = lwtk.TextFragment
-local Focusable    = lwtk.Focusable
-local Super        = lwtk.Button
+local Super        = lwtk.Focusable(lwtk.Button)
 local PushButton   = lwtk.newClass("lwtk.PushButton", Super)
 
-PushButton:implementFrom(Focusable)
 PushButton.getMeasures = lwtk.TextLabel.getMeasures
+PushButton.setDefault  = lwtk.Focusable.extra.setDefault
 
 function PushButton:new(initParams)
+    Super.new(self)
     self.textFragment = self:addChild(TextFragment { considerHotkey = true })
-    Super.new(self, initParams)
+    self:setInitParams(initParams)
 end
 
 function PushButton:setOnClicked(onClicked)
     self.onClicked = onClicked
 end
+
+function PushButton:setDisabled(flag)
+    flag = flag and true or false
+    if flag ~= self.disabled then
+        self.disabled = flag
+        if flag then
+            self:setHotkey(nil)
+            self.textFragment:setShowHotkey(false)
+            self:setState("hover", false)
+            self:setState("pressed", false)
+            self.mousePressed = false
+        else
+            self:setHotkey(self.textFragment.hotkey)
+            self.textFragment:setShowHotkey(true)
+            self:setState("hover", self.mouseEntered)
+        end
+        self:setState("disabled", flag)
+        self:setFocusDisabled(flag)
+    end
+end
 function PushButton:setText(text)
     if self.text ~= text then
         self.text = text
         self.textFragment:setText(text)
-        self:setHotkey(self.textFragment.hotkey)
+        if not self.disabled then
+            self:setHotkey(self.textFragment.hotkey)
+        end
         self:triggerLayout()
     end
 end
 function PushButton:onMouseEnter(x, y)
     self.mouseEntered = true
-    self:setState("hover", true)
+    if not self.disabled then
+        self:setState("hover", true)
+    end
 end
 function PushButton:onMouseLeave(x, y)
     self.mouseEntered = false
-    self:setState("hover", false)
+    if not self.disabled then
+        self:setState("hover", false)
+    end
 end
 function PushButton:onMouseDown(x, y, button, modState)
-    if button == 1 then
+    if button == 1 and not self.disabled then
         self.mousePressed = true
         self:setState("pressed", true)
         self:setFocus()
     end
 end
 function PushButton:onMouseUp(x, y, button, modState)
-    if button == 1 then
+    if button == 1 and not self.disabled and self.mousePressed then
         self.mousePressed = false
         self:setState("pressed", false)
         if self.state.hover and self.onClicked then
@@ -51,15 +74,10 @@ function PushButton:onMouseUp(x, y, button, modState)
         end
     end
 end
-function PushButton:onFocusIn()
-    self:setState("focused", true)
-end
-function PushButton:onFocusOut()
-    self:setState("focused", false)
-end
 
-function PushButton:onDefaultChanged(isDefault)
-    self:setState("default", isDefault)
+function PushButton:onDefaultChanged(isCurrentDefault, isPrincipalDefault)
+    self.default = isPrincipalDefault
+    self:setState("default", isCurrentDefault)
 end
 
 local function simulateButtonClick2(self)
@@ -80,6 +98,11 @@ end
 function PushButton:onHotkeyDown()
     simulateButtonClick1(self)
 end
+
+function PushButton:onActionFocusedButtonClick()
+    simulateButtonClick1(self)
+end
+
 
 function PushButton:onHotkeyEnabled(hotkey)
     Super.onHotkeyEnabled(self, hotkey)

@@ -1,5 +1,4 @@
 local floor  = math.floor
-local ceil   = math.ceil
 local format = string.format
 
 local lwtk  = require"lwtk"
@@ -29,10 +28,10 @@ end
 
 local function areRectsIntersected(x1, y1, w1, h1, x2, y2, w2, h2)
     if x1 >= x2 + w2 or x1 + w1 <= x2 then
-        return false; -- one rectangle is on left side of other 
+        return false; -- one rectangle is on left side of other
     end
     if y1 >= y2 + h2 or y1 + h1 <= y2 then
-        return false -- one rectangle is above other 
+        return false -- one rectangle is above other
     end
     return true
 

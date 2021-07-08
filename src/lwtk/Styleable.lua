@@ -2,48 +2,50 @@ local lwtk = require"lwtk"
 
 local sort   = table.sort
 local concat = table.concat
-local match  = string.match
 local lower  = string.lower
 
 local call           = lwtk.call
 local getParent      = lwtk.get.parent
 local getStyle       = lwtk.get.style
 local getStylePath   = lwtk.get.stylePath
-local toPattern      = lwtk.internal.StyleRule.toPattern
 
 local getStateStylePath = setmetatable({}, { __mode = "k" })
 
-local Styleable = lwtk.newClass("lwtk.Styleable")
+local Styleable = lwtk.newMixin("lwtk.Styleable")
 
-local ADOPT_PARENT_STYLE = {}
-
-Styleable.ADOPT_PARENT_STYLE = ADOPT_PARENT_STYLE
+local NO_STYLE_SELECTOR = {}
+Styleable.NO_STYLE_SELECTOR = NO_STYLE_SELECTOR
 
 local function addToStyleSelectorClassPath(path, name)
     return (path or "").."<"..lower(name)..">"
 end
 
-function Styleable.initClass(mixinClass, newClass, additionalStyleSelector, ...)
-    if additionalStyleSelector ~= ADOPT_PARENT_STYLE then
-        local className = newClass.__name
+function Styleable.initClass(Styleable, Super)  -- luacheck: ignore 431/Styleable
+
+    function Styleable.newSubClass(className, baseClass, ...)
+        local newClass = Super.newSubClass(className, baseClass, ...)
         local path = getStylePath[newClass.super]
-        path = addToStyleSelectorClassPath(path, className)
-        if additionalStyleSelector then
-            path = addToStyleSelectorClassPath(path, additionalStyleSelector)
-            for i = 1, select("#", ...) do
-                path = addToStyleSelectorClassPath(path, select(i, ...))
+        local addToStyleSelector = true
+        for i = 1, select("#", ...) do
+            if select(i, ...) == NO_STYLE_SELECTOR then
+                addToStyleSelector = false
+                break
             end
         end
+        if addToStyleSelector then
+            path = addToStyleSelectorClassPath(path, className, ...)
+        end
         getStylePath[newClass] = path
+        return newClass
     end
-    return newClass
-end
 
-function Styleable:new()
-    local stylePath = getStylePath[getmetatable(self)]
-    if stylePath then
-        getStylePath[self] = stylePath
-        self.state = {}
+    function Styleable:new(initParams)
+        local stylePath = getStylePath[getmetatable(self)]
+        if stylePath then
+            getStylePath[self] = stylePath
+            self.state = {}
+        end
+        Super.new(self, initParams)
     end
 end
 
@@ -55,8 +57,7 @@ function Styleable:setState(name, flag)
 end
 
 function Styleable:_setStyleFromParent(parentStyle)
-    self._hasChanges = true
-    self._needsRelayout = true
+    self:triggerLayout()
     local style
     if self._hasOwnStyle then
         style = getStyle[self]
@@ -71,8 +72,7 @@ function Styleable:_setStyleFromParent(parentStyle)
 end
 
 function Styleable:setStyle(style)
-    self._hasChanges = true
-    self._needsRelayout = true
+    self:triggerLayout()
     if not lwtk.Object.is(style, lwtk.Style) then
         style = lwtk.Style(style)
     end
@@ -88,8 +88,6 @@ function Styleable:setStyle(style)
         call("_setStyleFromParent", child, style)
     end
 end
-
-
 
 function Styleable:getStateString()
     local state = self.state

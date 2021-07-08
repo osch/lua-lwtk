@@ -4,8 +4,6 @@ local floor  = math.floor
 local lwtk   = require"lwtk"
 
 local vivid    = lwtk.vivid
-local RGBtoHSL = vivid.RGBtoHSL
-local HSLtoRGB = vivid.HSLtoRGB
 
 local Object = lwtk.Object
 local Color  = lwtk.newClass("lwtk.Color")

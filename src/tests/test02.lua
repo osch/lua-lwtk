@@ -37,7 +37,7 @@ end
 PRINT("----------------------------------------------------------------------------------")
 do
     local style = lwtk.Style {}
-    local app = lwtk.Application("test01", { style = style })
+    local app = lwtk.Application("test02", { style = style })
     local b1 = Box{}
     assert(b1:getStyleParam("XXXSize") == nil)
     local b2 = Box{
@@ -54,13 +54,13 @@ do
             }
         }
     }
-    local w3 = win1.child.w3
+    local w3 = win1:childById("w3")
     assert(w3:getStyleParam("XXXSize") == 200)
 end
 PRINT("----------------------------------------------------------------------------------")
 do
     local style = lwtk.Style {}
-    local app = lwtk.Application("test01", style)
+    local app = lwtk.Application("test02", style)
     local win = app:newWindow {
         Box {
             id = "b1",
@@ -75,8 +75,8 @@ do
             }
         }
     }
-    local b1 = win.child.b1
-    local b2 = win.child.b2
+    local b1 = win:childById("b1")
+    local b2 = win:childById("b2")
     assert(b1:getStyleParam("XXXSize") == 101)
     assert(b2:getStyleParam("XXXSize") == 202)
 end
@@ -85,7 +85,7 @@ do
     local style = lwtk.Style {
         { "XXXSize", 1000 }
     }
-    local app = lwtk.Application("test01", style)
+    local app = lwtk.Application("test02", style)
     local win = app:newWindow {
         Box {
             id = "b1",
@@ -97,8 +97,8 @@ do
             }
         }
     }
-    local b1 = win.child.b1
-    local b2 = win.child.b2
+    local b1 = win:childById("b1")
+    local b2 = win:childById("b2")
     assert(b1:getStyleParam("XXXSize") == 1000)
     assert(b2:getStyleParam("XXXSize") == 2000)
 end
@@ -110,7 +110,7 @@ do
         { "XXXSize:state1",     2000 },
         { "XXXSize:state2",     3000 },
     }
-    local app = lwtk.Application("test01", style)
+    local app = lwtk.Application("test02", style)
     local win = app:newWindow {
         lwtk.Column {
             Box {
@@ -138,10 +138,10 @@ do
     }
     win:show()
     update(app)
-    local b1 = win.child.b1
-    local b2 = win.child.b2
-    local b3 = win.child.b3
-    local b4 = win.child.b4
+    local b1 = win:childById("b1")
+    local b2 = win:childById("b2")
+    local b3 = win:childById("b3")
+    local b4 = win:childById("b4")
     assert(b1:getStyleParam("XXXSize") == 1000)
     assert(b2:getStyleParam("XXXSize") == 20)
     assert(b3:getStyleParam("XXXSize") == 20)
@@ -162,6 +162,83 @@ do
     assertEq(b2:getStyleParam("XXXSize"), 2000)
     assertEq(b3:getStyleParam("XXXSize"), 20)
     assertEq(b4:getStyleParam("XXXSize"), 20)
+end
+PRINT("----------------------------------------------------------------------------------")
+do
+    local app = lwtk.Application {
+        name = "test02", 
+        style = {
+            { "XXXSize@Box", 200 }
+        }
+    }
+    local win1 = app:newWindow {
+        Box { id = "b1" }
+    }
+    local win2 = app:newWindow {
+        style = { { "XXXSize@Box", 100 } },
+        Box { id = "b1" }
+    }
+    assertEq(win1:byId("b1"):getStyleParam("XXXSize"), 200)
+    assertEq(win2:byId("b1"):getStyleParam("XXXSize"), 100)
+end
+PRINT("----------------------------------------------------------------------------------")
+do
+    local app = lwtk.Application {
+        name = "test02", 
+        style = {
+            ["XXXSize@Box"] = 200
+        }
+    }
+    local win1 = app:newWindow {
+        Box { id = "b1" }
+    }
+    local win2 = app:newWindow {
+        style = { { "XXXSize@Box", 100 } },
+        Box { id = "b1" }
+    }
+    assertEq(win1:byId("b1"):getStyleParam("XXXSize"), 200)
+    assertEq(win2:byId("b1"):getStyleParam("XXXSize"), 100)
+end
+PRINT("----------------------------------------------------------------------------------")
+do
+    local app = lwtk.Application("test02")
+    app:addStyle { { "XXXSize", 200 } }
+    local win1 = app:newWindow {
+        Box { id = "b1" }
+    }
+    local win2 = app:newWindow {
+        style = { { "XXXSize", 100 } },
+        Box { id = "b1" }
+    }
+    assertEq(win1:byId("b1"):getStyleParam("XXXSize"), 200)
+    assertEq(win2:byId("b1"):getStyleParam("XXXSize"), 100)
+end
+PRINT("----------------------------------------------------------------------------------")
+do
+    local app = lwtk.Application("test02")
+    app:addStyle { XXXSize = 200 }
+    local win1 = app:newWindow {
+        Box { id = "b1" }
+    }
+    local win2 = app:newWindow {
+        style = { XXXSize = 100 },
+        Box { id = "b1" },
+        Box { id = "b2", style = { XXXSize = 150 }},
+    }
+    assertEq(win1:byId("b1"):getStyleParam("XXXSize"), 200)
+    assertEq(win2:byId("b1"):getStyleParam("XXXSize"), 100)
+    assertEq(win2:byId("b2"):getStyleParam("XXXSize"), 150)
+end
+PRINT("----------------------------------------------------------------------------------")
+do
+    local app = lwtk.Application("test02")
+    local win = app:newWindow {
+        style = { XXXSize = 200 },
+        lwtk.Group {
+            Box { id = "b1" }
+        }
+    }
+    assertEq(win:byId("b1"):getStyleParam("XXXSize"), 200)
 end
 PRINT("----------------------------------------------------------------------------------")
 print("OK.")

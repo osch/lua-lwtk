@@ -9,6 +9,8 @@ get.root               = WeakKeysTable()
 get.parent             = WeakKeysTable()
 get.style              = WeakKeysTable()
 get.focusHandler       = WeakKeysTable()
+get.parentFocusHandler = WeakKeysTable()
+get.focusedChild       = WeakKeysTable()
 
 get.wrapper            = WeakKeysTable()
 get.wrappedChild       = WeakKeysTable()
@@ -19,5 +21,8 @@ get.keyBinding         = WeakKeysTable()
 get.hotKeys            = WeakKeysTable()
 get.stylePath          = WeakKeysTable()
 get.fontInfos          = WeakKeysTable()
+get.childLookup        = WeakKeysTable()
+get.visibilityChanges  = WeakKeysTable()
+get.deferredChanges    = WeakKeysTable()
 
 return get

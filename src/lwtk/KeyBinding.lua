@@ -17,7 +17,7 @@ local function normalizeKeyName(key)
     end
     local a = upper(utf8.sub(key, 1, 1))
     local b = lower(utf8.sub(key, 2))
-    b = utf8.gsub(b, "_(.)", function(m) return "_"..upper(m) end)
+    b = utf8.gsub(b, "_(.)", function(arg) return "_"..upper(arg) end)
     return (isKP and "KP_" or "")..a..b
 end
 
@@ -32,27 +32,27 @@ local function normalize(entry)
             isCtrl = true
             p = m
         end
-        local m = match(entry, "^ *CONTROL%+()", p)
+        m = match(entry, "^ *CONTROL%+()", p)
         if m then
             isCtrl = true
             p = m
         end
-        local m = match(entry, "^ *ALT%+()", p)
+        m = match(entry, "^ *ALT%+()", p)
         if m then
             isAlt = true
             p = m
         end
-        local m = match(entry, "^ *ALT_?GR%+()", p)
+        m = match(entry, "^ *ALT_?GR%+()", p)
         if m then
             isAltGr = true
             p = m
         end
-        local m = match(entry, "^ *SHIFT%+()", p)
+        m = match(entry, "^ *SHIFT%+()", p)
         if m then
             isShift = true
             p = m
         end
-        local m = match(entry, "^ *SUPER%+()", p)
+        m = match(entry, "^ *SUPER%+()", p)
         if m then
             isSuper = true
             p = m
@@ -96,7 +96,7 @@ function KeyBinding:new(rules)
             local keyList = toKeyList(rule[i])
             if #keyList > 0 then
                 local lookup = self
-                for i, k in ipairs(keyList) do
+                for _, k in ipairs(keyList) do
                     local entries = lookup[k]
                     if not entries then 
                         local path = lookup[-1]

@@ -1,6 +1,5 @@
 local lwtk = {}
 
-lwtk._VERSION="scm"
 lwtk.platform = require("lpugl").platform
 
 setmetatable(lwtk, {

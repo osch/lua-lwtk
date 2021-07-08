@@ -1,11 +1,11 @@
 local lwtk = require"lwtk"
 
-local class      = lwtk.class
-local getWrapper = lwtk.get.wrapper
+local getWrapper     = lwtk.get.wrapper
+local getChildLookup = lwtk.get.childLookup
 
-local ChildLookup = {}
-ChildLookup.__name = "lwtk.ChildLookup"
-setmetatable(ChildLookup, class.metaTable)
+local ChildLookup = lwtk.newClass("lwtk.ChildLookup")
+
+ChildLookup.__mode = "v"
 
 function ChildLookup:new(group)
     self[0] = false
@@ -23,8 +23,9 @@ function ChildLookup.__index(self, id)
                 assert(not found, "ambiguous id='"..id.."'")
                 found = c
             end
-            if c.child then
-                local c2 = c.child[id]
+            local ccLookup = getChildLookup[c]
+            if ccLookup then
+                local c2 = ccLookup[id]
                 if c2 then
                     assert(not found, "ambiguous id='"..id.."'")
                     found = c2
@@ -38,6 +39,16 @@ function ChildLookup.__index(self, id)
         self[id] = found
     end
     return found
+end
+
+function ChildLookup.clear(self)
+    if self[0] then
+        for k,v in pairs(self) do
+            if type(k) == "string" then
+                self[k] = nil
+            end
+        end
+    end
 end
 
 

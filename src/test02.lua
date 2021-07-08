@@ -3,7 +3,7 @@ local lwtk = require("lwtk")
 local Application = lwtk.Application
 local Group       = lwtk.Group
 local Widget      = lwtk.Widget
-local Border      = lwtk.Border
+local Box         = lwtk.Box
 local Focusable   = lwtk.Focusable
 local Bordered    = lwtk.Bordered
 local Color       = lwtk.Color
@@ -12,8 +12,6 @@ local fillRect    = lwtk.draw.fillRect
 
 local MyButton = newClass("MyButton", Widget)
 do
-    MyButton:implementFrom(Focusable)
-    
     function MyButton:onFocusIn()
         print("focus in ", self.id)
     end
@@ -97,9 +95,9 @@ app:setStyle {
     { "BorderSize",                          10  },
     { "BorderSize@*MyGroup*",                 3  },
     { "BorderSize@Bordered(MyButton)",        1  },
-    { "BorderPadding",                       lwtk.StyleParamRef.get("BorderSize")  },
+    { "BorderPadding",                       lwtk.StyleRef.get("BorderSize")  },
 
-    { "BorderColor@Border",             Color"ff0000" },
+    { "BorderColor@Box",                Color"ff0000" },
     { "BorderColor@Bordered*",          Color"0000ff" },
     
     { "Color@MyGroup",                  Color"e1e1ff" },
@@ -121,7 +119,7 @@ local win = app:newWindow {
             text  = "OK",
             onClicked = function(self) 
                             print("Button Clicked")
-                            local c = self:getRoot().child.b5
+                            local c = self:byId("b5")
                             local wasVisible = c:isVisible()
                             c:setVisible(not wasVisible)
                             assert(c:isVisible() == not wasVisible)
@@ -146,19 +144,19 @@ local win = app:newWindow {
                 onClicked = function(self)
                                 counter = counter + 1
                                 local root = self:getRoot()
-                                root.child.b1:setText("Clicked "..counter) 
-                                local g2 = root.child.g2
+                                root:childById("b1"):setText("Clicked "..counter) 
+                                local g2 = root:childById("g2")
                                 local x, y, w, h = g2:getFrame()
                                 g2:animateFrame(x + 5, y, w + 5, h)
                                 local x, y, w, h = self:getFrame()
                                 self:animateFrame(x + scale(2), y + scale(2), w, h)
-                                local b5 = root.child.b5
+                                local b5 = root:childById("b5")
                                 local x, y, w, h = b5:getFrame()
                                 b5:animateFrame(x, y + scale(5), w + scale(5), h)
                             end
             }
         },
-        Border {
+        Box {
             id = "g2",
             frame = scale { 230, 80, 200, 100 },
             MyButton {
