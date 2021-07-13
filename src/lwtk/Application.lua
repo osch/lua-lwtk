@@ -6,6 +6,7 @@ local Window      = lwtk.Window
 local FontInfos   = lwtk.FontInfos
 local Application = lwtk.newClass("lwtk.Application")
 
+local extract              = lwtk.extract
 local getApp               = lwtk.get.app
 local getStyle             = lwtk.get.style
 local getKeyBinding        = lwtk.get.keyBinding
@@ -28,8 +29,7 @@ function Application:new(arg1, arg2)
         end
     else
         initParams = arg1 or {}
-        appName = initParams.name
-        initParams.name = nil
+        appName = extract(initParams, "name")
     end
     assert(appName, "Application object needs name attribute")
     isClosed[self] = false
@@ -83,7 +83,7 @@ end
 
 
 function Application:getLayoutContext()
-    return self.world:getDefaultBackend():getLayoutContext()
+    return self.world:getLayoutContext()
 end
 
 function Application:getFontInfo(family, slant, weight, size)

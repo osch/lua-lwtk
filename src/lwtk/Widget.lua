@@ -1,7 +1,9 @@
 local lwtk = require"lwtk"
 
-local getParent            = lwtk.get.parent
-local getStyle             = lwtk.get.style
+local getParent             = lwtk.get.parent
+local getStyle              = lwtk.get.style
+local getDeferredChanges    = lwtk.get.deferredChanges
+local Callback              = lwtk.Callback
 
 local Super       = lwtk.Animatable(lwtk.Component)
 local Widget      = lwtk.newClass("lwtk.Widget", Super)
@@ -15,6 +17,10 @@ end
 
 function Widget:setOnInputChanged(onInputChanged)
     self.onInputChanged = onInputChanged
+end
+
+function Widget:setOnRealize(onRealize)
+    self.onRealize = onRealize
 end
 
 function Widget:notifyInputChanged()
@@ -38,6 +44,12 @@ function Widget:_setApp(app)
         getStyle[self] = getStyle[app]
     end
     Super._setApp(self, app)
+    local onRealize = self.onRealize
+    if onRealize then
+        local deferred = getDeferredChanges[app]
+        deferred[#deferred + 1] = Callback(onRealize, self)
+        app._hasChanges = true
+    end
 end
 
 function Widget:_setParent(parent)

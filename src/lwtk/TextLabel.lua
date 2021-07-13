@@ -68,7 +68,14 @@ function TextLabel:getMeasures()
     local minColumns  = self:getStyleParam("MinColumns")
     local columns     = self:getStyleParam("Columns")
     local maxColumns  = self:getStyleParam("MaxColumns")
-    
+    if maxColumns and columns then
+        if maxColumns > 0 and columns > maxColumns  then
+            columns = maxColumns
+        end
+    end
+    if minColumns and columns and minColumns > columns then
+        minColumns = columns
+    end
 
     local xW        = fontInfo:getTextWidth("x")
     local minWidth  = self:getStyleParam("MinWidth")

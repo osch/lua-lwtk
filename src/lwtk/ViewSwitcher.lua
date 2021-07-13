@@ -31,36 +31,34 @@ function ViewSwitcher:getMeasures()
         
     for i = 1, #self do
         local child = self[i]
-        if child.visible then
-            if not minW then
-                minW, minH, bestW, bestH, maxW, maxH, 
-                  childTop, childRight, childBottom, childLeft = getMeasures(child)
-            else
-                local minW2, minH2, bestW2, bestH2, maxW2, maxH2, 
-                  childTop2, childRight2, childBottom2, childLeft2 = getMeasures(child)
-                if minW2  > minW  then minW  = minW2  end
-                if minH2  > minH  then minH  = minH2  end
-                if bestW2 > bestW then bestW = bestW2 end
-                if bestH2 > bestH then bestH = bestH2 end
-                if maxW >= 0 then
-                    if maxW2 == -1 then 
-                        maxW = -1 
-                    elseif maxW2 > maxW then
-                        maxW = maxW2
-                    end
-                end    
-                if maxH >= 0 then
-                    if maxH2 == -1 then 
-                        maxH = -1 
-                    elseif maxH2 > maxH then
-                        maxH = maxH2
-                    end
-                    if childTop2    > childTop    then childTop    = childTop2    end
-                    if childRight2  > childRight  then childRight  = childRight2  end
-                    if childBottom2 > childBottom then childBottom = childBottom2 end
-                    if childLeft2   > childLeft   then childLeft   = childLeft2   end
-                end    
-            end
+        if not minW then
+            minW, minH, bestW, bestH, maxW, maxH, 
+              childTop, childRight, childBottom, childLeft = getMeasures(child)
+        else
+            local minW2, minH2, bestW2, bestH2, maxW2, maxH2, 
+              childTop2, childRight2, childBottom2, childLeft2 = getMeasures(child)
+            if minW2  > minW  then minW  = minW2  end
+            if minH2  > minH  then minH  = minH2  end
+            if bestW2 > bestW then bestW = bestW2 end
+            if bestH2 > bestH then bestH = bestH2 end
+            if maxW >= 0 then
+                if maxW2 == -1 then 
+                    maxW = -1 
+                elseif maxW2 > maxW then
+                    maxW = maxW2
+                end
+            end    
+            if maxH >= 0 then
+                if maxH2 == -1 then 
+                    maxH = -1 
+                elseif maxH2 > maxH then
+                    maxH = maxH2
+                end
+                if childTop2    > childTop    then childTop    = childTop2    end
+                if childRight2  > childRight  then childRight  = childRight2  end
+                if childBottom2 > childBottom then childBottom = childBottom2 end
+                if childLeft2   > childLeft   then childLeft   = childLeft2   end
+            end    
         end
     end
     if minW then    

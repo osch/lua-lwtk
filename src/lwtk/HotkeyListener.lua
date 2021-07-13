@@ -5,26 +5,17 @@ local getFocusHandler   = lwtk.get.focusHandler
 
 local HotkeyListener    = lwtk.newMixin("lwtk.HotkeyListener", lwtk.Styleable.NO_STYLE_SELECTOR)
 
+local processHotKeyRegistration
+
 function HotkeyListener.initClass(HotkeyListener, Super)  -- luacheck: ignore 431/HotkeyListener
 
+    local Super_onEffectiveVisibilityChanged = Super.onEffectiveVisibilityChanged
+    
     function HotkeyListener:onEffectiveVisibilityChanged(hidden)
-        local superCall = Super.onEffectiveVisibilityChanged
-        if superCall then
-            superCall(self, hidden)
+        if Super_onEffectiveVisibilityChanged then
+            Super_onEffectiveVisibilityChanged(self, hidden)
         end
-        if not hidden then
-            local focusHandler = getFocusHandler[self]
-            local hotkeys = getHotkeys[self]
-            if focusHandler and hotkeys then
-                focusHandler:registerHotkeys(self, hotkeys)
-            end
-        else
-            local focusHandler = getFocusHandler[self]
-            local hotkeys = getHotkeys[self]
-            if focusHandler and hotkeys then
-                focusHandler:deregisterHotkeys(self, hotkeys)
-            end
-        end
+        processHotKeyRegistration(self, not hidden)
     end
 
     function HotkeyListener:_handleHasFocusHandler(focusHandler)
@@ -38,9 +29,32 @@ function HotkeyListener.initClass(HotkeyListener, Super)  -- luacheck: ignore 43
         end
     end
     
+    local Super_onDisabled = Super.onDisabled
 
+    function HotkeyListener:onDisabled(disableFlag)
+        processHotKeyRegistration(self, not disableFlag)
+        if Super_onDisabled then
+            Super_onDisabled(self, disableFlag)
+        end
+    end
+    
 end
 
+function processHotKeyRegistration(self, registrateFlag)
+    if registrateFlag then
+        local focusHandler = getFocusHandler[self]
+        local hotkeys = getHotkeys[self]
+        if focusHandler and hotkeys then
+            focusHandler:registerHotkeys(self, hotkeys)
+        end
+    else
+        local focusHandler = getFocusHandler[self]
+        local hotkeys = getHotkeys[self]
+        if focusHandler and hotkeys then
+            focusHandler:deregisterHotkeys(self, hotkeys)
+        end
+    end
+end
 
 function HotkeyListener:setHotkey(hotkey)
     if hotkey then

@@ -43,9 +43,6 @@ local function round(f)
 end
 
 local function getMeasures2(widget)
-    if not widget.visible then
-        return 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    end
     local cached = measureCache[widget]
     if not cached then 
         cached = {}

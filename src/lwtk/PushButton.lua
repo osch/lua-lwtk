@@ -33,7 +33,7 @@ function PushButton:setDisabled(flag)
             self:setState("hover", self.mouseEntered)
         end
         self:setState("disabled", flag)
-        self:setFocusDisabled(flag)
+        Super.onDisabled(self, flag)
     end
 end
 function PushButton:setText(text)

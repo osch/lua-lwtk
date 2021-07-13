@@ -17,6 +17,15 @@
 
 <!-- ---------------------------------------------------------------------------------------- -->
 
+   * [`example03.lua`](./example03.lua)
+
+     This examples demonstrates multiple forms using `lwtk.FocusGroup`.
+     
+     ![Screenshot example03](./screenshot03.png)
+     
+
+<!-- ---------------------------------------------------------------------------------------- -->
+
    * [`example10.lua`](./example10.lua)
      
      This example shows how a simple button widget class `MyButton` can

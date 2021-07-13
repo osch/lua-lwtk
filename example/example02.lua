@@ -78,6 +78,7 @@ local win = app:newWindow {
                                             widget:byId("c1/i1"):setText("") 
                                             widget:byId("c1/i1"):setFocus()
                                             widget:byId("c1/i2"):setText("")
+                                            widget:byId("c2/t1"):setText("")
                                             widget:byId("switcher"):showChild("c1")
                                         end
                                     },

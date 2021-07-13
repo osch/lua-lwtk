@@ -11,9 +11,10 @@ local function BuiltinStyleTypes()
         { "*Seconds", 
           "*Columns", "number"  },
           
-        { "*Visible", "boolean" },
+        { "*Visible",
+          "*Fixed",   "boolean" },
         
-        { "*Opacity",               ANIMATABLE },
+        { "*Opacity", "number",     ANIMATABLE },
         
         { "*Color",   "lwtk.Color", ANIMATABLE },
         

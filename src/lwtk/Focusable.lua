@@ -43,6 +43,21 @@ function Focusable.initClass(Focusable, Super)  -- luacheck: ignore 431/Focusabl
             end
         end
     end
+
+    local Super_onDisabled = Super.onDisabled
+
+    function Focusable:onDisabled(disableFlag)
+        local focusHandler = getFocusHandler[self]
+        if focusHandler then
+            focusHandler:setFocusDisabled(self, disableFlag)
+        else
+            self._wantsFocusDisabled = true
+        end
+        if Super_onDisabled then
+            Super_onDisabled(self, disableFlag)
+        end
+    end
+    
 end
 
 handlePostponedStates = function(self, focusHandler)
@@ -71,15 +86,6 @@ function Focusable:_handleFocusOut()
     call("onFocusOut", self)
 end
 
-
-function Focusable:setFocusDisabled(disableFlag)
-    local focusHandler = getFocusHandler[self]
-    if focusHandler then
-        focusHandler:setFocusDisabled(self, disableFlag)
-    else
-        self._wantsFocusDisabled = true
-    end
-end
 
 function Focusable:setFocus(flag)
     if not self.disabled and (flag == nil or flag) then

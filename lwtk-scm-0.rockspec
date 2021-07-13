@@ -79,6 +79,7 @@ build = {
         ["lwtk.call"]                      = "src/lwtk/call.lua",
         ["lwtk.draw"]                      = "src/lwtk/draw.lua",
         ["lwtk.errorf"]                    = "src/lwtk/errorf.lua",
+        ["lwtk.extract"]                   = "src/lwtk/extract.lua",
         ["lwtk.get"]                       = "src/lwtk/get.lua",
         ["lwtk.internal"]                  = "src/lwtk/internal/init.lua",
         ["lwtk.internal.ColumnImpl"]       = "src/lwtk/internal/ColumnImpl.lua",

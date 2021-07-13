@@ -1,7 +1,9 @@
 local lwtk = require"lwtk"
 
+local match           = string.match
 local sub             = lwtk.utf8.sub
 local len             = lwtk.utf8.len
+local extract         = lwtk.extract
 local floor           = math.floor
 local InnerCompound   = lwtk.InnerCompound
 local TextFragment    = lwtk.TextFragment
@@ -18,6 +20,7 @@ TextInput._isInput    = true
 
 function TextInput:new(initParams)
     Super.new(self)
+    self.initActions = extract(initParams, "initActions")
     self.inner        = self:addChild(InnerCompound())
     self.cursor       = self.inner:addChild(TextCursor())
     self.textFragment = self.inner:addChild(TextFragment())
@@ -26,6 +29,20 @@ function TextInput:new(initParams)
     self:setInitParams(initParams)
     if not self.text then
         self:setText("")
+    end
+end
+
+function TextInput:onRealize()
+    if Super.onRealize then
+        Super.onRealize(self)
+    end
+    if self.initActions then
+        for _, a in ipairs(self.initActions) do
+            if not match(a, "^onAction") then
+                a = "onAction"..a
+            end
+            self:invokeActionMethod(a)
+        end
     end
 end
 
@@ -234,15 +251,25 @@ function TextInput:onActionInputPrev()
     return true
 end
 
+function TextInput:setFilterInput(filterInput)
+    self.filterInput = filterInput
+end
+
 function TextInput:onKeyDown(keyName, keyState, keyText)
     if keyText and keyText ~= "" then
-        local text      = self.text
-        local cursorPos = self.cursorPos
-        local nt = sub(text, 1, cursorPos - 1) .. keyText .. sub(text, cursorPos)
-        self.cursorPos = cursorPos + 1
-        self:setText(nt)
-        innerLayout(self)
-        return true
+        local filterInput = self.filterInput
+        if filterInput then
+            keyText = filterInput(self, keyText)
+        end
+        if keyText then
+            local text      = self.text
+            local cursorPos = self.cursorPos
+            local nt = sub(text, 1, cursorPos - 1) .. keyText .. sub(text, cursorPos)
+            self.cursorPos = cursorPos + 1
+            self:setText(nt)
+            innerLayout(self)
+            return true
+        end
     end
 end
 

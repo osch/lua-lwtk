@@ -27,8 +27,11 @@ local getRoot         = lwtk.get.root
 local getKeyBinding   = lwtk.get.keyBinding
 local getFontInfos    = lwtk.get.fontInfos
 local getChildLookup  = lwtk.get.childLookup
+local extract         = lwtk.extract
 
-function Window:new(app, initParms)
+local minMaxSizes     = lwtk.WeakKeysTable()
+
+function Window:new(app, initParams)
     Super.new(self)
     self.fullRedisplayOutstanding = true
     getApp[self]  = app
@@ -48,23 +51,60 @@ function Window:new(app, initParms)
     self.exposedArea = Area()
     self.damagedArea = Area() -- as cache
     self.mouseEntered = false
+    self.maxSizeFixed = false
     app:_addWindow(self)
-    self.view = app.world:newView {
-        resizable      = true, 
-        dontMergeRects = true,
-        eventFunc      = {app._eventFunc, self}  
+    self.initParams = {
+        title          = extract(initParams, "title"),
+        parent         = extract(initParams, "parent"),
+        size           = extract(initParams, "size"),
+        minSize        = extract(initParams, "minSize"),
+        maxSize        = extract(initParams, "maxSize"),
     }
-    if initParms then
+    if initParams then
         local childList = {}
-        for i = 1, #initParms do
-            childList[i] = initParms[i]
-            initParms[i] = nil
+        for i = 1, #initParams do
+            childList[i] = initParams[i]
+            initParams[i] = nil
         end
-        self:setAttributes(initParms)
+        local maxSizeFixed = extract(initParams, "maxSizeFixed")
+        self:setAttributes(initParams)
+        if maxSizeFixed == nil then
+            maxSizeFixed = self:getStyleParam("maxSizeFixed")
+        end
+        self.maxSizeFixed = (maxSizeFixed and true or false)
         for i = 1, #childList do
             local c = childList[i]
             self:addChild(c)
         end
+    end
+end
+
+local function realize(self)
+    local initParams = extract(self, "initParams")
+    local grabFocus = extract(initParams, "grabFocus")
+    local app = getApp[self]
+    local color = self.color
+    if color == true then
+        color = self:getStyleParam("BackgroundColor")
+    end
+    if color then
+        color = math.floor(color.r * 0xff) * 0x10000
+              + math.floor(color.g * 0xff) * 0x100
+              + math.floor(color.b * 0xff)
+    end
+    self.view = app.world:newView {
+        title           = initParams.title,
+        parent          = initParams.parent,
+        size            = initParams.size,
+        minSize         = initParams.minSize,
+        maxSize         = initParams.maxSize,
+        resizable       = true, 
+        dontMergeRects  = true,
+        eventFunc       = {app._eventFunc, self},
+        backgroundColor = color
+    }
+    if grabFocus then
+        self.view:grabFocus()
     end
 end
 
@@ -74,6 +114,53 @@ end
 
 function Window:byId(id)
     return getChildLookup[self][id]
+end
+
+local function getMinMaxSize(self, child)
+    local ms = minMaxSizes[child]
+    if ms then
+        return ms[1], ms[2], ms[3], ms[4]
+    else
+        if child.getMeasures then
+            local minW, minH, bestW, bestH, maxW, maxH = getMeasures(child)    -- luacheck: ignore 211/bestW 211/bestH
+            minMaxSizes[child] = { minW, minH, maxW, maxH }
+            return minW, minH, maxW, maxH
+        end
+    end
+end
+
+
+local function adjustMinMaxSize(self, forceMaxSize)
+    local minW, minH, maxW, maxH = 0, 0, 0, 0
+    for i = 1, #self do
+        local child = self[i]
+        local mw, mh, MW, MH = getMinMaxSize(self, child)
+        if mw then
+            if mw > minW then minW = mw end
+            if mh > minH then minH = mh end
+            if MW >= 0 then
+                if maxW >= 0 and MW >= maxW then maxW = MW end
+            else
+                maxW = -1
+            end
+            if MH >= 0 then
+                if maxH >= 0 and MH >= maxH then maxH = MH end
+            else
+                maxH = -1
+            end
+        end
+    end
+    self:setMinSize(minW, minH)
+
+    if    (self.maxW and self.maxW >= 0 and minW >= self.maxW)
+       or (self.maxH and self.maxH >= 0 and minH >= self.maxH)
+    then
+        forceMaxSize = true
+    end
+    if forceMaxSize or not self.maxSizeFixed then
+        self:setMaxSize(maxW, maxH)
+        self.maxW, self.maxH = maxW, maxH
+    end
 end
 
 function Window:addChild(child)
@@ -86,21 +173,31 @@ function Window:addChild(child)
     if child.getMeasures then
         local minW, minH, bestW, bestH, maxW, maxH, 
               childTop, childRight, childBottom, childLeft = getMeasures(child)
+        if maxW < -1 then
+            maxW = bestW
+        end
+        if maxH < -1 then
+            maxH = bestH
+        end
         local mw = (childLeft or 0) + minW  + (childRight  or 0)
         local mh = (childTop  or 0) + minH  + (childBottom or 0)
         local bw = (childLeft or 0) + bestW + (childRight  or 0)
         local bh = (childTop  or 0) + bestH + (childBottom or 0)
         if bw > 0 and bh > 0 then
-            self.view:setMinSize(mw, mh)
-            self.view:setSize(bw, bh)
-            self.minW, self.minH = mw, mh
+            if child.visible then
+                self:setSize(bw, bh)
+            end
         end
         if maxW > 0 or maxH > 0 then
             local mxw = maxW > 0 and ((childLeft or 0) + maxW + (childRight  or 0)) or -1
             local mxh = maxH > 0 and ((childTop  or 0) + maxH + (childBottom or 0)) or -1
-            self.view:setMaxSize(mxw, mxh)
-            self.maxW, self.maxH = mxw, mxh
+            minMaxSizes[child] = { mw, mh, mxw, mxh }
+        else
+            minMaxSizes[child] = { mw, mh, maxW, maxH }
         end
+    end
+    if self.view and self:isVisible() then
+        adjustMinMaxSize(self)
     end
     if self.w > 0 and self.h > 0 then
         child:_setFrame(0, 0, self.w, self.h)
@@ -108,13 +205,58 @@ function Window:addChild(child)
     return child
 end
 
-function Window:setSize(...)
-    local arg1, arg2 = ...
-    if arg2 then
-        self.view:setSize(arg1, arg2)
-    else
-        self.view:setSize(arg1[1], arg1[2])
+function Window:setSize(w, h)
+    if not h then
+        h = w[2]
+        w = w[1]
     end
+    if self.view then
+        self.view:setSize(w, h)
+    else
+        self.initParams.size = { w, h }
+    end
+end
+
+function Window:getSize()
+    if self.view then
+        return self.view:getSize()
+    else
+        local s = self.initParams.size
+        if s then
+            return s[1], s[2]
+        end 
+    end
+end
+
+function Window:setMinSize(w, h)
+    if not h then
+        h = w[2]
+        w = w[1]
+    end
+    if self.view then
+        self.view:setMinSize(w, h)
+    else
+        self.initParams.minSize = { w, h }
+    end
+end
+
+function Window:setMaxSize(w, h)
+    if not h then
+        h = w[2]
+        w = w[1]
+    end
+    if self.view then
+        self.view:setMaxSize(w, h)
+    else
+        self.initParams.maxSize = { w, h }
+    end
+end
+
+function Window:getNativeHandle()
+    if not self.view then
+        realize(self)
+    end
+    return self.view:getNativeHandle()
 end
 
 function Window:setTitle(title)
@@ -132,28 +274,51 @@ end
 
 local processRelayout
 
+function Window:setMaxSizeFixed(flag)
+    flag = (flag and true or false)
+    if flag ~= self.maxSizeFixed then
+        if flag then
+            processRelayout(self)
+            adjustMinMaxSize(self)
+            self.maxSizeFixed = true
+        else
+            self.maxSizeFixed = false
+            processRelayout(self)
+            adjustMinMaxSize(self)
+        end
+    end
+end
+
 function Window:show()
     processRelayout(self)
+    if not self.view or not self.maxSizeFixed  then
+        adjustMinMaxSize(self, self.view == nil)
+    end
+    if not self.view then
+        realize(self)
+    end
     self.view:show()
 end
 
 function Window:hide()
-    self.view:hide()
+    if self.view then
+        self.view:hide()
+    end
 end
 
 function Window:isClosed()
-    return self.view:isClosed()
+    return self.view and self.view:isClosed()
 end
 
 function Window:close()
-    if not self.view:isClosed() then
+    if self.view and not self.view:isClosed() then
         self.view:close()
         getParent[self]:_removeWindow(self)
     end
 end
 
 function Window:getLayoutContext()
-    return self.view:getLayoutContext()
+    return getApp[self]:getLayoutContext()
 end
 
 function Window:getFontInfo(family, slant, weight, size)
@@ -269,7 +434,11 @@ function Window:requestClose()
 end
 
 function Window:requestFocus()
-    self.view:grabFocus()
+    if self.view then
+        self.view:grabFocus()
+    else
+        self.initParams.grabFocus = true
+    end
 end
 
 function Window:_clearChildLookup() 
@@ -287,24 +456,23 @@ function processRelayout(self)
         for i = 1, #self do
             local child = self[i]
             if child._needsRelayout then
-                local minW, minH, bestW, bestH, maxW, maxH,                              -- luacheck: ignore 211/maxW 211/maxH
+                local minW, minH, bestW, bestH, maxW, maxH,                              -- luacheck: ignore 211/bestW 211/bestH 211/maxW 211/maxH
                       childTop, childRight, childBottom, childLeft = callRelayout(child)
+                if maxW < -1 then
+                    maxW = bestW
+                end
+                if maxH < -1 then
+                    maxH = bestH
+                end
                 if minW then
                     local mw = (childLeft or 0) + minW  + (childRight  or 0)
                     local mh = (childTop  or 0) + minH  + (childBottom or 0)
-                    local bw = (childLeft or 0) + bestW + (childRight  or 0)
-                    local bh = (childTop  or 0) + bestH + (childBottom or 0)
-                    if bw > 0 and bh > 0 then
-                        if self.view:isVisible() then
-                            if not self.minW or (mw > self.minW or mh > self.minH) then
-                                self.view:setMinSize(mw, mh)
-                                self.minW, self.minH = mw, mh
-                            end
-                        else
-                            self.view:setMinSize(mw, mh)
-                            self.view:setSize(bw, bh)
-                            self.minW, self.minH = mw, mh
-                        end
+                    if maxW > 0 or maxH > 0 then
+                        local mxw = maxW > 0 and ((childLeft or 0) + maxW + (childRight  or 0)) or -1
+                        local mxh = maxH > 0 and ((childTop  or 0) + maxH + (childBottom or 0)) or -1
+                        minMaxSizes[child] = { mw, mh, mxw, mxh }
+                    else
+                        minMaxSizes[child] = { mw, mh, -1, -1 }
                     end
                 end
             end
@@ -320,10 +488,11 @@ function processRelayout(self)
             end
         end
     end
+    return neededRelayout
 end
 
 function Window:_processChanges()
-    processRelayout(self)
+    local neededRelayout = processRelayout(self) 
     self._hasChanges = false
     for i = 1, #self do
         local child = self[i]
@@ -346,6 +515,9 @@ function Window:_processChanges()
                 end
             end
         end
+    end
+    if neededRelayout then
+        adjustMinMaxSize(self)
     end
 end
 
