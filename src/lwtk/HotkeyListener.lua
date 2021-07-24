@@ -1,7 +1,8 @@
 local lwtk = require("lwtk")
 
-local getHotkeys        = lwtk.get.hotKeys
 local getFocusHandler   = lwtk.get.focusHandler
+local getHotkeys        = lwtk.WeakKeysTable()
+local registeredHotkeys = lwtk.WeakKeysTable()
 
 local HotkeyListener    = lwtk.newMixin("lwtk.HotkeyListener", lwtk.Styleable.NO_STYLE_SELECTOR)
 
@@ -26,6 +27,7 @@ function HotkeyListener.initClass(HotkeyListener, Super)  -- luacheck: ignore 43
         local hotkeys = getHotkeys[self]
         if hotkeys and not self._hidden then
             focusHandler:registerHotkeys(self, hotkeys)
+            registeredHotkeys[self] = hotkeys
         end
     end
     
@@ -42,43 +44,57 @@ end
 
 function processHotKeyRegistration(self, registrateFlag)
     if registrateFlag then
-        local focusHandler = getFocusHandler[self]
-        local hotkeys = getHotkeys[self]
-        if focusHandler and hotkeys then
-            focusHandler:registerHotkeys(self, hotkeys)
+        if not registeredHotkeys[self] then
+            local focusHandler = getFocusHandler[self]
+            local hotkeys = getHotkeys[self]
+            if focusHandler and hotkeys then
+                focusHandler:registerHotkeys(self, hotkeys)
+                registeredHotkeys[self] = hotkeys
+            end
         end
     else
-        local focusHandler = getFocusHandler[self]
-        local hotkeys = getHotkeys[self]
-        if focusHandler and hotkeys then
-            focusHandler:deregisterHotkeys(self, hotkeys)
+        if registeredHotkeys[self] then
+            local focusHandler = getFocusHandler[self]
+            local hotkeys = getHotkeys[self]
+            if focusHandler and hotkeys then
+                focusHandler:deregisterHotkeys(self, hotkeys)
+                registeredHotkeys[self] = nil
+            end
         end
     end
 end
 
 function HotkeyListener:setHotkey(hotkey)
     if hotkey then
-        local hotkeys
-        if type(hotkey) == "string" then
-            hotkeys = { [hotkey] = true }
-        else
-            hotkeys = {}
-            for _, h in ipairs(hotkey) do
-                hotkeys[h] = true
+        local registered = registeredHotkeys[self]
+        if not registered or registered[hotkey] == nil then
+            local focusHandler = getFocusHandler[self]
+            if registered then
+                focusHandler:deregisterHotkeys(self, registered)
+                registeredHotkeys[self] = nil
+            end
+            local hotkeys
+            if type(hotkey) == "string" then
+                hotkeys = { [hotkey] = false }
+            else
+                hotkeys = {}
+                for _, h in ipairs(hotkey) do
+                    hotkeys[h] = false
+                end
+            end
+            getHotkeys[self] = hotkeys
+            if focusHandler and not self._hidden then
+                focusHandler:registerHotkeys(self, hotkeys)
+                registeredHotkeys[self] = hotkeys
             end
         end
-        getHotkeys[self] = hotkeys
-        local focusHandler = getFocusHandler[self]
-        if focusHandler and not self._hidden then
-            focusHandler:registerHotkeys(self, hotkeys)
-        end
     else
-        local hotkeys = getHotkeys[self]
-        getHotkeys[self] = nil
-        local focusHandler = getFocusHandler[self]
-        if hotkeys and focusHandler then
-            focusHandler:deregisterHotkeys(self, hotkeys)
+        local registered = registeredHotkeys[self]
+        if registered then
+            getFocusHandler[self]:deregisterHotkeys(self, registered)
+            registeredHotkeys[self] = nil
         end
+        getHotkeys[self] = nil
     end
 end
 
@@ -90,11 +106,7 @@ end
 
 function HotkeyListener:onHotkeyEnabled(hotkey)
     local hotkeys = getHotkeys[self]
-    if not hotkeys then
-        hotkeys = { [hotkey] = true }
-        getHotkeys[self] = hotkeys
-        self:triggerRedraw()
-    elseif not hotkeys[hotkey] then
+    if not hotkeys[hotkey] then
         hotkeys[hotkey] = true
         self:triggerRedraw()
     end
@@ -102,7 +114,7 @@ end
 
 function HotkeyListener:onHotkeyDisabled(hotkey)
     local hotkeys = getHotkeys[self]
-    if hotkeys and hotkeys[hotkey] then
+    if hotkeys[hotkey] then
         hotkeys[hotkey] = false
         self:triggerRedraw()
     end

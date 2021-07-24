@@ -16,7 +16,8 @@ for a widget according to the widget's class name and the widget's state.
    * [Matching Widget States](#matching-widget-states)
    * [Connecting Style to Application](#connecting-style-to-application)
    * [Individual Widget Style](#individual-widget-style)
-   * [Style for Widget Groups](#style-for-widget-groups)
+   * [Individual Style Rules for Widget Groups](#style-rules-for-widget-groups)
+   * [Individual Style Parameters for Widget Groups](#style-parameters-for-widget-groups)
 
 <!-- ---------------------------------------------------------------------------------------- -->
 ##   Basic Usage
@@ -460,28 +461,29 @@ assert(w1b:getStyleParam("FooHeight") == 200)
 ```
 
 <!-- ---------------------------------------------------------------------------------------- -->
-## Style for Widget Groups
+## Style Rules for Widget Groups
 <!-- ---------------------------------------------------------------------------------------- -->
 
-Style rules can also be specified for widget groups:
+Style rules can also be specified for widget groups. These rules are are also applied to the 
+group's child widgets:
 ```lua
 local app = lwtk.Application { 
     name  = "example",
     style = { { "*Width",   10 },
               { "*Height",  15 },
-              { "*rHeight", 16 },}
+              { "*rHeight", 16 } }
 }
 local w1a = MyWidget1 {}
 local w1b = MyWidget1 {
-    style = { { "*oWidth",   21 } }  -- individual style for w1b
+    style = { { "*oWidth",   21 } }  -- individual style rule for w1b
 }
 local w2a = MyWidget2 {}
 local w2b = MyWidget2 {
-    style = { { "*oWidth",   22 } }  -- individual style for w2b
+    style = { { "*oWidth",   22 } }  -- individual style rule for w2b
 }
 local g1 = lwtk.Group { w1a, w1b }
 local g2 = lwtk.Group { w2a, w2b,
-    style = { { "*oHeight",  33 } }  -- style for widget group g2
+    style = { { "*oHeight",  33 } }  -- individual style rule for widget group g2
 }
 local win = app:newWindow { g1, g2 }
 
@@ -535,6 +537,42 @@ assert(w2b:getStyleParam("FarHeight") == 19)  -- from app
 ```
 
 <!-- ---------------------------------------------------------------------------------------- -->
+
+<!-- ---------------------------------------------------------------------------------------- -->
+## Style Parameters for Widget Groups
+<!-- ---------------------------------------------------------------------------------------- -->
+
+Use `key=value` syntax for specifying individual style parameters that are not applied
+to the group's child widgets:
+```lua
+local app = lwtk.Application { 
+    name  = "example",
+    style = { { "*Width",   10 },
+              { "*Height",  15 } }
+}
+local w1a = MyWidget1 {}
+local w1b = MyWidget1 {
+    style = { FooWidth = 22 }  -- individual style for w1b
+}
+local g1 = lwtk.Group { 
+    style = {
+        FooWidth = 23,   -- individual style parameter for g1
+        { "*Width", 33 } -- individual style rule      for g1
+    },
+    w1a, 
+    w1b 
+}
+
+local win = app:newWindow { g1 }
+
+assert(g1:getStyleParam("FooWidth")   == 23) -- from group
+
+assert(w1a:getStyleParam("FooHeight") == 15)  -- from app
+assert(w1a:getStyleParam("FooWidth")  == 33)  -- from group
+
+assert(w1b:getStyleParam("FooHeight") == 15)  -- from app
+assert(w1b:getStyleParam("FooWidth")  == 22)  -- from widget
+```
 
 TODO
 

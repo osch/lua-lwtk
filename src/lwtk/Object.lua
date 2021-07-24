@@ -15,8 +15,10 @@ local isOldLua = (#lua_version == 3 and lua_version < "5.3")
 local upper  = string.upper
 local sub    = string.sub
 
-local lwtk  = require"lwtk"
-local Class = lwtk.Class
+local lwtk          = require("lwtk")
+local Class         = lwtk.Class
+local getSuperClass = lwtk.get.superClass
+
 
 local Object = {}
 Object.__index = Object
@@ -50,7 +52,7 @@ function Object.newSubClass(className, superClass)
         newClass.__tostring = fallbackToString
     end
     setmetatable(newClass, Class)
-    newClass.super = superClass
+    getSuperClass[newClass] = superClass
     return newClass
 end
 
@@ -61,7 +63,7 @@ function Object:is(T)
     if mt == T then
       return true
     end
-    mt = mt.super
+    mt = getSuperClass[mt]
   end
   return false
 end

@@ -6,8 +6,6 @@ local getWrappingParent   = lwtk.get.wrappingParent
 
 local Compound = lwtk.newMixin("lwtk.Compound", lwtk.Styleable.NO_STYLE_SELECTOR)
 
-Compound.extra = {}
-
 function Compound.initClass(Compound, Super)  -- luacheck: ignore 431/Compound
 
     function Compound:_processChanges(x0, y0, cx, cy, cw, ch, damagedArea)
@@ -25,7 +23,7 @@ function Compound.initClass(Compound, Super)  -- luacheck: ignore 431/Compound
 end
 
 
-function Compound.extra:addChild(child)
+function Compound:addChild(child)
     local myChild = getWrappingParent[child] or child
     self[#self + 1] = myChild
     myChild:_setParent(self)

@@ -47,7 +47,10 @@ function Mixin:__call(baseClass, ...)
                 class[k] = v
             end
         end
-        self.initClass(class, baseClass)
+        local initClass = self.initClass
+        if initClass then
+            initClass(class, baseClass)
+        end
         cache[baseClass] = class
     end
     return class

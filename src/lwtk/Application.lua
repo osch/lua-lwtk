@@ -180,8 +180,9 @@ end
 
 createClosures = function(app)
 
-    local world  = app.world
-    local timers = {}
+    local world           = app.world
+    local deferredChanges = getDeferredChanges[app]
+    local timers          = {}
     
     function app:setTimer(seconds, func, ...)
         local n = #timers
@@ -228,6 +229,11 @@ createClosures = function(app)
         return world:getTime() 
     end
     
+    function app:deferChanges(callback)
+        deferredChanges[#deferredChanges + 1] = callback
+        app._hasChanges = true
+    end
+    
     local function _processAllChanges()
         if app._hasChanges then
             local visibilityChanges = getVisibilityChanges[app]
@@ -235,7 +241,6 @@ createClosures = function(app)
                 widget:onEffectiveVisibilityChanged(hidden)
                 visibilityChanges[widget] = nil
             end
-            local deferredChanges = getDeferredChanges[app]
             for i = 1, #deferredChanges do 
                 deferredChanges[i]:call()
                 deferredChanges[i] = nil
@@ -330,6 +335,8 @@ createClosures = function(app)
             window:_handleFocusOut(...)
         elseif event == "CLOSE" then
             window:requestClose()
+        elseif event == "CREATE" then
+            return
         end
         if not isClosed[app] and not animationTimer.time then
             _processAllChanges()

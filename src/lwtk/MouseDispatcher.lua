@@ -162,21 +162,17 @@ function MouseDispatcher:_processMouseDown(mx, my, button, modState)
             return call("onMouseDown", self, mx, my, button, modState)
         end
     else
-        local onMouseDown = self.onMouseDown
-        if onMouseDown then
-            return onMouseDown(self, mx, my, button, modState)
+        local uChild = findChildAt(self, mx, my)
+        if uChild then
+            local x, y = uChild.x, uChild.y
+            self.mouseButtonChild = uChild
+            self.mouseChildButtons[button] = true
+            call("onMouseDown", self, mx, my, button, modState)
+            return uChild:_processMouseDown(mx - x, my - y, button, modState)
         else
-            local uChild = findChildAt(self, mx, my)
-            if uChild then
-                local x, y = uChild.x, uChild.y
-                self.mouseButtonChild = uChild
-                self.mouseChildButtons[button] = true
-                return uChild:_processMouseDown(mx - x, my - y, button, modState)
-            else
-                self.mouseButtonChild = self
-                self.mouseChildButtons[button] = true
-                return call("onMouseDown", self, mx, my, button, modState)
-            end
+            self.mouseButtonChild = self
+            self.mouseChildButtons[button] = true
+            return call("onMouseDown", self, mx, my, button, modState)
         end
     end
 end

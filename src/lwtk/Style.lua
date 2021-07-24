@@ -52,20 +52,21 @@ function Style:setRules(rules)
     self.typeList    = typeList
     self.scaleFactor = rules.scaleFactor or 1
     local ruleList = {}
-    if rules[1] then
-        for i, rule in ipairs(rules) do
-            ruleList[i] = toStylePattern(rule, typeList)
-        end
-    else
-        assert(type(rules) == "table", "arg must be list or plain table")
-        for k, v in pairs(rules) do
-            assert(type(k) == "string", "argument to 'setRules' must be list of rules or key value map")
-            if k ~= "types" and k ~= "scaleFactor" then
-                ruleList[#ruleList + 1] = toStylePattern({ k, v }, typeList)
-            end
+    for i = 1, #rules do
+        ruleList[i] = toStylePattern(rules[i], typeList)
+    end
+    local localParams = {}
+    local hasLocal = false
+    for k, v in pairs(rules) do
+        if not ruleList[k] and k ~= "types" and k ~= "scaleFactor" then
+            localParams[k] = v
+            hasLocal = true
         end
     end
-    self.ruleList = ruleList
+    self.ruleList    = ruleList
+    if hasLocal then
+        self.localParams = localParams
+    end
     clearCache(self)
 end
 
@@ -79,17 +80,21 @@ function Style:addRules(rules)
         end
     end
     local ruleList = self.ruleList
-    if rules[1] then
-        local n = #ruleList
-        for i, rule in ipairs(rules) do
-            ruleList[n + i] = toStylePattern(rule, typeList)
-        end
-    else
-        for k, v in pairs(rules) do
-            assert(type(k) == "string", "argument to 'setRules' must be list of rules or key value map")
-            if k ~= "types" and k ~= "scaleFactor" then
-                ruleList[#ruleList + 1] = toStylePattern({ k, v }, typeList)
+    local n = #ruleList
+    for i, rule in ipairs(rules) do
+        ruleList[n + i] = toStylePattern(rule, typeList)
+    end
+    local localParams
+    for k, v in pairs(rules) do
+        if not ruleList[k] and k ~= "types" and k ~= "scaleFactor" then
+            if not localParams then
+                localParams = self.localParams
+                if not localParams then
+                    localParams = {}
+                    self.localParams = localParams
+                end
             end
+            localParams[k] = v
         end
     end
     clearCache(self)
@@ -194,14 +199,29 @@ function Style:_getStyleParam2(parName, classSelectorPath, stateSelectorPath, ct
     return _getStyleParam(self, selector, parName, classSelectorPath, stateSelectorPath, self, ctxRules)
 end
 
-function Style:_getStyleParam(parName, classSelectorPath, stateSelectorPath)
+function Style:_getStyleParam(parName, classSelectorPath, stateSelectorPath, considerLocal)
     local cache = self.cache
     local selector = lower(parName).."@"..classSelectorPath..":"..lower(stateSelectorPath)
     local cached = cache[selector]
     if cached then
         return cached
     else
-        local rslt, typeRule = _getStyleParam(self, selector, parName, classSelectorPath, stateSelectorPath, self, nil)
+        local rslt, typeRule
+        local isLocal = false
+        
+        if considerLocal and self.localParams then
+            rslt = self.localParams[parName]
+            if rslt then
+                isLocal = true
+                typeRule = findTypeRule(self, parName)
+                if not typeRule then
+                    errorf("Cannot deduce type for style parameter name %q", parName)
+                end
+            end
+        end
+        if not rslt then
+            rslt, typeRule = _getStyleParam(self, selector, parName, classSelectorPath, stateSelectorPath, self, nil)
+        end
         
         if rslt then
             if typeRule.SCALABLE then
@@ -211,7 +231,9 @@ function Style:_getStyleParam(parName, classSelectorPath, stateSelectorPath)
                     rslt = 1
                 end
             end
-            cache[selector] = rslt
+            if not isLocal then
+                cache[selector] = rslt
+            end
             return rslt
         end
     end

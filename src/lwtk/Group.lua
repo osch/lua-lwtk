@@ -11,7 +11,7 @@ local getStyle          = lwtk.get.style
 local Super = lwtk.MouseDispatcher(lwtk.Compound(lwtk.Widget))
 local Group = lwtk.newClass("lwtk.Group", Super)
 
-local Super_addChild = lwtk.Compound.extra.addChild
+local Super_addChild = Super.addChild
 
 function Group:new(initParams)
     Super.new(self)

@@ -9,6 +9,7 @@ local getFocusHandler = lwtk.get.focusHandler
 local getFocusedChild = lwtk.get.focusedChild
 local getMeasures     = lwtk.layout.getMeasures
 local callRelayout    = lwtk.layout.callRelayout
+local setOuterMargins = lwtk.layout.setOuterMargins
 
 local Super        = lwtk.MouseDispatcher(lwtk.KeyHandler(lwtk.Styleable(lwtk.Object)))
 local Window       = lwtk.newClass("lwtk.Window", Super)
@@ -108,23 +109,61 @@ local function realize(self)
     end
 end
 
+
 function Window:setOnClose(onClose)
     self.onClose = onClose
+end
+
+function Window:setOnMouseDown(onMouseDown)
+    self.onMouseDown = onMouseDown
 end
 
 function Window:byId(id)
     return getChildLookup[self][id]
 end
 
-local function getMinMaxSize(self, child)
+local function handleChildSizes(child, minW, minH, bestW, bestH, maxW, maxH,
+                                       childTop, childRight, childBottom, childLeft)
+    if minW then
+        if maxW < -1 then
+            maxW = bestW
+        end
+        if maxH < -1 then
+            maxH = bestH
+        end
+    
+        childTop    = childTop    or 0
+        childRight  = childRight  or 0
+        childBottom = childBottom or 0
+        childLeft   = childLeft   or 0
+    
+        minW  = childLeft + minW  + childRight  
+        minH  = childTop  + minH  + childBottom 
+        bestW = childLeft + bestW + childRight  
+        bestH = childTop  + bestH + childBottom 
+    
+        if maxW > 0 then
+            maxW = childLeft  + maxW + childRight 
+        end
+        if maxH > 0 then
+            maxH = childTop   + maxH + childBottom
+        end
+    
+        minMaxSizes[child] = { minW, minH, bestW, bestH, maxW, maxH,
+                               childTop, childRight, childBottom, childLeft }
+    end
+    return minW, minH, bestW, bestH, maxW, maxH,
+           childTop, childRight, childBottom, childLeft
+end
+
+
+local function getChildSizes(self, child)
     local ms = minMaxSizes[child]
     if ms then
-        return ms[1], ms[2], ms[3], ms[4]
+        return ms[1], ms[2], ms[3], ms[4], ms[5], ms[6], ms[7], ms[8], ms[9], ms[10]
     else
         if child.getMeasures then
-            local minW, minH, bestW, bestH, maxW, maxH = getMeasures(child)    -- luacheck: ignore 211/bestW 211/bestH
-            minMaxSizes[child] = { minW, minH, maxW, maxH }
-            return minW, minH, maxW, maxH
+            return handleChildSizes(child, getMeasures(child))    -- luacheck: ignore 211/bestW 211/bestH
         end
     end
 end
@@ -134,7 +173,7 @@ local function adjustMinMaxSize(self, forceMaxSize)
     local minW, minH, maxW, maxH = 0, 0, 0, 0
     for i = 1, #self do
         local child = self[i]
-        local mw, mh, MW, MH = getMinMaxSize(self, child)
+        local mw, mh, _, _, MW, MH = getChildSizes(self, child)
         if mw then
             if mw > minW then minW = mw end
             if mh > minH then minH = mh end
@@ -170,37 +209,28 @@ function Window:addChild(child)
     getFocusHandler[child] = focusHandler
     child:_setParent(self)
     self:_clearChildLookup()
+    local minW, minH, bestW, bestH, maxW, maxH,        -- luacheck: ignore 231/minH 231/maxW 231/maxH
+          childTop, childRight, childBottom, childLeft
     if child.getMeasures then
-        local minW, minH, bestW, bestH, maxW, maxH, 
-              childTop, childRight, childBottom, childLeft = getMeasures(child)
-        if maxW < -1 then
-            maxW = bestW
-        end
-        if maxH < -1 then
-            maxH = bestH
-        end
-        local mw = (childLeft or 0) + minW  + (childRight  or 0)
-        local mh = (childTop  or 0) + minH  + (childBottom or 0)
-        local bw = (childLeft or 0) + bestW + (childRight  or 0)
-        local bh = (childTop  or 0) + bestH + (childBottom or 0)
-        if bw > 0 and bh > 0 then
+        minW, minH, bestW, bestH, maxW, maxH, 
+          childTop, childRight, childBottom, childLeft = handleChildSizes(child, getMeasures(child))
+
+        if bestW > 0 and bestH > 0 then
             if child.visible then
-                self:setSize(bw, bh)
+                self:setSize(bestW, bestH)
             end
-        end
-        if maxW > 0 or maxH > 0 then
-            local mxw = maxW > 0 and ((childLeft or 0) + maxW + (childRight  or 0)) or -1
-            local mxh = maxH > 0 and ((childTop  or 0) + maxH + (childBottom or 0)) or -1
-            minMaxSizes[child] = { mw, mh, mxw, mxh }
-        else
-            minMaxSizes[child] = { mw, mh, maxW, maxH }
         end
     end
     if self.view and self:isVisible() then
         adjustMinMaxSize(self)
     end
     if self.w > 0 and self.h > 0 then
-        child:_setFrame(0, 0, self.w, self.h)
+        if minW then
+            setOuterMargins(child, childTop, childRight, childBottom, childLeft)
+            child:_setFrame(childLeft, childTop, self.w - childLeft - childRight, self.h - childTop - childBottom)
+        else
+            child:_setFrame(0, 0, self.w, self.h)
+        end
     end
     return child
 end
@@ -333,7 +363,14 @@ function Window:_handleConfigure(x, y, w, h)
         self.h = h
         for i = 1, #self do
             local child = self[i]
-            child:_setFrame(0, 0, w, h)
+            if child.getMeasures then
+                local _, _, _, _, _, _, 
+                      childTop, childRight, childBottom, childLeft = getChildSizes(self, child)
+                setOuterMargins(child, childTop, childRight, childBottom, childLeft)
+                child:_setFrame(childLeft, childTop, w - childLeft - childRight, h - childTop - childBottom)
+            else
+                child:_setFrame(0, 0, w, h)
+            end
         end
     end
 end
@@ -353,7 +390,11 @@ function Window:_handleExpose(x, y, w, h, count)
         for i = 1, #self do
             local child = self[i]
             if not child._ignored then
-                child:_processDraw(ctx, 0, 0, 0, 0, self.w, self.h, self.exposedArea)
+                ctx:save()
+                local cx, cy = child.x, child.y
+                ctx:translate(cx, cy)
+                child:_processDraw(ctx, cx, cy, cx, cy, child.w, child.h, self.exposedArea)
+                ctx:restore()
             end
         end
         self.exposedArea:clear()
@@ -456,25 +497,7 @@ function processRelayout(self)
         for i = 1, #self do
             local child = self[i]
             if child._needsRelayout then
-                local minW, minH, bestW, bestH, maxW, maxH,                              -- luacheck: ignore 211/bestW 211/bestH 211/maxW 211/maxH
-                      childTop, childRight, childBottom, childLeft = callRelayout(child)
-                if maxW < -1 then
-                    maxW = bestW
-                end
-                if maxH < -1 then
-                    maxH = bestH
-                end
-                if minW then
-                    local mw = (childLeft or 0) + minW  + (childRight  or 0)
-                    local mh = (childTop  or 0) + minH  + (childBottom or 0)
-                    if maxW > 0 or maxH > 0 then
-                        local mxw = maxW > 0 and ((childLeft or 0) + maxW + (childRight  or 0)) or -1
-                        local mxh = maxH > 0 and ((childTop  or 0) + maxH + (childBottom or 0)) or -1
-                        minMaxSizes[child] = { mw, mh, mxw, mxh }
-                    else
-                        minMaxSizes[child] = { mw, mh, -1, -1 }
-                    end
-                end
+                handleChildSizes(child, callRelayout(child))
             end
         end
         assert(not self._needsRelayout)

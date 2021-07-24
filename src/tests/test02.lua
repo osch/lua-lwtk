@@ -186,18 +186,63 @@ do
     local app = lwtk.Application {
         name = "test02", 
         style = {
-            ["XXXSize@Box"] = 200
+            { "X1Size", 100 }
         }
     }
-    local win1 = app:newWindow {
-        Box { id = "b1" }
+    local win = app:newWindow {
+        style = {
+            X2Size = 2,
+            { "X2Size", 200 }
+        },
+        lwtk.Group { 
+            id = "g1",
+            style = {
+                X2Size = 201,
+                { "X1Size", 101 }
+            },
+            Box {
+                id = "b11"
+            },
+            Box {
+                id = "b12",
+                style = {
+                    X1Size = 102,
+                    { "X2Size", 202 }
+                }
+            }
+        },
+        lwtk.Group { 
+            id = "g2",
+            style = {
+                X2Size = 302,
+                { "X1Size@Box", 301 }
+            },
+            Box {
+                id = "b21"
+            },
+            Box {
+                style = {
+                    X2Size = 402
+                },
+                id = "b22"
+            }
+        }
     }
-    local win2 = app:newWindow {
-        style = { { "XXXSize@Box", 100 } },
-        Box { id = "b1" }
-    }
-    assertEq(win1:byId("b1"):getStyleParam("XXXSize"), 200)
-    assertEq(win2:byId("b1"):getStyleParam("XXXSize"), 100)
+    assertEq(win:getStyleParam("X2Size"), 2)
+
+    assertEq(win:byId("g1" ):getStyleParam("X1Size"), 101)
+    assertEq(win:byId("g1" ):getStyleParam("X2Size"), 201)
+    assertEq(win:byId("b11"):getStyleParam("X1Size"), 101)
+    assertEq(win:byId("b11"):getStyleParam("X2Size"), 200)
+    assertEq(win:byId("b12"):getStyleParam("X1Size"), 102)
+    assertEq(win:byId("b12"):getStyleParam("X2Size"), 202)
+
+    assertEq(win:byId("g2" ):getStyleParam("X1Size"), 100)
+    assertEq(win:byId("g2" ):getStyleParam("X2Size"), 302)
+    assertEq(win:byId("b21"):getStyleParam("X1Size"), 301)
+    assertEq(win:byId("b21"):getStyleParam("X2Size"), 200)
+    assertEq(win:byId("b22"):getStyleParam("X1Size"), 301)
+    assertEq(win:byId("b22"):getStyleParam("X2Size"), 402)
 end
 PRINT("----------------------------------------------------------------------------------")
 do
@@ -225,9 +270,10 @@ do
         Box { id = "b1" },
         Box { id = "b2", style = { XXXSize = 150 }},
     }
-    assertEq(win1:byId("b1"):getStyleParam("XXXSize"), 200)
-    assertEq(win2:byId("b1"):getStyleParam("XXXSize"), 100)
+    assertEq(win1:byId("b1"):getStyleParam("XXXSize"), nil)
+    assertEq(win2:byId("b1"):getStyleParam("XXXSize"), nil)
     assertEq(win2:byId("b2"):getStyleParam("XXXSize"), 150)
+    assertEq(win2:getStyleParam("XXXSize"), 100)
 end
 PRINT("----------------------------------------------------------------------------------")
 do
@@ -238,7 +284,8 @@ do
             Box { id = "b1" }
         }
     }
-    assertEq(win:byId("b1"):getStyleParam("XXXSize"), 200)
+    assertEq(win:getStyleParam("XXXSize"), 200)
+    assertEq(win:byId("b1"):getStyleParam("XXXSize"), nil)
 end
 PRINT("----------------------------------------------------------------------------------")
 print("OK.")

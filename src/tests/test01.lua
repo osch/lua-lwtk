@@ -5,6 +5,8 @@ local isOldLua = (#lua_version == 3 and lua_version < "5.3")
 
 local lwtk = require"lwtk"
 
+local getSuperClass = lwtk.getSuperClass
+
 -------------------------------------------------------------------------------------------
 
 local function assertEq(a1, a2)
@@ -65,6 +67,12 @@ do
     assert(not c1:is(lwtk.Class))
     assert(not c1:is(lwtk.Mixin))
     assert(lwtk.Object.is(c1, lwtk.Object))
+    assert(lwtk.Object.super == nil)
+    assert(getSuperClass(lwtk.Object) == nil)
+    assert(C1.super == nil)
+    assert(getSuperClass(C1) == lwtk.Object)
+    assert(c1.super == nil)
+    assert(getSuperClass(c1) == nil)
 
     assert(lwtk.type(c1) == "C1")
     assert(tostring(c1):match("^C1: [0-9A-Za-z]+$"))
@@ -74,12 +82,12 @@ do
     local M1C1 = M1(C1)
     assertEq(lwtk.type(M1C1), "lwtk.Class")
     assertEq(tostring(M1C1), "M1")
-    assertEq(M1C1.super, C1)
+    assertEq(getSuperClass(M1C1), C1)
     
     local M1C1_2 = M1(C1)
     assertEq(lwtk.type(M1C1_2), "lwtk.Class")
     assertEq(tostring(M1C1_2), "M1")
-    assertEq(M1C1_2.super, C1)
+    assertEq(getSuperClass(M1C1_2), C1)
     assertEq(M1C1_2, M1C1)
 
     local m1c1 = M1C1(100)
@@ -91,7 +99,7 @@ do
     local C2 = lwtk.newClass("C2", M1(C1))
     assertEq(lwtk.type(C2), "lwtk.Class")
     assertEq(tostring(C2), "C2")
-    assertEq(C2.super, M1C1)
+    assertEq(getSuperClass(C2), M1C1)
 
     local c2 = C2(200)
     assertEq(lwtk.type(c2), "C2")
@@ -101,9 +109,9 @@ do
     local C3 = lwtk.newClass("C3", M1(M1(C1)))
     assertEq(lwtk.type(C3), "lwtk.Class")
     assertEq(tostring(C3), "C3")
-    assertEq(lwtk.type(C3.super), "lwtk.Class")
-    assertEq(tostring(C3.super),  "M1")
-    assertEq(C3.super, M1(M1(C1)))
+    assertEq(lwtk.type(getSuperClass(C3)), "lwtk.Class")
+    assertEq(tostring(getSuperClass(C3)),  "M1")
+    assertEq(getSuperClass(C3), M1(M1(C1)))
 
     local c3 = C3(300)
     assertEq(lwtk.type(c3), "C3")
@@ -160,9 +168,9 @@ do
     local C2 = lwtk.newClass("C2", M2C1)
     assertEq(lwtk.type(C2), "lwtk.Class")
     assertEq(tostring(C2), "C2")
-    assertEq(tostring(C2.super), "M2")
-    assertEq(tostring(C2.super.super), "M1")
-    assertEq(tostring(C2.super.super.super), "C1")
+    assertEq(tostring(getSuperClass(C2)), "M2")
+    assertEq(tostring(getSuperClass(getSuperClass(C2))), "M1")
+    assertEq(tostring(getSuperClass(getSuperClass(getSuperClass(C2)))), "C1")
 end
 PRINT("----------------------------------------------------------------------------------")
 do
@@ -184,10 +192,10 @@ do
     local C2 = lwtk.newClass("C2", M3C1)
     assertEq(lwtk.type(C2), "lwtk.Class")
     assertEq(tostring(C2), "C2")
-    assertEq(tostring(C2.super), "M3")
-    assertEq(tostring(C2.super.super), "M1")
-    assertEq(tostring(C2.super.super.super), "M2")
-    assertEq(tostring(C2.super.super.super.super), "C1")
+    assertEq(tostring(getSuperClass(C2)), "M3")
+    assertEq(tostring(getSuperClass(getSuperClass(C2))), "M1")
+    assertEq(tostring(getSuperClass(getSuperClass(getSuperClass(C2)))), "M2")
+    assertEq(tostring(getSuperClass(getSuperClass(getSuperClass(getSuperClass(C2))))), "C1")
 end
 PRINT("----------------------------------------------------------------------------------")
 

@@ -7,10 +7,8 @@ local getParentFocusHandler = lwtk.get.parentFocusHandler
 local getFocusableChildren  = lwtk.get.focusableChildren
 local FocusHandler          = lwtk.FocusHandler
 
-local Super      = lwtk.Focusable(lwtk.Control(lwtk.Group))
+local Super      = lwtk.Focusable(lwtk.Box)
 local FocusGroup = lwtk.newClass("lwtk.FocusGroup", Super)
-
-FocusGroup.getMeasures = lwtk.Control.extra.getMeasures
 
 function FocusGroup:new(...)
     Super.new(self, ...)
@@ -26,7 +24,7 @@ function FocusGroup:_setApp(app)
     focusableChildren[#focusableChildren + 1] = self    
     getFocusHandler[self]:_setParentFocusHandler(parentHandler)
     if self._wantsFocus then
-        getParentFocusHandler[self]:setFocus(self)
+        getParentFocusHandler[self]:setFocusTo(self)
         self._wantsFocus = false
     end
 end
@@ -49,7 +47,7 @@ end
 
 function FocusGroup:_processMouseDown(mx, my, button, modState)
     if button == 1 and not self.disabled then
-        getParentFocusHandler[self]:setFocus(self)
+        getParentFocusHandler[self]:setFocusTo(self)
     end
     return Super._processMouseDown(self, mx, my, button, modState)
 end
@@ -63,7 +61,7 @@ function FocusGroup:_handleChildRequestsFocus()
         else
             local parentHandler = getParentFocusHandler[self]
             if parentHandler then
-                parentHandler:setFocus(self)
+                parentHandler:setFocusTo(self)
             else
                 self._wantsFocus = true
             end
@@ -75,7 +73,7 @@ function FocusGroup:setFocus(flag)
     if not self.disabled and (flag == nil or flag) then
         local focusHandler = getParentFocusHandler[self]
         if focusHandler then
-            focusHandler:setFocus(self)
+            focusHandler:setFocusTo(self)
         else
             self._wantsFocus = true
         end
@@ -118,7 +116,7 @@ function FocusGroup:onActionEnterFocusGroup()
         else
             local parentHandler = getParentFocusHandler[self]
             if parentHandler then
-                parentHandler:setFocus(self)
+                parentHandler:setFocusTo(self)
             else
                 self._wantsFocus = true
             end

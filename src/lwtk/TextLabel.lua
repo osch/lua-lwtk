@@ -56,7 +56,6 @@ function TextLabel:getMeasures()
     local addW =   (self:getStyleParam("LeftPadding") or 0)
                  + (self:getStyleParam("RightPadding") or 0)
                  + 2 * (self:getStyleParam("BorderPadding") or 0)
-
     local textFullVisible = self:getStyleParam("TextFullVisible")
     
     local tw, th = self.textFragment:getTextMeasures()
@@ -133,7 +132,8 @@ function TextLabel:onLayout(width, height)
         self.textFragment:setTextPos(math.floor((iw - tw)/2 + 0.5),
                                      math.floor((ih - th)/2 + ascent + 0.5));
     else
-        self.textFragment:setTextPos(0,
+        self.textFragment:setTextPos(  (self:getStyleParam("LeftPadding") or 0)
+                                     + (self:getStyleParam("BorderPadding") or 0),
                                      math.floor((ih - th)/2 + ascent + 0.5));
     end
 end

@@ -1,8 +1,8 @@
 local lwtk = require"lwtk"
 
+local extract               = lwtk.extract
 local getParent             = lwtk.get.parent
 local getStyle              = lwtk.get.style
-local getDeferredChanges    = lwtk.get.deferredChanges
 local Callback              = lwtk.Callback
 
 local Super       = lwtk.Animatable(lwtk.Component)
@@ -12,6 +12,14 @@ function Widget:new(initParams)
     Super.new(self)
     if initParams then
         self:setInitParams(initParams)
+    end
+end
+
+function Widget:setInitParams(initParams)
+    local listen = extract(initParams, "listen")
+    Super.setInitParams(self, initParams)
+    if listen then
+        listen[1]:addListener(listen[2], self, listen[3])
     end
 end
 
@@ -46,9 +54,7 @@ function Widget:_setApp(app)
     Super._setApp(self, app)
     local onRealize = self.onRealize
     if onRealize then
-        local deferred = getDeferredChanges[app]
-        deferred[#deferred + 1] = Callback(onRealize, self)
-        app._hasChanges = true
+        app:deferChanges(Callback(onRealize, self))
     end
 end
 

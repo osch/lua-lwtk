@@ -62,15 +62,28 @@ function PushButton:onMouseDown(x, y, button, modState)
     if button == 1 and not self.disabled then
         self.mousePressed = true
         self:setState("pressed", true)
-        self:setFocus()
+        self:setFocus(true)
+        self._mouseDownTime = self:getCurrentTime()
     end
 end
+
+local function onMouseUp2(self)
+    self:setState("pressed", false)
+    if self.state.hover and self.onClicked then
+        self:onClicked()
+    end
+end
+
 function PushButton:onMouseUp(x, y, button, modState)
     if button == 1 and not self.disabled and self.mousePressed then
+        local simulateSeconds = self:getStyleParam("SimulateButtonClickSeconds") or 0.1
+        local mouseDownSeconds = self:getCurrentTime() - self._mouseDownTime
         self.mousePressed = false
-        self:setState("pressed", false)
-        if self.state.hover and self.onClicked then
-            self:onClicked()
+        if mouseDownSeconds >= simulateSeconds then
+            onMouseUp2(self)
+        else
+            self:setTimer(simulateSeconds - mouseDownSeconds, 
+                          onMouseUp2, self)
         end
     end
 end

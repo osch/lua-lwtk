@@ -2,9 +2,13 @@
 
 os.setlocale("C")
 
+local option = ...
+
 local format = string.format
 local lwtk   = require("lwtk")
 local lfs    = require("lfs")
+
+local getSuperClass = lwtk.getSuperClass
 
 local moduleNames = {}
 
@@ -17,16 +21,17 @@ end
 
 
 local function getFullPath(c)
-    local s = c.super
-    local p = s and getFullPath(s).."->" or ""
-    return p..c.__name
+    local s = getSuperClass(c)
+    local p = s and getFullPath(s)..">" or ""
+    return p..c.__name:match("^lwtk%.(.*)$")
 end
 
 table.sort(moduleNames)
 
 local maxl = 0
 local classes = {}
-local paths = {}
+local classpaths = {}
+local stylepaths = {}
 for i = 1, #moduleNames do
     local n = moduleNames[i]
     local m = require("lwtk."..n)
@@ -35,7 +40,8 @@ for i = 1, #moduleNames do
         if #n > maxl then
             maxl = #n
         end
-        paths[#paths + 1] = getFullPath(m)
+        classpaths[#classpaths + 1] = getFullPath(m)
+        stylepaths[#stylepaths + 1] = lwtk.get.stylePath[m]
     end
 end
 
@@ -48,7 +54,9 @@ for _, n in ipairs(moduleNames) do
 end
 --]]
 
-table.sort(paths)
-for _, p in ipairs(paths) do
+table.sort(classpaths)
+table.sort(stylepaths)
+
+for _, p in ipairs(option == "style" and stylepaths or classpaths) do
     print(p)
 end

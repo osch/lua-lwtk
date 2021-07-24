@@ -1,18 +1,19 @@
-local lpugl = require"lpugl"
+local lpugl  = require"lpugl"
 local lwtk   = require"lwtk"
+local remove = table.remove
 
 local MOD_ALT               = lpugl.MOD_ALT
 local call                  = lwtk.call
 local getFocusableChildren  = lwtk.get.focusableChildren
-local getHotkeys            = lwtk.get.hotKeys
 local getChildLookup        = lwtk.get.childLookup
 local getParentFocusHandler = lwtk.get.parentFocusHandler
 local getFocusedChild       = lwtk.get.focusedChild
 local getApp                = lwtk.get.app
-local getDeferredChanges    = lwtk.get.deferredChanges
 local Callback              = lwtk.Callback
 
 local getDefault            = lwtk.WeakKeysTable()
+local getHotkeys            = lwtk.WeakKeysTable()
+local registeredWidgets     = lwtk.WeakKeysTable()
 
 local Super        = lwtk.Actionable
 local FocusHandler = lwtk.newClass("lwtk.FocusHandler", Super)
@@ -31,11 +32,37 @@ function FocusHandler:childById(id)
     return getChildLookup[self.baseWidget][id]
 end
 
+local hotKeyListMeta = { __mode = "v" }
+
+local function compactHotkeyList(list)
+    local n = list.n
+    for i = n, 1, -1 do
+        if not list[i] then
+            n = n - 1
+            remove(list, i)
+        end
+    end
+    list.n = n
+    return n
+end
+
+local function appendToHotkeyList(list, widget)
+    local n = list.n + 1
+    list[n] = widget
+    list.n = n
+end
+
+local function removeFromHotkeyList(list, i)
+    remove(list, i)
+    list.n = list.n - 1
+end
+
+
 local function setFocusedChild(self, child)
     getFocusedChild[self] = child
     local currDefault = getDefault[self]
     if currDefault then
-        if currDefault ~= child and child.onHotkeyDown then
+        if currDefault ~= child and child and child.onHotkeyDown then
             call("onDefaultChanged", currDefault, false, true)
             self.defaultPostponed = true
         elseif self.defaultPostponed and not currDefault._focusDisabled and not child.onHotkeyDown then
@@ -244,42 +271,42 @@ end
 function FocusHandler:onActionFocusRight()
     local found = findNextFocusableChild1(self, "right")
     if found then
-        self:setFocus(found)
+        self:setFocusTo(found)
     end
     return true
 end
 function FocusHandler:onActionFocusLeft()
     local found = findNextFocusableChild1(self, "left")
     if found then
-        self:setFocus(found)
+        self:setFocusTo(found)
     end
     return true
 end
 function FocusHandler:onActionFocusUp()
     local found = findNextFocusableChild1(self, "up")
     if found then
-        self:setFocus(found)
+        self:setFocusTo(found)
     end
     return true
 end
 function FocusHandler:onActionFocusDown()
     local found = findNextFocusableChild1(self, "down")
     if found then
-        self:setFocus(found)
+        self:setFocusTo(found)
     end
     return true
 end
 function FocusHandler:onActionFocusNext()
     local found = findNextFocusableChild2(self, getFocusedChild[self], "next", isFocusableChild)
     if found then
-        self:setFocus(found)
+        self:setFocusTo(found)
     end
     return true    
 end
 function FocusHandler:onActionFocusPrev()
     local found = findNextFocusableChild2(self, getFocusedChild[self], "prev", isFocusableChild)
     if found then
-        self:setFocus(found)
+        self:setFocusTo(found)
     end
     return true    
 end
@@ -293,10 +320,16 @@ function FocusHandler:findPrevInput(child)
 end
 
 function FocusHandler:setFocusToNextInput(child)
-    self:setFocus(self:findNextInput(child))
+    local next = self:findNextInput(child)
+    if next then
+        self:setFocusTo(next)
+    end
 end
 function FocusHandler:setFocusToPrevInput(child)
-    self:setFocus(self:findPrevInput(child))
+    local prev = self:findPrevInput(child)
+    if prev then
+        self:setFocusTo(prev)
+    end
 end
 
 function FocusHandler:_handleFocusIn()
@@ -339,7 +372,7 @@ function FocusHandler:_handleFocusIn()
         local allHotkeys = getHotkeys[self]
         if allHotkeys then
             for hotkey, list in pairs(allHotkeys) do
-                local n = #list
+                local n = compactHotkeyList(list)
                 if n > 0 then
                     list[n]:onHotkeyEnabled(hotkey)
                 end
@@ -370,7 +403,7 @@ function FocusHandler:_handleFocusOut()
         local allHotkeys = getHotkeys[self]
         if allHotkeys then
             for hotkey, list in pairs(allHotkeys) do
-                local n = #list
+                local n = compactHotkeyList(list)
                 if n > 0 then
                     list[n]:onHotkeyDisabled(hotkey)
                 end
@@ -382,11 +415,11 @@ end
 local function releaseFocus(self, child)
     local default = getDefault[self]
     if default and default ~= child and not default._hidden and not default._focusDisabled then
-        self:setFocus(default)
+        self:setFocusTo(default)
     elseif child == getFocusedChild[self] then
         local found = findNextFocusableChild2(self, child, "next", isFocusableChild)
         if found then
-            self:setFocus(found)
+            self:setFocusTo(found)
         end
     end
 end
@@ -394,15 +427,13 @@ end
 function FocusHandler:releaseFocus(child)
     local app = getApp[self]
     if app then
-        local deferred = getDeferredChanges[app]
-        deferred[#deferred + 1] = Callback(releaseFocus, self, child)
-        app._hasChanges = true
+        app:deferChanges(Callback(releaseFocus, self, child))
     else
         releaseFocus(self, child)
     end
 end
 
-function FocusHandler:setFocus(newFocusChild)
+function FocusHandler:setFocusTo(newFocusChild)
     if newFocusChild then
         local hasFocus = self._hasFocus
         local focusedChild = getFocusedChild[self]
@@ -419,6 +450,12 @@ function FocusHandler:setFocus(newFocusChild)
         end
         if not hasFocus then
             call("_handleChildRequestsFocus", self.baseWidget)
+        end
+    else
+        local focusedChild = getFocusedChild[self]
+        if focusedChild then
+            setFocusedChild(self, nil)
+            focusedChild:_handleFocusOut(true)
         end
     end
 end
@@ -451,7 +488,7 @@ local function handleHotkey(self, key)
     if allHotkeys then
         local list = allHotkeys[key]
         if list then
-            local n = #list
+            local n = compactHotkeyList(list)
             if n > 0 then
                 local w = list[n]
                 local onHotkeyDown = w.onHotkeyDown
@@ -481,6 +518,8 @@ function FocusHandler:onKeyDown(key, modifier, ...)
 end
 
 function FocusHandler:registerHotkeys(widget, hotkeys)
+    assert(not registeredWidgets[widget])
+    registeredWidgets[widget] = true
     local allHotkeys = getHotkeys[self]
     if not allHotkeys then
         allHotkeys = {}
@@ -489,14 +528,14 @@ function FocusHandler:registerHotkeys(widget, hotkeys)
     for hotkey, flag in pairs(hotkeys) do
         local list = allHotkeys[hotkey]
         if not list then
-            list = { widget }
+            list = setmetatable({ n = 1, widget }, hotKeyListMeta)
             allHotkeys[hotkey] = list
         else 
-            local n = #list
+            local n = compactHotkeyList(list)
             if n > 0 and self._hasFocus then
                 list[n]:onHotkeyDisabled(hotkey)
             end
-            list[n + 1] = widget
+            appendToHotkeyList(list, widget)
         end
         if self._hasFocus then
             widget:onHotkeyEnabled(hotkey)
@@ -505,15 +544,17 @@ function FocusHandler:registerHotkeys(widget, hotkeys)
 end
 
 function FocusHandler:deregisterHotkeys(widget, hotkeys)
+    assert(registeredWidgets[widget])
+    registeredWidgets[widget] = nil
     local allHotkeys = getHotkeys[self]
     if allHotkeys then
         for hotkey, flag in pairs(hotkeys) do
             local list = allHotkeys[hotkey]
             if list then
-                local n = #list 
+                local n = compactHotkeyList(list)
                 if n > 0 then
                     if list[n] == widget then
-                        list[n] = nil
+                        removeFromHotkeyList(list, n)
                         n = n - 1
                         if n > 0 and self._hasFocus then
                             list[n]:onHotkeyEnabled(hotkey)
@@ -524,7 +565,7 @@ function FocusHandler:deregisterHotkeys(widget, hotkeys)
                     else
                         for i = 1, n-1 do
                             if list[i] == widget then
-                                table.remove(list, i)
+                                removeFromHotkeyList(list, i)
                                 break
                             end
                         end
@@ -586,11 +627,33 @@ function FocusHandler:setDefault(childOrId, defaultFlag)
     end
 end
 
+local function handleDisabled(self, child)
+    local default = getDefault[self]
+    if default and default ~= child and not default._hidden and not default._focusDisabled then
+        self:setFocusTo(default)
+    elseif child == getFocusedChild[self] then
+        local found = findNextFocusableChild2(self, child, "next", isFocusableChild)
+        if not found then
+            found = findNextFocusableChild2(self, child, "prev", isFocusableChild)
+        end
+        self:setFocusTo(found)
+    end
+--------------------
+--[[    local default = getDefault[self]
+    if default and default ~= child and not default._hidden and not default._focusDisabled then
+        self:setFocusTo(default)
+    elseif child == getFocusedChild[self] then
+        local found = findNextFocusableChild2(self, child, "next", isFocusableChild)
+        if found then
+            self:setFocusTo(found)
+        end
+    end --]]
+end
+
 function FocusHandler:setFocusDisabled(child, disableFlag)
     disableFlag = disableFlag and true or false
     if child._focusDisabled ~= disableFlag then
         child._focusDisabled = disableFlag
-        call("onFocusDisabled", self, disableFlag)
         if not disableFlag and self.defaultPostponed and getDefault[self] == child then
             self.defaultPostponed = false
             call("onDefaultChanged", child, true, true)
@@ -598,6 +661,12 @@ function FocusHandler:setFocusDisabled(child, disableFlag)
         if disableFlag and getDefault[self] == child and not self.defaultPostponed then
             self.defaultPostponed = true
             call("onDefaultChanged", child, false, true)
+        end
+        if disableFlag then
+            local app = getApp[self]
+            if app then
+                app:deferChanges(Callback(handleDisabled, self, child))
+            end
         end
     end
 end

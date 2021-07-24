@@ -62,7 +62,7 @@ end
 
 handlePostponedStates = function(self, focusHandler)
     if self._wantsFocus then
-        focusHandler:setFocus(self)
+        focusHandler:setFocusTo(self)
         self._wantsFocus = nil
     end
     if self._wantsFocusDisabled then
@@ -91,7 +91,7 @@ function Focusable:setFocus(flag)
     if not self.disabled and (flag == nil or flag) then
         local focusHandler = getFocusHandler[self]
         if focusHandler and not self._hidden then
-            focusHandler:setFocus(self)
+            focusHandler:setFocusTo(self)
         else
             self._wantsFocus = true
         end

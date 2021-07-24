@@ -17,12 +17,12 @@ function DefaultStyle:new(initParams)
         end
     end
     
-    local scaleFactor = par"scaleFactor" or 1
-    local screenScale = par"screenScale" or 1
-    local color       = par"color"       or Color"f9f9fa"
-    local textColor   = par"textColor"   or Color"000000"
-    local accentColor = par"accentColor" or Color"006fc7" --"0078d7"
-    
+    local scaleFactor     = par"scaleFactor"       or 1
+    local screenScale     = par"screenScale"       or 1
+    local backgroundColor = par"backgroundColor"   or Color"f9f9fa"
+    local textColor       = par"textColor"         or Color"000000"
+    local accentColor     = par"accentColor"       or Color"006fc7" --"0078d7"
+
     local ruleList = {
         
         scaleFactor = scaleFactor * screenScale,
@@ -38,7 +38,7 @@ function DefaultStyle:new(initParams)
         { "TextSize",                            12 },
         { "FontFamily",                "sans-serif" },
 
-        { "BackgroundColor",           color       },
+        { "BackgroundColor",           backgroundColor },
         { "TextColor",                 textColor   },
         { "AccentColor",               accentColor },
 

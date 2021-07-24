@@ -8,6 +8,7 @@ local call           = lwtk.call
 local getParent      = lwtk.get.parent
 local getStyle       = lwtk.get.style
 local getStylePath   = lwtk.get.stylePath
+local getSuperClass  = lwtk.get.superClass
 
 local getStateStylePath = setmetatable({}, { __mode = "k" })
 
@@ -24,7 +25,7 @@ function Styleable.initClass(Styleable, Super)  -- luacheck: ignore 431/Styleabl
 
     function Styleable.newSubClass(className, baseClass, ...)
         local newClass = Super.newSubClass(className, baseClass, ...)
-        local path = getStylePath[newClass.super]
+        local path = getStylePath[getSuperClass[newClass]]
         local addToStyleSelector = true
         for i = 1, select("#", ...) do
             if select(i, ...) == NO_STYLE_SELECTOR then
@@ -131,7 +132,7 @@ local function _getStyleParam(self, style, paramName)
     end
     assert(stylePath, "Widget not connected to parent")
     local statePath = getStateString(self)
-    local rslt = style:_getStyleParam(paramName, stylePath, statePath)
+    local rslt = style:_getStyleParam(paramName, stylePath, statePath, self._hasOwnStyle)
     if not rslt and paramName:match("^.*Opacity$") then
         return 1
     else

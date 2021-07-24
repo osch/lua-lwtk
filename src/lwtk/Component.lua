@@ -128,10 +128,6 @@ local function setAppAndRoot(self, app, root)
             local focusableChildren = getFocusableChildren[handler]
             focusableChildren[#focusableChildren + 1] = self
             call("_handleHasFocusHandler", self, handler)
-            local handleHasFocusHandler = self._handleHasFocusHandler
-            if handleHasFocusHandler then
-                handleHasFocusHandler(self, handler)
-            end
         end
     end
     local w, h = self.w, self.h

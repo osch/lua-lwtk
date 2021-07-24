@@ -15,8 +15,8 @@ local app = Application("example03.lua")
 local confirmCloseWindows = lwtk.WeakKeysTable()
 
 local function confirmClose(callback)
-    return function(self)
-        local winToBeClosed = self:getRoot()
+    return function(widget)
+        local winToBeClosed = widget:getRoot()
         local confirmWin = confirmCloseWindows[winToBeClosed]
         if not callback then
             callback = function() winToBeClosed:close() end
@@ -54,13 +54,13 @@ local function newWin(rows, columns)
             row:addChild(FocusGroup { id="focusGroup_"..i.."_"..j,
               Column {
                 id = "form",
-                onInputChanged = function(self, widget)
-                    local fullInput = #self:childById("inp1").text > 0
-                                  and #self:childById("inp2").text > 0
-                                  and #self:childById("inp3").text > 0
-                                  and #self:childById("inp4").text > 0
-                                  and #self:childById("inp5").text > 0
-                    self:childById("b1"):setDisabled(not fullInput)
+                onInputChanged = function(widget, input)
+                    local fullInput = #widget:childById("inp1").text > 0
+                                  and #widget:childById("inp2").text > 0
+                                  and #widget:childById("inp3").text > 0
+                                  and #widget:childById("inp4").text > 0
+                                  and #widget:childById("inp5").text > 0
+                    widget:childById("b1"):setDisabled(not fullInput)
                 end,
                 Row {
                     Column {
@@ -93,9 +93,9 @@ local function newWin(rows, columns)
                     PushButton  {   id = "b1", text = "&OK", 
                                     disabled = true,
                                     default = true,
-                                    onClicked = function(self) 
-                                        self:byId("form/title"):setText("Hello "..self:byId("form/inp1").text) 
-                                        self:byId("form/title"):triggerLayout()
+                                    onClicked = function(widget) 
+                                        widget:byId("form/title"):setText("Hello "..widget:byId("form/inp1").text) 
+                                        widget:byId("form/title"):triggerLayout()
                                     end
                                 },
                     PushButton { text = "&Quit",  onClicked = confirmClose() },
@@ -117,7 +117,7 @@ local function newWin(rows, columns)
     win:show()
 end
 
-local function filterNumeric(self, input)
+local function filterNumeric(widget, input)
     if input:match("^%d+$") then 
         return input
     end

@@ -3,17 +3,9 @@ local lwtk = require("lwtk")
 local getMeasures     = lwtk.layout.getMeasures
 local getOuterMargins = lwtk.layout.getOuterMargins
 local setOuterMargins = lwtk.layout.setOuterMargins
-local fillRect        = lwtk.draw.fillRect
 
-local Super           = lwtk.Group
+local Super           = lwtk.Colored(lwtk.Group)
 local ViewSwitcher    = lwtk.newClass("lwtk.ViewSwitcher", Super)
-
-function ViewSwitcher:onDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
-    local background = self:getStyleParam("BackgroundColor")
-    if background then
-        fillRect(ctx, background, 0, 0, self.w, self.h)
-    end
-end
 
 function ViewSwitcher:onLayout(w, h)
     local topMargin, rightMargin, bottomMargin, leftMargin = getOuterMargins(self)

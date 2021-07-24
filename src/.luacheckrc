@@ -1,6 +1,6 @@
 --
 --[[
-     luacheck `find lwtk -name "*.lua"|sort` --no-color --codes | less
+     luacheck `find lwtk ../example tests -name "*.lua"|sort` --no-color --codes | less
 --]]
 --
 -- option --codes to display codes

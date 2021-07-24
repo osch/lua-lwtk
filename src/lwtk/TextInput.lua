@@ -142,7 +142,7 @@ end
 
 function TextInput:onMouseDown(mx, my, button, modState)
     if button == 1 then
-        self:setFocus()
+        self:setFocus(true)
         local fontInfo = self.textFragment:getFontInfo()
         local cx = self.cursor.x
         local cp = self.cursorPos
