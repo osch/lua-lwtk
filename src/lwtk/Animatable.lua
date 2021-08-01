@@ -262,6 +262,18 @@ function Animatable:setStyle(style)
     Styleable.setStyle(self, style)
 end
 
+local function clearCaches(self)
+    getCurrentValues[self] = {}
+    for _, c in ipairs(self) do
+        clearCaches(c)
+    end
+end
+
+function Animatable:getStyle()
+    clearCaches(self)
+    return Styleable.getStyle(self)
+end
+
 function Animatable:getStyleParam(paramName)
     local value = getCurrentValues[self][paramName]
     if value == nil then

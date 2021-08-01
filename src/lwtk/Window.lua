@@ -82,7 +82,6 @@ end
 
 local function realize(self)
     local initParams = extract(self, "initParams")
-    local grabFocus = extract(initParams, "grabFocus")
     local app = getApp[self]
     local color = self.color
     if color == true then
@@ -104,9 +103,6 @@ local function realize(self)
         eventFunc       = {app._eventFunc, self},
         backgroundColor = color
     }
-    if grabFocus then
-        self.view:grabFocus()
-    end
 end
 
 
@@ -114,8 +110,12 @@ function Window:setOnClose(onClose)
     self.onClose = onClose
 end
 
-function Window:setOnMouseDown(onMouseDown)
-    self.onMouseDown = onMouseDown
+function Window:setInterceptMouseDown(interceptMouseDown)
+    self.interceptMouseDown = interceptMouseDown
+end
+
+function Window:setInterceptKeyDown(interceptKeyDown)
+    self.interceptKeyDown = interceptKeyDown
 end
 
 function Window:byId(id)
@@ -422,9 +422,15 @@ function Window:_handleMouseLeave(mx, my)
 end
 
 function Window:_handleMouseDown(mx, my, button, modState)
-    self.mouseX = mx
-    self.mouseY = my
-    self:_processMouseDown(mx, my, button, modState)
+    local interceptMouseDown = self.interceptMouseDown
+    if interceptMouseDown then
+        mx, my, button, modState = interceptMouseDown(self, mx, my, button, modState)
+    end
+    if mx then
+        self.mouseX = mx
+        self.mouseY = my
+        self:_processMouseDown(mx, my, button, modState)
+    end
 end
 
 function Window:_handleMouseUp(mx, my, button, modState)
@@ -464,6 +470,13 @@ function Window:_handleFocusOut()
     end
 end
 
+function Window:_handleMap()
+    self.mapped = true
+    if self._grabFocus then
+        self.view:grabFocus()
+        self._grabFocus = nil
+    end
+end
 
 function Window:requestClose()
     local onClose = self.onClose
@@ -475,10 +488,10 @@ function Window:requestClose()
 end
 
 function Window:requestFocus()
-    if self.view then
+    if self.view and self.mapped then
         self.view:grabFocus()
     else
-        self.initParams.grabFocus = true
+        self._grabFocus = true
     end
 end
 

@@ -1,5 +1,9 @@
 local lwtk = require"lwtk"
 
+local upper  = string.upper
+local sub    = string.sub
+
+local errorf      = lwtk.errorf
 local call        = lwtk.call
 local Rect        = lwtk.Rect
 local Animatable  = lwtk.Animatable
@@ -7,6 +11,7 @@ local Animatable  = lwtk.Animatable
 local intersectRects      = Rect.intersectRects
 local roundRect           = Rect.round
 
+local extract              = lwtk.extract
 local getApp               = lwtk.get.app
 local getRoot              = lwtk.get.root
 local getParent            = lwtk.get.parent
@@ -49,6 +54,24 @@ function Component:setInitParams(initParams)
             end
         end
         Super.setInitParams(self, initParams)
+    end
+end
+
+function Component:handleRemainingInitParams(initParams)
+    local hasRemaining = false
+    for k, v in pairs(initParams) do
+        assert(type(k) == "string", "attribute names  must be string")
+        local setterName = "set"..upper(sub(k, 1, 1))..sub(k, 2)
+        local setter = self[setterName]
+        if type(setter) == "function" then
+            setter(self, v)
+            initParams[k] = nil
+        else
+            hasRemaining = true
+        end
+    end
+    if hasRemaining then
+        self.initParams = initParams
     end
 end
 
@@ -133,6 +156,24 @@ local function setAppAndRoot(self, app, root)
     local w, h = self.w, self.h
     if app and w > 0 and h > 0 then
         callOnLayout(self, w, h)
+    end
+    if app then
+        local initParams = extract(self, "initParams")
+        if initParams then
+            local extensions = app.extensions
+            if extensions then
+                for i = #extensions, 1, -1 do
+                    local e = extensions[i]
+                    local handleInitParams = e.handleInitParams
+                    if handleInitParams then
+                        handleInitParams(e, self, initParams)
+                    end
+                end
+            end
+            for k, v in pairs(initParams) do
+                errorf("unknown init parameter %q", k)
+            end
+        end
     end
 end
 

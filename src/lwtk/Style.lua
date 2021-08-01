@@ -6,11 +6,14 @@ local errorf = lwtk.errorf
 local type   = lwtk.type
 local floor  = math.floor
 
+local WeakKeysTable    = lwtk.WeakKeysTable
 local TypeRule         = lwtk.internal.TypeRule
 local StyleRule        = lwtk.internal.StyleRule
 local StyleRuleContext = lwtk.internal.StyleRuleContext
 
 local Style = lwtk.newClass("lwtk.Style", lwtk.Object)
+
+local childStyles = WeakKeysTable()
 
 local toTypePattern  = TypeRule.toPattern
 local toStylePattern = StyleRule.toPattern
@@ -23,22 +26,68 @@ local function clearCache(self)
     self.cache = {}
     self.animatable = {}
     self.scalable   = {}
+    self.scaleFactor = false
+    local cs = childStyles[self]
+    if cs then
+        for c, _  in pairs(cs) do
+            clearCache(c)
+        end
+    end
 end
 
+Style.clearCache = clearCache
+
 function Style:setScaleFactor(scaleFactor)
-    self.scaleFactor = scaleFactor
+    self.myScaleFactor = scaleFactor
     clearCache(self)
 end
 
+function calculateScaleFactor(self)
+    local parent = self.parent
+    local parentFactor = parent and calculateScaleFactor(parent) or 1
+    local scaleFactor = (self.myScaleFactor or 1) * parentFactor
+    self.scaleFactor = scaleFactor
+    return scaleFactor
+end
+
+function Style:getScaleFactor()
+    return self.scaleFactor or calculateScaleFactor(self)
+end
+
+local function removeChildStyle(parent, child)
+    local children = childStyles[parent]
+    if children then
+        children[child] = nil
+    end
+end
+
+local function addChildStyle(parent, child)
+    local children = childStyles[parent]
+    if not children then
+        children = WeakKeysTable()
+        childStyles[parent] = children
+    end
+    children[child] = true
+end
+
 function Style:_replaceParentStyle(parentStyle)
-    if self.parent then
+    local oldParent = self.parent
+    if oldParent then
         clearCache(self)
+        removeChildStyle(oldParent, self)
     end
     self.parent = parentStyle
+    if parentStyle then
+        addChildStyle(parentStyle, self)
+    end
 end 
+
 function Style:_setParentStyle(parentStyle)
     assert(not self.parent, "style was already added to another parent")
     self.parent = parentStyle
+    if parentStyle then
+        addChildStyle(parentStyle, self)
+    end
 end 
 
 function Style:setRules(rules)
@@ -50,7 +99,9 @@ function Style:setRules(rules)
         end
     end
     self.typeList    = typeList
-    self.scaleFactor = rules.scaleFactor or 1
+    if rules.scaleFactor then
+        self.myScaleFactor = rules.scaleFactor
+    end
     local ruleList = {}
     for i = 1, #rules do
         ruleList[i] = toStylePattern(rules[i], typeList)
@@ -78,6 +129,9 @@ function Style:addRules(rules)
         for i = 1, #types do
             typeList[n + i] = toTypePattern(types[i])
         end
+    end
+    if rules.scaleFactor then
+        self.myScaleFactor = rules.scaleFactor
     end
     local ruleList = self.ruleList
     local n = #ruleList
@@ -226,7 +280,8 @@ function Style:_getStyleParam(parName, classSelectorPath, stateSelectorPath, con
         if rslt then
             if typeRule.SCALABLE then
                 local rslt0 = rslt
-                rslt = floor(rslt0 * self.scaleFactor + 0.5)
+                local scaleFactor = self.scaleFactor or calculateScaleFactor(self)
+                rslt = floor(rslt0 * (scaleFactor or 1) + 0.5)
                 if rslt == 0 and rslt0 > 0 then
                     rslt = 1
                 end

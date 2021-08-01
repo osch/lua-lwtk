@@ -15,17 +15,27 @@ end
 function Actionable:setInitParams(initParams)
     if initParams then
         local objectActions
-        for k, v in ipairs(initParams) do
+        local hasRemaining = false
+        for k, v in pairs(initParams) do
             if type(k) == "string" and match(k, "^onAction") then
                 if not objectActions then objectActions = {} end
                 objectActions[k] = v
                 initParams[k] = nil
+            else
+                hasRemaining = true
             end
         end
         if objectActions then
             getActions[self] = objectActions
         end
-        Super.setAttributes(self, initParams)
+        if hasRemaining then
+            local handleRemainingInitParams = self.handleRemainingInitParams
+            if handleRemainingInitParams then
+                handleRemainingInitParams(self, initParams)
+            else
+                Super.setAttributes(self, initParams)
+            end
+        end
     end
 end
 

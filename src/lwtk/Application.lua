@@ -39,7 +39,7 @@ function Application:new(arg1, arg2)
     if style then
         initParams.style = nil
         if lwtk.Object.is(style, lwtk.Style) then
-            style:setScaleFactor(style.scaleFactor * self.world:getScreenScale())
+            style:setScaleFactor((style.scaleFactor or 1) * self.world:getScreenScale())
         else
             style.scaleFactor = (style.scaleFactor or 1) * self.world:getScreenScale()
             style = lwtk.Style(style)
@@ -60,7 +60,25 @@ function Application:new(arg1, arg2)
     getApp[style]  = self
     getStyle[self] = style
     getKeyBinding[self]  = lwtk.DefaultKeyBinding()
-
+    do
+        local s = self.world:getScreenScale()
+        self.scale = function(arg, arg2, arg3, arg4)
+            if type(arg) == "table" then
+                arg[1] = arg[1] * s
+                arg[2] = arg[2] * s
+                if #arg > 2 then
+                    arg[3] = arg[3] * s
+                    arg[4] = arg[4] * s
+                end
+                return arg
+            else
+                return          s * arg, 
+                       arg2 and s * arg2,
+                       arg3 and s * arg3,
+                       arg4 and s * arg4
+            end
+        end
+    end
     self.appName       = appName
     self.windows       = {}
     self.damageReports = nil
@@ -81,6 +99,9 @@ function Application:setErrorFunc(...)
     return self.world:setErrorFunc(...)
 end
 
+function Application:setExtensions(extensions)
+    self.extensions = extensions
+end
 
 function Application:getLayoutContext()
     return self.world:getLayoutContext()
@@ -92,29 +113,6 @@ end
 
 function Application:getScreenScale()
     return self.world:getScreenScale()
-end
-
-function Application:getScreenScaleFunc()
-    local f = self.screenScaleFunc
-    if not f then
-        local s = self.world:getScreenScale()
-        f = function(arg, arg2, arg3, arg4)
-            if type(arg) == "table" then
-                arg[1] = arg[1] * s
-                arg[2] = arg[2] * s
-                arg[3] = arg[3] * s
-                arg[4] = arg[4] * s
-                return arg
-            else
-                return          s * arg, 
-                       arg2 and s * arg2,
-                       arg3 and s * arg3,
-                       arg4 and s * arg4
-            end
-        end
-        self.screenScaleFunc = f
-    end
-    return f
 end
 
 local function resetStyle(self, style)
@@ -235,7 +233,7 @@ createClosures = function(app)
     end
     
     local function _processAllChanges()
-        if app._hasChanges then
+        while app._hasChanges do
             local visibilityChanges = getVisibilityChanges[app]
             for widget, hidden in pairs(visibilityChanges) do
                 widget:onEffectiveVisibilityChanged(hidden)
@@ -248,12 +246,10 @@ createClosures = function(app)
             app._hasChanges = false
             local windows = app.windows
             for _, w in ipairs(windows) do
-                if w._hasChanges then
+                while w._hasChanges do
                     w:_processChanges()
-                    assert(not w._hasChanges)
                 end
             end
-            assert(not app._hasChanges)
         end
     end
     
@@ -335,6 +331,8 @@ createClosures = function(app)
             window:_handleFocusOut(...)
         elseif event == "CLOSE" then
             window:requestClose()
+        elseif event == "MAP" then
+            window:_handleMap(...)
         elseif event == "CREATE" then
             return
         end

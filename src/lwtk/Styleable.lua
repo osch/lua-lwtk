@@ -90,6 +90,22 @@ function Styleable:setStyle(style)
     end
 end
 
+function Styleable:clearStyleCache()
+    self:triggerLayout()
+    local style = getStyle[self]
+    if style then
+        for _, child in ipairs(self) do
+            call("_setStyleFromParent", child, style)
+        end
+    end
+end
+
+
+
+function Styleable:getStyle(style)
+    return getStyle[self]
+end
+
 function Styleable:getStateString()
     local state = self.state
     local path = getStateStylePath[state]

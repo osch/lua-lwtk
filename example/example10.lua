@@ -69,17 +69,20 @@ local app = Application {
         { "Color@MyButton:pressed+hover",   Color"b1b1b2" },
     }
 }
+
+local scale = app.scale
+
 local win = app:newWindow {
     title = "example10",
-    size =  { 240, 50 },
+    size =  scale { 240, 50 },
     Group {
         MyButton {
-            frame = {  10, 10, 100, 30 },
+            frame = scale {  10, 10, 100, 30 },
             text  = "OK",
             onClicked = function() print("Button Clicked") end
         },
         MyButton {
-            frame = { 120, 10, 100, 30 },
+            frame = scale { 120, 10, 100, 30 },
             text  = "Exit",
             onClicked = function() app:close() end
         }

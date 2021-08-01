@@ -63,7 +63,6 @@ local win = app:newWindow {
             PushButton { id = "b4", 
                          onRealize = function(widget)
                             local root = widget:getRoot()
-                            print("RRRRRRR", root, root.maxSizeFixed)
                             widget:setText("MaxSize&Fixed = "..tostring(root.maxSizeFixed))
                          end,
                          onClicked = function(widget)

@@ -55,7 +55,7 @@ do
         }
     }
     local w3 = win1:childById("w3")
-    assert(w3:getStyleParam("XXXSize") == 200)
+    assert(w3:getStyleParam("XXXSize") == app.scale(200))
 end
 PRINT("----------------------------------------------------------------------------------")
 do
@@ -77,8 +77,8 @@ do
     }
     local b1 = win:childById("b1")
     local b2 = win:childById("b2")
-    assert(b1:getStyleParam("XXXSize") == 101)
-    assert(b2:getStyleParam("XXXSize") == 202)
+    assert(b1:getStyleParam("XXXSize") == app.scale(101))
+    assert(b2:getStyleParam("XXXSize") == app.scale(202))
 end
 PRINT("----------------------------------------------------------------------------------")
 do
@@ -86,6 +86,7 @@ do
         { "XXXSize", 1000 }
     }
     local app = lwtk.Application("test02", style)
+    local scale = app.scale
     local win = app:newWindow {
         Box {
             id = "b1",
@@ -99,8 +100,8 @@ do
     }
     local b1 = win:childById("b1")
     local b2 = win:childById("b2")
-    assert(b1:getStyleParam("XXXSize") == 1000)
-    assert(b2:getStyleParam("XXXSize") == 2000)
+    assert(b1:getStyleParam("XXXSize") == scale(1000))
+    assert(b2:getStyleParam("XXXSize") == scale(2000))
 end
 PRINT("----------------------------------------------------------------------------------")
 do
@@ -138,30 +139,32 @@ do
     }
     win:show()
     update(app)
+    local scale = app.scale
+    
     local b1 = win:childById("b1")
     local b2 = win:childById("b2")
     local b3 = win:childById("b3")
     local b4 = win:childById("b4")
-    assert(b1:getStyleParam("XXXSize") == 1000)
-    assert(b2:getStyleParam("XXXSize") == 20)
-    assert(b3:getStyleParam("XXXSize") == 20)
-    assert(b4:getStyleParam("XXXSize") == 20)
+    assert(b1:getStyleParam("XXXSize") == scale(1000))
+    assert(b2:getStyleParam("XXXSize") == scale(20))
+    assert(b3:getStyleParam("XXXSize") == scale(20))
+    assert(b4:getStyleParam("XXXSize") == scale(20))
     assert(b1.state["state1"] == nil)
     b1:setState("state1", true)
     assert(b1.state["state1"] == true)
-    assert(b1:getStyleParam("XXXSize") == 1000)
+    assert(b1:getStyleParam("XXXSize") == scale(1000))
     update(app)
-    assert(b1:getStyleParam("XXXSize") == 2000)
+    assert(b1:getStyleParam("XXXSize") == scale(2000))
     b1:setState("state1", false)
     b1:setState("state2", true)
     b2:setState("state1", true)
     b3:setState("state1", true)
     b4:setState("state1", true)
     update(app)
-    assertEq(b1:getStyleParam("XXXSize"), 3000)
-    assertEq(b2:getStyleParam("XXXSize"), 2000)
-    assertEq(b3:getStyleParam("XXXSize"), 20)
-    assertEq(b4:getStyleParam("XXXSize"), 20)
+    assertEq(b1:getStyleParam("XXXSize"), scale(3000))
+    assertEq(b2:getStyleParam("XXXSize"), scale(2000))
+    assertEq(b3:getStyleParam("XXXSize"), scale(20))
+    assertEq(b4:getStyleParam("XXXSize"), scale(20))
 end
 PRINT("----------------------------------------------------------------------------------")
 do
@@ -171,6 +174,7 @@ do
             { "XXXSize@Box", 200 }
         }
     }
+    local scale = app.scale
     local win1 = app:newWindow {
         Box { id = "b1" }
     }
@@ -178,8 +182,8 @@ do
         style = { { "XXXSize@Box", 100 } },
         Box { id = "b1" }
     }
-    assertEq(win1:byId("b1"):getStyleParam("XXXSize"), 200)
-    assertEq(win2:byId("b1"):getStyleParam("XXXSize"), 100)
+    assertEq(win1:byId("b1"):getStyleParam("XXXSize"), scale(200))
+    assertEq(win2:byId("b1"):getStyleParam("XXXSize"), scale(100))
 end
 PRINT("----------------------------------------------------------------------------------")
 do
@@ -228,25 +232,28 @@ do
             }
         }
     }
-    assertEq(win:getStyleParam("X2Size"), 2)
+    local scale = app.scale
+    
+    assertEq(win:getStyleParam("X2Size"), scale(2))
 
-    assertEq(win:byId("g1" ):getStyleParam("X1Size"), 101)
-    assertEq(win:byId("g1" ):getStyleParam("X2Size"), 201)
-    assertEq(win:byId("b11"):getStyleParam("X1Size"), 101)
-    assertEq(win:byId("b11"):getStyleParam("X2Size"), 200)
-    assertEq(win:byId("b12"):getStyleParam("X1Size"), 102)
-    assertEq(win:byId("b12"):getStyleParam("X2Size"), 202)
+    assertEq(win:byId("g1" ):getStyleParam("X1Size"), scale(101))
+    assertEq(win:byId("g1" ):getStyleParam("X2Size"), scale(201))
+    assertEq(win:byId("b11"):getStyleParam("X1Size"), scale(101))
+    assertEq(win:byId("b11"):getStyleParam("X2Size"), scale(200))
+    assertEq(win:byId("b12"):getStyleParam("X1Size"), scale(102))
+    assertEq(win:byId("b12"):getStyleParam("X2Size"), scale(202))
 
-    assertEq(win:byId("g2" ):getStyleParam("X1Size"), 100)
-    assertEq(win:byId("g2" ):getStyleParam("X2Size"), 302)
-    assertEq(win:byId("b21"):getStyleParam("X1Size"), 301)
-    assertEq(win:byId("b21"):getStyleParam("X2Size"), 200)
-    assertEq(win:byId("b22"):getStyleParam("X1Size"), 301)
-    assertEq(win:byId("b22"):getStyleParam("X2Size"), 402)
+    assertEq(win:byId("g2" ):getStyleParam("X1Size"), scale(100))
+    assertEq(win:byId("g2" ):getStyleParam("X2Size"), scale(302))
+    assertEq(win:byId("b21"):getStyleParam("X1Size"), scale(301))
+    assertEq(win:byId("b21"):getStyleParam("X2Size"), scale(200))
+    assertEq(win:byId("b22"):getStyleParam("X1Size"), scale(301))
+    assertEq(win:byId("b22"):getStyleParam("X2Size"), scale(402))
 end
 PRINT("----------------------------------------------------------------------------------")
 do
     local app = lwtk.Application("test02")
+    local scale = app.scale
     app:addStyle { { "XXXSize", 200 } }
     local win1 = app:newWindow {
         Box { id = "b1" }
@@ -255,12 +262,13 @@ do
         style = { { "XXXSize", 100 } },
         Box { id = "b1" }
     }
-    assertEq(win1:byId("b1"):getStyleParam("XXXSize"), 200)
-    assertEq(win2:byId("b1"):getStyleParam("XXXSize"), 100)
+    assertEq(win1:byId("b1"):getStyleParam("XXXSize"), scale(200))
+    assertEq(win2:byId("b1"):getStyleParam("XXXSize"), scale(100))
 end
 PRINT("----------------------------------------------------------------------------------")
 do
     local app = lwtk.Application("test02")
+    local scale = app.scale
     app:addStyle { XXXSize = 200 }
     local win1 = app:newWindow {
         Box { id = "b1" }
@@ -272,20 +280,97 @@ do
     }
     assertEq(win1:byId("b1"):getStyleParam("XXXSize"), nil)
     assertEq(win2:byId("b1"):getStyleParam("XXXSize"), nil)
-    assertEq(win2:byId("b2"):getStyleParam("XXXSize"), 150)
-    assertEq(win2:getStyleParam("XXXSize"), 100)
+    assertEq(win2:byId("b2"):getStyleParam("XXXSize"), scale(150))
+    assertEq(win2:getStyleParam("XXXSize"), scale(100))
 end
 PRINT("----------------------------------------------------------------------------------")
 do
     local app = lwtk.Application("test02")
+    local scale = app.scale
     local win = app:newWindow {
         style = { XXXSize = 200 },
         lwtk.Group {
             Box { id = "b1" }
         }
     }
-    assertEq(win:getStyleParam("XXXSize"), 200)
+    assertEq(win:getStyleParam("XXXSize"), scale(200))
     assertEq(win:byId("b1"):getStyleParam("XXXSize"), nil)
+end
+PRINT("----------------------------------------------------------------------------------")
+do
+    local b = Box {}
+    local style = lwtk.Style { 
+        { "FooWidth", 10 },
+        { "BarWidth", 20 }
+    }
+    assertEq(style:getStyleParam(b, "FooWidth"), 10)
+    assertEq(style:getStyleParam(b, "BarWidth"), 20)
+    style:setScaleFactor(2)
+    assertEq(style:getStyleParam(b, "FooWidth"), 20)
+    assertEq(style:getStyleParam(b, "BarWidth"), 40)
+end
+PRINT("----------------------------------------------------------------------------------")
+do
+    local g = lwtk.Group {
+        style = {
+            { "FooWidth",  5 },
+            { "BarWidth", 20 }
+        },
+        lwtk.Group {
+            id = "g1",
+            style = {
+                scaleFactor = 2
+            },
+            Box {
+                id = "b1"
+            }
+        },
+        Box {
+            id = "b"
+        },
+    }
+    assertEq(g:getStyleParam("FooWidth"),  5)
+    assertEq(g:getStyleParam("BarWidth"), 20)
+    assertEq(g:childById("b"):getStyleParam("FooWidth"),  5)
+    assertEq(g:childById("b"):getStyleParam("BarWidth"), 20)
+
+    assertEq(g:childById("g1"):getStyleParam("FooWidth"), 10)
+    assertEq(g:childById("g1"):getStyleParam("BarWidth"), 40)
+    assertEq(g:childById("b1"):getStyleParam("FooWidth"), 10)
+    assertEq(g:childById("b1"):getStyleParam("BarWidth"), 40)
+    
+    assertEq(g:getStyle():getScaleFactor(), 1)
+    assertEq(g:childById("g1"):getStyle():getScaleFactor(), 2)
+
+    g:getStyle():setScaleFactor(3)
+    assertEq(g:getStyle():getScaleFactor(), 3)
+    assertEq(g:childById("g1"):getStyle():getScaleFactor(), 6)
+    
+    assertEq(g:getStyleParam("FooWidth"), 15)
+    assertEq(g:getStyleParam("BarWidth"), 60)
+    assertEq(g:childById("b"):getStyleParam("FooWidth"), 15)
+    assertEq(g:childById("b"):getStyleParam("BarWidth"), 60)
+
+    assertEq(g:childById("g1"):getStyleParam("FooWidth"), 30)
+    assertEq(g:childById("g1"):getStyleParam("BarWidth"),120)
+    assertEq(g:childById("b1"):getStyleParam("FooWidth"), 30)
+    assertEq(g:childById("b1"):getStyleParam("BarWidth"),120)
+    
+    g:setStyle {
+        scaleFactor = 4,
+        { "FooWidth",  6 },
+        { "BarWidth", 11 }
+    }
+
+    assertEq(g:getStyleParam("FooWidth"), 4 *  6)
+    assertEq(g:getStyleParam("BarWidth"), 4 * 11)
+    assertEq(g:childById("b"):getStyleParam("FooWidth"),  4 *  6)
+    assertEq(g:childById("b"):getStyleParam("BarWidth"),  4 * 11)
+
+    assertEq(g:childById("g1"):getStyleParam("FooWidth"), 2 * 4 *  6)
+    assertEq(g:childById("g1"):getStyleParam("BarWidth"), 2 * 4 * 11)
+    assertEq(g:childById("b1"):getStyleParam("FooWidth"), 2 * 4 *  6)
+    assertEq(g:childById("b1"):getStyleParam("BarWidth"), 2 * 4 * 11)
 end
 PRINT("----------------------------------------------------------------------------------")
 print("OK.")

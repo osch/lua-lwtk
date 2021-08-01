@@ -1,6 +1,5 @@
 local lwtk = require"lwtk"
 
-local extract               = lwtk.extract
 local getParent             = lwtk.get.parent
 local getStyle              = lwtk.get.style
 local Callback              = lwtk.Callback
@@ -16,11 +15,7 @@ function Widget:new(initParams)
 end
 
 function Widget:setInitParams(initParams)
-    local listen = extract(initParams, "listen")
     Super.setInitParams(self, initParams)
-    if listen then
-        listen[1]:addListener(listen[2], self, listen[3])
-    end
 end
 
 function Widget:setOnInputChanged(onInputChanged)

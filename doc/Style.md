@@ -392,12 +392,20 @@ Usually a style object is connected to the application and is used for all widge
 ```lua
 local app = lwtk.Application { 
     name  = "example",
-    style = { { "*Width",           10 },
-              { "*Width@MyWidget2", 20 } }
+    style = { { "*Columns",           10 },
+              { "*Columns@MyWidget2", 20 },
+              { "*Width",             11 } }
 }
 local win = app:newWindow { w1, w2 }
-assert(w1:getStyleParam("FooWidth") == 10)
-assert(w2:getStyleParam("FooWidth") == 20)
+assert(w1:getStyleParam("FooColumns") == 10)
+assert(w2:getStyleParam("FooColumns") == 20)
+```
+
+For scalable parameters (see [lwtk.BuiltinStyleTypes](../src/lwtk/BuiltinStyleTypes.lua)) 
+the screen scale factor is considered:
+```lua
+local scale = app:getScreenScale()
+assert(w1:getStyleParam("FooWidth") == scale * 11)
 ```
 
 If no style is specified, the application object gets the default style 
@@ -409,16 +417,17 @@ local app = lwtk.Application {
 }
 local w1, w2, w4 = MyWidget1(), MyWidget2(), MyWidget4()
 local win = app:newWindow { w1, w2, w4 }
-assert(w1:getStyleParam("TextSize") == 12)
+assert(w1:getStyleParam("TextSize") == app:getScreenScale() * 12)
 ```
 
 Style rules can be added to existing style:
 ```lua
 app:addStyle { { "TextSize@MyWidget1", 10 },
                { "TextSize@MyWidget2", 20 } }
-assert(w1:getStyleParam("TextSize") == 10)
-assert(w2:getStyleParam("TextSize") == 20)
-assert(w4:getStyleParam("TextSize") == 12)
+local scale = app:getScreenScale()
+assert(w1:getStyleParam("TextSize") == scale * 10)
+assert(w2:getStyleParam("TextSize") == scale * 20)
+assert(w4:getStyleParam("TextSize") == scale * 12)
 ```
 
 
@@ -430,34 +439,34 @@ Style rules can be specified for individual widgets:
 ```lua
 local app = lwtk.Application { 
     name  = "example",
-    style = { { "*Width",  10 },
-              { "*Height", 15 } }
+    style = { { "*Seconds", 10 },
+              { "*Columns", 15 } }
 }
 local w1a = MyWidget1 {}
 local w1b = MyWidget1 {
-    style = { { "*Width", 20 } } -- individual style for w1b
+    style = { { "*Seconds", 20 } } -- individual style for w1b
 }
 local win = app:newWindow { w1a, w1b }
-assert(w1a:getStyleParam("FooWidth")  == 10)
-assert(w1a:getStyleParam("FooHeight") == 15)
-assert(w1b:getStyleParam("FooWidth")  == 20)
-assert(w1b:getStyleParam("FooHeight") == 15)
+assert(w1a:getStyleParam("FooSeconds") == 10)
+assert(w1a:getStyleParam("FooColumns") == 15)
+assert(w1b:getStyleParam("FooSeconds") == 20)
+assert(w1b:getStyleParam("FooColumns") == 15)
 ```
 
 <!-- ---------------------------------------------------------------------------------------- -->
 
 Style can be replaced:
 ```lua
-app:setStyle { { "*Width",  100 },
-               { "*Height", 200 } }           -- replaces style for whole ap
-assert(w1a:getStyleParam("FooWidth")  == 100)
-assert(w1a:getStyleParam("FooHeight") == 200)
-assert(w1b:getStyleParam("FooWidth")  == 20)  -- individual style for w1b is still active
-assert(w1b:getStyleParam("FooHeight") == 200)
+app:setStyle { { "*Seconds", 100 },
+               { "*Columns", 200 } }           -- replaces style for whole ap
+assert(w1a:getStyleParam("FooSeconds") == 100)
+assert(w1a:getStyleParam("FooColumns") == 200)
+assert(w1b:getStyleParam("FooSeconds") == 20)  -- individual style for w1b is still active
+assert(w1b:getStyleParam("FooColumns") == 200)
 
-w1b:setStyle { { "*Width", 300 } }            -- replaces individual style for w1b
-assert(w1b:getStyleParam("FooWidth")  == 300)
-assert(w1b:getStyleParam("FooHeight") == 200)
+w1b:setStyle { { "*Seconds", 300 } }            -- replaces individual style for w1b
+assert(w1b:getStyleParam("FooSeconds") == 300)
+assert(w1b:getStyleParam("FooColumns") == 200)
 ```
 
 <!-- ---------------------------------------------------------------------------------------- -->
@@ -469,71 +478,71 @@ group's child widgets:
 ```lua
 local app = lwtk.Application { 
     name  = "example",
-    style = { { "*Width",   10 },
-              { "*Height",  15 },
-              { "*rHeight", 16 } }
+    style = { { "*Seconds",  10 },
+              { "*Columns",  15 },
+              { "*rColumns", 16 } }
 }
 local w1a = MyWidget1 {}
 local w1b = MyWidget1 {
-    style = { { "*oWidth",   21 } }  -- individual style rule for w1b
+    style = { { "*oSeconds",   21 } }  -- individual style rule for w1b
 }
 local w2a = MyWidget2 {}
 local w2b = MyWidget2 {
-    style = { { "*oWidth",   22 } }  -- individual style rule for w2b
+    style = { { "*oSeconds",   22 } }  -- individual style rule for w2b
 }
 local g1 = lwtk.Group { w1a, w1b }
 local g2 = lwtk.Group { w2a, w2b,
-    style = { { "*oHeight",  33 } }  -- individual style rule for widget group g2
+    style = { { "*oColumns",  33 } }  -- individual style rule for widget group g2
 }
 local win = app:newWindow { g1, g2 }
 
-assert(w1a:getStyleParam("FooWidth")  == 10)  -- from app
-assert(w1a:getStyleParam("FooHeight") == 15)  -- from app
+assert(w1a:getStyleParam("FooSeconds") == 10)  -- from app
+assert(w1a:getStyleParam("FooColumns") == 15)  -- from app
 
-assert(w1b:getStyleParam("FooWidth")  == 21)  -- from widget
-assert(w1b:getStyleParam("FooHeight") == 15)  -- from app
+assert(w1b:getStyleParam("FooSeconds") == 21)  -- from widget
+assert(w1b:getStyleParam("FooColumns") == 15)  -- from app
 
-assert(w2a:getStyleParam("FooWidth")  == 10)  -- from app
-assert(w2a:getStyleParam("FooHeight") == 33)  -- from group
+assert(w2a:getStyleParam("FooSeconds") == 10)  -- from app
+assert(w2a:getStyleParam("FooColumns") == 33)  -- from group
 
-assert(w2b:getStyleParam("FooWidth")  == 22)  -- from widget
-assert(w2b:getStyleParam("FooHeight") == 33)  -- from group
-assert(w2b:getStyleParam("BarHeight") == 16)  -- from app
+assert(w2b:getStyleParam("FooSeconds") == 22)  -- from widget
+assert(w2b:getStyleParam("FooColumns") == 33)  -- from group
+assert(w2b:getStyleParam("BarColumns") == 16)  -- from app
 ```
 
 <!-- ---------------------------------------------------------------------------------------- -->
 
 Replacing style in widget groups is also possible:
 ```lua
-g1:setStyle { { "*oWidth", 17 } }
+g1:setStyle { { "*oSeconds", 17 } }
 
-assert(w1a:getStyleParam("FooWidth")  == 17)  -- from group
-assert(w1a:getStyleParam("FooHeight") == 15)  -- from app
+assert(w1a:getStyleParam("FooSeconds") == 17)  -- from group
+assert(w1a:getStyleParam("FooColumns") == 15)  -- from app
 
-assert(w1b:getStyleParam("FooWidth")  == 21)  -- from widget
-assert(w1b:getStyleParam("FooHeight") == 15)  -- from app
+assert(w1b:getStyleParam("FooSeconds") == 21)  -- from widget
+assert(w1b:getStyleParam("FooColumns") == 15)  -- from app
 
-g2:setStyle { { "BarHeight", 34 },
-              { "*oHeight",  36 } }
+g2:setStyle { { "BarColumns", 34 },
+              { "*oColumns",  36 } }
               
-assert(w2a:getStyleParam("FooWidth")  == 10)  -- from app
-assert(w2a:getStyleParam("FooHeight") == 36)  -- from group
+assert(w2a:getStyleParam("FooSeconds") == 10)  -- from app
+assert(w2a:getStyleParam("FooColumns") == 36)  -- from group
 
-assert(w2b:getStyleParam("FooWidth")  == 22)  -- from widget
-assert(w2b:getStyleParam("FooHeight") == 36)  -- from group
-assert(w2b:getStyleParam("BarHeight") == 34)  -- from group
-assert(w2b:getStyleParam("FarHeight") == 16)  -- from app
+assert(w2b:getStyleParam("FooSeconds") == 22)  -- from widget
+assert(w2b:getStyleParam("FooColumns") == 36)  -- from group
+assert(w2b:getStyleParam("BarColumns") == 34)  -- from group
+assert(w2b:getStyleParam("FarColumns") == 16)  -- from app
 
-app:setStyle { { "*Width",   18 },
-               { "*rHeight", 19 } }
+app:setStyle { { "*Seconds",  18 },
+               { "*rColumns", 19 } }
 
-assert(w2a:getStyleParam("FooWidth")  == 18)  -- from app
-assert(w2a:getStyleParam("FooHeight") == 36)  -- from group
+assert(w2a:getStyleParam("FooSeconds") == 18)  -- from app
+assert(w2a:getStyleParam("FooColumns") == 36)  -- from group
 
-assert(w2b:getStyleParam("FooWidth")  == 22)  -- from widget
-assert(w2b:getStyleParam("FooHeight") == 36)  -- from group
-assert(w2b:getStyleParam("BarHeight") == 34)  -- from group
-assert(w2b:getStyleParam("FarHeight") == 19)  -- from app
+assert(w2b:getStyleParam("FooSeconds") == 22)  -- from widget
+assert(w2b:getStyleParam("FooColumns") == 36)  -- from group
+assert(w2b:getStyleParam("BarColumns") == 34)  -- from group
+assert(w2b:getStyleParam("FarColumns") == 19)  -- from app
 ```
 
 <!-- ---------------------------------------------------------------------------------------- -->
@@ -547,17 +556,17 @@ to the group's child widgets:
 ```lua
 local app = lwtk.Application { 
     name  = "example",
-    style = { { "*Width",   10 },
-              { "*Height",  15 } }
+    style = { { "*Seconds",  10 },
+              { "*Columns",  15 } }
 }
 local w1a = MyWidget1 {}
 local w1b = MyWidget1 {
-    style = { FooWidth = 22 }  -- individual style for w1b
+    style = { FooSeconds = 22 }  -- individual style for w1b
 }
 local g1 = lwtk.Group { 
     style = {
-        FooWidth = 23,   -- individual style parameter for g1
-        { "*Width", 33 } -- individual style rule      for g1
+        FooSeconds = 23,   -- individual style parameter for g1
+        { "*Seconds", 33 } -- individual style rule      for g1
     },
     w1a, 
     w1b 
@@ -565,13 +574,13 @@ local g1 = lwtk.Group {
 
 local win = app:newWindow { g1 }
 
-assert(g1:getStyleParam("FooWidth")   == 23) -- from group
+assert(g1:getStyleParam("FooSeconds")  == 23) -- from group
 
-assert(w1a:getStyleParam("FooHeight") == 15)  -- from app
-assert(w1a:getStyleParam("FooWidth")  == 33)  -- from group
+assert(w1a:getStyleParam("FooColumns") == 15)  -- from app
+assert(w1a:getStyleParam("FooSeconds") == 33)  -- from group
 
-assert(w1b:getStyleParam("FooHeight") == 15)  -- from app
-assert(w1b:getStyleParam("FooWidth")  == 22)  -- from widget
+assert(w1b:getStyleParam("FooColumns") == 15)  -- from app
+assert(w1b:getStyleParam("FooSeconds") == 22)  -- from widget
 ```
 
 TODO

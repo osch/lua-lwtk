@@ -77,7 +77,7 @@ end
 
 local app = Application("test02.lua")
 
-local scale = app:getScreenScaleFunc()
+local scale = app.scale
 
 app:setStyle {
     scaleFactor = scale(1.2),

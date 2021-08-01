@@ -23,13 +23,11 @@ function PushButton:setDisabled(flag)
         self.disabled = flag
         if flag then
             self:setHotkey(nil)
-            self.textFragment:setShowHotkey(false)
             self:setState("hover", false)
             self:setState("pressed", false)
             self.mousePressed = false
         else
             self:setHotkey(self.textFragment.hotkey)
-            self.textFragment:setShowHotkey(true)
             self:setState("hover", self.mouseEntered)
         end
         self:setState("disabled", flag)

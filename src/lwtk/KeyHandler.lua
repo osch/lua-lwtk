@@ -51,43 +51,43 @@ end
 
 
 
-local function toModKeyString(key, modifier)
-    local cache = caches[modifier]
-    if not cache then cache = {}; caches[modifier] = cache; end
-    local mapped = cache[key]
+local function toModKeyString(keyName, keyState)
+    local cache = caches[keyState]
+    if not cache then cache = {}; caches[keyState] = cache; end
+    local mapped = cache[keyName]
     if not mapped then
-        if modifier ~= 0 then
-            local isMod = isModifier[key]
-            local modString = not isMod and modMap[modifier]
+        if keyState ~= 0 then
+            local isMod = isModifier[keyName]
+            local modString = not isMod and modMap[keyState]
             if not modString then
                 modString = ""
-                if isMod ~= "Super" and btest(modifier, MOD_SUPER) then
+                if isMod ~= "Super" and btest(keyState, MOD_SUPER) then
                     modString = "Super+"..modString
                 end
-                if isMod ~= "Alt" and btest(modifier, MOD_ALT) then
+                if isMod ~= "Alt" and btest(keyState, MOD_ALT) then
                     modString = "Alt+"..modString
                 end
-                if isMod ~= "Alt" and btest(modifier, MOD_ALTGR) then
+                if isMod ~= "Alt" and btest(keyState, MOD_ALTGR) then
                     modString = "AltGr+"..modString
                 end
-                if isMod ~= "Ctrl" and btest(modifier, MOD_CTRL) then
+                if isMod ~= "Ctrl" and btest(keyState, MOD_CTRL) then
                     modString = "Ctrl+"..modString
                 end
-                if isMod ~= "Shift" and btest(modifier, MOD_SHIFT) then
+                if isMod ~= "Shift" and btest(keyState, MOD_SHIFT) then
                     modString = "Shift+"..modString
                 end
-                if not isMod and modifier ~= 0 and #modString == 0 then
+                if not isMod and keyState ~= 0 and #modString == 0 then
                     modString = "???+"
                 end
                 if not isMod then
-                    modMap[modifier] = modString
+                    modMap[keyState] = modString
                 end
             end
-            mapped = modString..key
+            mapped = modString..keyName
         else
-            mapped = key
+            mapped = keyName
         end
-        cache[key] = mapped
+        cache[keyName] = mapped
     end
     return mapped
 end
@@ -116,32 +116,36 @@ local function invokeActionMethods(self, actions)
     end
 end
 
-function KeyHandler:_handleKeyDown(key, modifier, ...)
-    --print("KeyHandler:_handleKeyDown", key, modifier, ...)
+function KeyHandler:_handleKeyDown(keyName, keyState, keyText)
+    --print("KeyHandler:_handleKeyDown", keyName, keyState, keyText)
+    local interceptKeyDown = self.interceptKeyDown
+    if interceptKeyDown then
+        keyName, keyState, keyText = interceptKeyDown(self, keyName, keyState, keyText)
+    end
     local state = getState[self]
-    if key then
-        if len(key) == 1 then
-            local mapped = keyMap[key]
+    if keyName then
+        if len(keyName) == 1 then
+            local mapped = keyMap[keyName]
             if not mapped then
-                mapped = utf8.upper(key)
-                keyMap[key] = mapped
+                mapped = utf8.upper(keyName)
+                keyMap[keyName] = mapped
             end
-            key = mapped
+            keyName = mapped
         end
-        if isModifier[key] then
-            state.mod = key
+        if isModifier[keyName] then
+            state.mod = keyName
         else
             state.mod = false
             local current = state.current
             if current then
-                modifier = 0
+                keyState = 0
             end
             local child = getVisibleChild(self)
             if child then
                 local focusHandler = getFocusHandler[child]
-                local handled = not current and focusHandler:handleHotkey(key, modifier, ...)
+                local handled = not current and focusHandler:handleHotkey(keyName, keyState, keyText)
                 if not handled then
-                    local modAndKey = toModKeyString(key, modifier)
+                    local modAndKey = toModKeyString(keyName, keyState)
                     local keyBinding = getKeyBinding[self]
                     local actions    = (current or keyBinding)[modAndKey]
                     handled = invokeActionMethods(focusHandler, actions)
@@ -153,7 +157,7 @@ function KeyHandler:_handleKeyDown(key, modifier, ...)
                         elseif state.current then
                             state.current = false
                         else
-                            handled = focusHandler:onKeyDown(key, modifier, ...)
+                            handled = focusHandler:onKeyDown(keyName, keyState, keyText)
                         end
                     end
                 end
@@ -163,14 +167,14 @@ function KeyHandler:_handleKeyDown(key, modifier, ...)
     end
 end
 
-function KeyHandler:_handleKeyUp(key, modifier, ...)
-    if isModifier[key] then
+function KeyHandler:_handleKeyUp(keyName, keyState, keyText)
+    if isModifier[keyName] then
         local state = getState[self]
-        if state.mod == key then
+        if state.mod == keyName then
             state.mod = false
-            key = toModKeyString(key, modifier)
+            keyName = toModKeyString(keyName, keyState)
             local keyBinding = getKeyBinding[self]
-            local actions = keyBinding[key]                    
+            local actions = keyBinding[keyName]                    
             if actions then
                 local child = getVisibleChild(self)
                 if child then
