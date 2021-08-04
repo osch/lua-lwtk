@@ -257,8 +257,10 @@ function Style:_getStyleParam(parName, classSelectorPath, stateSelectorPath, con
     local cache = self.cache
     local selector = lower(parName).."@"..classSelectorPath..":"..lower(stateSelectorPath)
     local cached = cache[selector]
-    if cached then
-        return cached
+    if cached ~= nil then
+        if cached then
+            return cached
+        end
     else
         local rslt, typeRule
         local isLocal = false
@@ -290,6 +292,10 @@ function Style:_getStyleParam(parName, classSelectorPath, stateSelectorPath, con
                 cache[selector] = rslt
             end
             return rslt
+        else
+            if not isLocal then
+                cache[selector] = false
+            end
         end
     end
 end

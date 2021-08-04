@@ -164,9 +164,9 @@ local function setAppAndRoot(self, app, root)
             if extensions then
                 for i = #extensions, 1, -1 do
                     local e = extensions[i]
-                    local handleInitParams = e.handleInitParams
-                    if handleInitParams then
-                        handleInitParams(e, self, initParams)
+                    local handleComponentInitParams = e.handleComponentInitParams
+                    if handleComponentInitParams then
+                        handleComponentInitParams(e, self, initParams)
                     end
                 end
             end

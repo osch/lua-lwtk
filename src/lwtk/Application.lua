@@ -227,29 +227,43 @@ createClosures = function(app)
         return world:getTime() 
     end
     
+    local procssingDeferedChanges = false
+    local postprocessNeeded = {}
+    
     function app:deferChanges(callback)
+        assert(not procssingDeferedChanges)
         deferredChanges[#deferredChanges + 1] = callback
         app._hasChanges = true
     end
     
     local function _processAllChanges()
-        while app._hasChanges do
+        if app._hasChanges then
             local visibilityChanges = getVisibilityChanges[app]
             for widget, hidden in pairs(visibilityChanges) do
                 widget:onEffectiveVisibilityChanged(hidden)
                 visibilityChanges[widget] = nil
             end
+            procssingDeferedChanges = true
             for i = 1, #deferredChanges do 
                 deferredChanges[i]:call()
                 deferredChanges[i] = nil
             end
+            procssingDeferedChanges = false
             app._hasChanges = false
             local windows = app.windows
             for _, w in ipairs(windows) do
-                while w._hasChanges do
-                    w:_processChanges()
+                if w._hasChanges then
+                    if w:_processChanges() then
+                        postprocessNeeded[#postprocessNeeded + 1] = w
+                    end
+                    assert(not w._hasChanges)
                 end
             end
+            assert(not app._hasChanges)
+        end
+        for i = 1, #postprocessNeeded do
+            postprocessNeeded[i]:_postProcessChanges()
+            postprocessNeeded[i] = nil
         end
     end
     
@@ -330,7 +344,7 @@ createClosures = function(app)
         elseif event == "FOCUS_OUT" then
             window:_handleFocusOut(...)
         elseif event == "CLOSE" then
-            window:requestClose()
+            window:_handleClose()
         elseif event == "MAP" then
             window:_handleMap(...)
         elseif event == "CREATE" then

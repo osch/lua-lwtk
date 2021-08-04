@@ -487,6 +487,8 @@ function Window:requestClose()
     end
 end
 
+Window._handleClose = Window.requestClose
+
 function Window:requestFocus()
     if self.view and self.mapped then
         self.view:grabFocus()
@@ -552,9 +554,11 @@ function Window:_processChanges()
             end
         end
     end
-    if neededRelayout then
-        adjustMinMaxSize(self)
-    end
+    return neededRelayout
+end
+
+function Window:_postProcessChanges()
+    adjustMinMaxSize(self)
 end
 
 return Window
