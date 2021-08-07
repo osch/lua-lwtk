@@ -30,7 +30,7 @@ local getFontInfos    = lwtk.get.fontInfos
 local getChildLookup  = lwtk.get.childLookup
 local extract         = lwtk.extract
 
-local minMaxSizes     = lwtk.WeakKeysTable()
+local childSizes      = lwtk.WeakKeysTable()
 
 function Window:new(app, initParams)
     Super.new(self)
@@ -137,20 +137,8 @@ local function handleChildSizes(child, minW, minH, bestW, bestH, maxW, maxH,
         childBottom = childBottom or 0
         childLeft   = childLeft   or 0
     
-        minW  = childLeft + minW  + childRight  
-        minH  = childTop  + minH  + childBottom 
-        bestW = childLeft + bestW + childRight  
-        bestH = childTop  + bestH + childBottom 
-    
-        if maxW > 0 then
-            maxW = childLeft  + maxW + childRight 
-        end
-        if maxH > 0 then
-            maxH = childTop   + maxH + childBottom
-        end
-    
-        minMaxSizes[child] = { minW, minH, bestW, bestH, maxW, maxH,
-                               childTop, childRight, childBottom, childLeft }
+        childSizes[child] = { minW, minH, bestW, bestH, maxW, maxH,
+                              childTop, childRight, childBottom, childLeft }
     end
     return minW, minH, bestW, bestH, maxW, maxH,
            childTop, childRight, childBottom, childLeft
@@ -158,7 +146,7 @@ end
 
 
 local function getChildSizes(self, child)
-    local ms = minMaxSizes[child]
+    local ms = childSizes[child]
     if ms then
         return ms[1], ms[2], ms[3], ms[4], ms[5], ms[6], ms[7], ms[8], ms[9], ms[10]
     else
@@ -168,12 +156,30 @@ local function getChildSizes(self, child)
     end
 end
 
+local function getMinMaxSizes(self, child)
+
+    local minW, minH, _, _, maxW, maxH,
+          childTop, childRight, childBottom, childLeft = getChildSizes(self, child)
+
+    if minW then          
+        minW  = childLeft + minW  + childRight  
+        minH  = childTop  + minH  + childBottom 
+    
+        if maxW > 0 then
+            maxW = childLeft  + maxW + childRight 
+        end
+        if maxH > 0 then
+            maxH = childTop   + maxH + childBottom
+        end
+    end
+    return minW, minH, maxW, maxH
+end
 
 local function adjustMinMaxSize(self, forceMaxSize)
     local minW, minH, maxW, maxH = 0, 0, 0, 0
     for i = 1, #self do
         local child = self[i]
-        local mw, mh, _, _, MW, MH = getChildSizes(self, child)
+        local mw, mh, MW, MH = getMinMaxSizes(self, child)
         if mw then
             if mw > minW then minW = mw end
             if mh > minH then minH = mh end
@@ -214,10 +220,9 @@ function Window:addChild(child)
     if child.getMeasures then
         minW, minH, bestW, bestH, maxW, maxH, 
           childTop, childRight, childBottom, childLeft = handleChildSizes(child, getMeasures(child))
-
         if bestW > 0 and bestH > 0 then
             if child.visible then
-                self:setSize(bestW, bestH)
+                self:setSize(bestW + childLeft + childRight, bestH + childTop + childBottom)
             end
         end
     end
@@ -391,9 +396,11 @@ function Window:_handleExpose(x, y, w, h, count)
             local child = self[i]
             if not child._ignored then
                 ctx:save()
-                local cx, cy = child.x, child.y
+                local cx, cy, cw, ch = child.x, child.y, child.w, child.h
+                ctx:rectangle(cx, cy, cw, ch)
+                ctx:clip()
                 ctx:translate(cx, cy)
-                child:_processDraw(ctx, cx, cy, cx, cy, child.w, child.h, self.exposedArea)
+                child:_processDraw(ctx, cx, cy, cx, cy, cw, ch, self.exposedArea)
                 ctx:restore()
             end
         end

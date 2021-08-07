@@ -99,41 +99,40 @@ local function calculateTBMeasures(childList, getChildTBMeasures)
     
     local n = #childList
     
-    local topMargin    = nil
-
-    for i = 1, n do
-        local child = childList[i]
-        if child.visible then
-            local minH, bestH, maxH,                                  -- luacheck: ignore 211/minH 211/maxH
-                  childTop, childBottom = getChildTBMeasures(child)   -- luacheck: ignore 211/childBottom
-            if not topMargin and childTop and bestH > 0 then 
-                topMargin = childTop
-            end
-        end
-    end
-    topMargin    = topMargin or 0
-    
-    local flexCount = 0
+    local flexCount  = 0
     local unlmCount1 = 0
     local unlmCount2 = 0
     
-    local minHeight = 0
+    local topMargin  = 0
+    local minHeight  = 0
     local bestHeight = 0
-    local maxHeight = 0
+    local maxHeight  = 0
     local maxContentHeight = 0
     
     local prevBottom
+    local firstVisible = true
     
     for i = 1, n do
         local child = childList[i]
         if child.visible then
             local minH, bestH, maxH,
                   childTop, childBottom = getChildTBMeasures(child)
-            if i > 1 then
-                if childTop and prevBottom and childTop > prevBottom then 
-                    minHeight  =  minHeight + childTop - prevBottom
-                    bestHeight = bestHeight + childTop - prevBottom
-                    maxHeight  =  maxHeight + childTop - prevBottom
+            if firstVisible and bestH > 0 then
+                firstVisible = false
+                if childTop then
+                    topMargin = childTop
+                end
+            elseif childTop then
+                if prevBottom then
+                    if childTop > prevBottom then 
+                        minHeight  =  minHeight + childTop - prevBottom
+                        bestHeight = bestHeight + childTop - prevBottom
+                        maxHeight  =  maxHeight + childTop - prevBottom
+                    end
+                else
+                        minHeight  =  minHeight + childTop
+                        bestHeight = bestHeight + childTop
+                        maxHeight  =  maxHeight + childTop
                 end
             end
             if bestH > 0 and prevBottom then

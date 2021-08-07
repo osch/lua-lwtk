@@ -33,7 +33,7 @@ do
     end
     function MyButton:onDraw(ctx)
         local w, h = self:getSize()
-        fillRect(ctx, self:getStyleParam("Color"), 0, 0, w, h)
+        fillRect(ctx, self:getStyleParam("BackgroundColor"), 0, 0, w, h)
         ctx:set_source_rgba(self:getStyleParam("TextColor"):toRGBA())
         if self.text then
             ctx:select_font_face("sans-serif", "normal", "normal")
@@ -63,10 +63,10 @@ local app = Application {
         { "BackgroundColor",           Color"f9f9fa" },
         { "TextColor",                 Color"000000" },
     
-        { "Color@MyButton",                 Color"e1e1e2" },
-        { "Color@MyButton:hover",
-          "Color@MyButton:pressed",         Color"c9c9ca" },
-        { "Color@MyButton:pressed+hover",   Color"b1b1b2" },
+        { "BackgroundColor@MyButton",                 Color"e1e1e2" },
+        { "BackgroundColor@MyButton:hover",
+          "BackgroundColor@MyButton:pressed",         Color"c9c9ca" },
+        { "BackgroundColor@MyButton:pressed+hover",   Color"b1b1b2" },
     }
 }
 

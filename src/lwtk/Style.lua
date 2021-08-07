@@ -42,7 +42,7 @@ function Style:setScaleFactor(scaleFactor)
     clearCache(self)
 end
 
-function calculateScaleFactor(self)
+local function calculateScaleFactor(self)
     local parent = self.parent
     local parentFactor = parent and calculateScaleFactor(parent) or 1
     local scaleFactor = (self.myScaleFactor or 1) * parentFactor

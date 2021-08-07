@@ -62,20 +62,20 @@ function Application:new(arg1, arg2)
     getKeyBinding[self]  = lwtk.DefaultKeyBinding()
     do
         local s = self.world:getScreenScale()
-        self.scale = function(arg, arg2, arg3, arg4)
-            if type(arg) == "table" then
-                arg[1] = arg[1] * s
-                arg[2] = arg[2] * s
-                if #arg > 2 then
-                    arg[3] = arg[3] * s
-                    arg[4] = arg[4] * s
+        self.scale = function(a, a2, a3, a4)
+            if type(a) == "table" then
+                a[1] = a[1] * s
+                a[2] = a[2] * s
+                if #a > 2 then
+                    a[3] = a[3] * s
+                    a[4] = a[4] * s
                 end
-                return arg
+                return a
             else
-                return          s * arg, 
-                       arg2 and s * arg2,
-                       arg3 and s * arg3,
-                       arg4 and s * arg4
+                return        s * a, 
+                       a2 and s * a2,
+                       a3 and s * a3,
+                       a4 and s * a4
             end
         end
     end
