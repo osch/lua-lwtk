@@ -126,6 +126,13 @@ function MouseDispatcher:_processMouseMove(mouseEntered, mx, my)
     processMouseMove(self, mouseEntered, mx, my)
 end
 
+function MouseDispatcher:_processMouseScroll(dx, dy)
+    local hChild = self.mouseHoverChild
+    if hChild and hChild ~= self then
+        hChild:_processMouseScroll(dx, dy)
+    end
+end
+
 function MouseDispatcher:_processMouseLeave(mx, my)
     self.mouseX = mx
     self.mouseY = my

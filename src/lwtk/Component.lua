@@ -422,6 +422,20 @@ function Component:_processMouseLeave(x, y)
     call("onMouseLeave", self, x, y)
 end
 
+function Component:_processMouseScroll(dx, dy)
+    local comp = self
+    while true do
+        local onMouseScroll = comp.onMouseScroll
+        if onMouseScroll and onMouseScroll(comp, dx, dy) then
+            return true
+        end
+        comp = getParent[comp]
+        if not comp then 
+            return false
+        end
+    end
+end
+
 function Component:_processMouseDown(mx, my, button, modState)
     local onMouseDown = self.onMouseDown
     if onMouseDown then

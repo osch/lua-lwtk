@@ -381,6 +381,10 @@ function Window:_handleConfigure(x, y, w, h)
 end
 
 function Window:_handleExpose(x, y, w, h, count)
+    if self._grabFocus then
+        self.view:grabFocus()
+        self._grabFocus = nil
+    end
     self.exposedArea:addRect(x, y, w, h)
     if count == 0 then
         self.fullRedisplayOutstanding = false
@@ -419,6 +423,10 @@ function Window:_handleMouseMove(mx, my)
     self.mouseX = mx
     self.mouseY = my
     self:_processMouseMove(self.mouseEntered, mx, my)
+end
+
+function Window:_handleMouseScroll(dx, dy)
+    self:_processMouseScroll(dx, dy)
 end
 
 function Window:_handleMouseLeave(mx, my)
@@ -479,10 +487,6 @@ end
 
 function Window:_handleMap()
     self.mapped = true
-    if self._grabFocus then
-        self.view:grabFocus()
-        self._grabFocus = nil
-    end
 end
 
 function Window:requestClose()

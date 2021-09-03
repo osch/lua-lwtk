@@ -343,6 +343,8 @@ createClosures = function(app)
             window:_handleFocusIn(...)
         elseif event == "FOCUS_OUT" then
             window:_handleFocusOut(...)
+        elseif event == "SCROLL" then
+            window:_handleMouseScroll(...)
         elseif event == "CLOSE" then
             window:_handleClose()
         elseif event == "MAP" then
