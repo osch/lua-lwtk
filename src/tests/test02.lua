@@ -30,7 +30,7 @@ function Box:getMeasures()
 end
 
 local function update(app)
-    while app:update(0.020) do end
+    while app:update(0.100) do end
     print("========== updated =======")
 end
 
@@ -153,14 +153,21 @@ do
     b1:setState("state1", true)
     assert(b1.state["state1"] == true)
     assert(b1:getStyleParam("XXXSize") == scale(1000))
+    PRINT("Updating...")
+    local t0 = app:getCurrentTime()
     update(app)
+    PRINT(string.format("Updated (%.3f secs)", app:getCurrentTime() - t0))
+    PRINT(b1:getStyleParam("XXXSize"))
     assert(b1:getStyleParam("XXXSize") == scale(2000))
     b1:setState("state1", false)
     b1:setState("state2", true)
     b2:setState("state1", true)
     b3:setState("state1", true)
     b4:setState("state1", true)
+    PRINT("Updating...")
+    local t0 = app:getCurrentTime()
     update(app)
+    PRINT(string.format("Updated (%.3f secs)", app:getCurrentTime() - t0))
     assertEq(b1:getStyleParam("XXXSize"), scale(3000))
     assertEq(b2:getStyleParam("XXXSize"), scale(2000))
     assertEq(b3:getStyleParam("XXXSize"), scale(20))

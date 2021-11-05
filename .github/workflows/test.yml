@@ -1,0 +1,54 @@
+name: test
+
+on: [push]
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        luaVersion: ["5.1", "5.2", "5.3", "5.4", "luajit"]
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@master
+    - uses: leafo/gh-actions-lua@master
+      with:
+        luaVersion: ${{ matrix.luaVersion }}
+    - uses: leafo/gh-actions-luarocks@master
+
+    - name: setup linux
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get install xvfb libglu1-mesa-dev freeglut3-dev mesa-common-dev
+        Xvfb :19 -screen 0 1024x768x16 &
+        echo "DISPLAY=:19" >> $GITHUB_ENV
+        sleep 1
+        export DISPLAY=":19"
+        xwininfo -root
+
+    - name: setup macos
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install cairo glew glfw
+
+    - name: setup common
+      run: |
+        luarocks install oocairo
+        luarocks --server=https://luarocks.org/dev install lpugl
+        luarocks --server=https://luarocks.org/dev install lpugl_cairo
+        luarocks --server=https://luarocks.org/dev install lpugl_opengl
+        luarocks make lwtk-scm-0.rockspec
+
+    - name: test
+      #uses: GabrielBB/xvfb-action@v1.5
+      #with:
+      run: |
+        set -e
+        lua -v
+        cd src
+        lua alltests.lua
+        lua doctest.lua  ../doc/*md
+        
