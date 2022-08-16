@@ -402,10 +402,9 @@ function Component:_processDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
         if opacity == 1 then
             onDraw(self, ctx, x0, y0, cx, cy, cw, ch, exposedArea)
         else
-            ctx:push_group()
+            ctx:beginOpacity(opacity)
             onDraw(self, ctx, x0, y0, cx, cy, cw, ch, exposedArea)
-            ctx:pop_group_to_source()
-            ctx:paint_with_alpha(opacity)
+            ctx:endOpacity()
         end
     end
 end
@@ -440,7 +439,7 @@ function Component:_processMouseDown(mx, my, button, modState)
     local onMouseDown = self.onMouseDown
     if onMouseDown then
         onMouseDown(self, mx, my, button, modState)
-        return true
+        return true, true
     end
 end
 

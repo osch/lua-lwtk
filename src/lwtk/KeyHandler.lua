@@ -1,12 +1,11 @@
-local lpugl = require"lpugl"
 local lwtk  = require"lwtk"
 
-local btest           = lpugl.btest
-local MOD_SHIFT       = lpugl.MOD_SHIFT
-local MOD_CTRL        = lpugl.MOD_CTRL
-local MOD_ALT         = lpugl.MOD_ALT
-local MOD_ALTGR       = lpugl.MOD_ALTGR
-local MOD_SUPER       = lpugl.MOD_SUPER
+local btest           = lwtk.btest
+local MOD_SHIFT       = lwtk.MOD_SHIFT
+local MOD_CTRL        = lwtk.MOD_CTRL
+local MOD_ALT         = lwtk.MOD_ALT
+local MOD_ALTGR       = lwtk.MOD_ALTGR
+local MOD_SUPER       = lwtk.MOD_SUPER
 local utf8            = lwtk.utf8
 local len             = utf8.len
 local getKeyBinding   = lwtk.get.keyBinding
@@ -116,6 +115,17 @@ local function invokeActionMethods(self, actions)
     end
 end
 
+local function toHotKeyChar(keyName)
+    if keyName and len(keyName) == 1 then
+        local mapped = keyMap[keyName]
+        if not mapped then
+            mapped = utf8.upper(keyName)
+            keyMap[keyName] = mapped
+        end
+        return mapped
+    end
+end
+
 function KeyHandler:_handleKeyDown(keyName, keyState, keyText)
     --print("KeyHandler:_handleKeyDown", keyName, keyState, keyText)
     local interceptKeyDown = self.interceptKeyDown
@@ -123,46 +133,39 @@ function KeyHandler:_handleKeyDown(keyName, keyState, keyText)
         keyName, keyState, keyText = interceptKeyDown(self, keyName, keyState, keyText)
     end
     local state = getState[self]
-    if keyName then
-        if len(keyName) == 1 then
-            local mapped = keyMap[keyName]
-            if not mapped then
-                mapped = utf8.upper(keyName)
-                keyMap[keyName] = mapped
-            end
-            keyName = mapped
+    local keyName = toHotKeyChar(keyName) or keyName
+    if keyName and isModifier[keyName] then
+        state.mod = keyName
+    else
+        state.mod = false
+        local current = state.current
+        if current then
+            keyState = 0
         end
-        if isModifier[keyName] then
-            state.mod = keyName
-        else
-            state.mod = false
-            local current = state.current
-            if current then
-                keyState = 0
-            end
-            local child = getVisibleChild(self)
-            if child then
-                local focusHandler = getFocusHandler[child]
-                local handled = not current and focusHandler:handleHotkey(keyName, keyState, keyText)
-                if not handled then
-                    local modAndKey = toModKeyString(keyName, keyState)
-                    local keyBinding = getKeyBinding[self]
-                    local actions    = (current or keyBinding)[modAndKey]
-                    handled = invokeActionMethods(focusHandler, actions)
-                    if handled then
+        local child = getVisibleChild(self)
+        if child then
+            local focusHandler = getFocusHandler[child]
+            local handled = not current and keyName and focusHandler:handleHotkey(keyName, keyState, keyText)
+            if not handled then
+                local modAndKey  = keyName and toModKeyString(keyName, keyState)
+                local keyBinding = getKeyBinding[self]
+                local actions    = modAndKey and (current or keyBinding)[modAndKey]
+                handled = actions and invokeActionMethods(focusHandler, actions)
+                if handled then
+                    state.current = false
+                else
+                    if actions and actions[0] then
+                        state.current = actions
+                        handled = true
+                    elseif state.current then
                         state.current = false
+                        handled = true
                     else
-                        if actions and actions[0] then
-                            state.current = actions
-                        elseif state.current then
-                            state.current = false
-                        else
-                            handled = focusHandler:onKeyDown(keyName, keyState, keyText)
-                        end
+                        handled = focusHandler:onKeyDown(keyName, keyState, keyText, toHotKeyChar(keyText))
                     end
                 end
-                return handled
             end
+            return handled
         end
     end
 end

@@ -3,7 +3,7 @@ local lwtk = require"lwtk"
 local match  = string.match
 local errorf = lwtk.errorf
 
-local StyleRuleContext = lwtk.newClass("lwtk.StyleRuleContext")
+local StyleRuleContext = lwtk.newClass("lwtk.internal.StyleRuleContext")
 
 function StyleRuleContext:new(ctxRules, style, classSelectorPath, stateSelectorPath)
     self.ctxRules          = ctxRules

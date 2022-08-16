@@ -36,9 +36,20 @@
 
 <!-- ---------------------------------------------------------------------------------------- -->
 
+   * [`example20.love`](./example20.love)
+     
+     This example shows a clone of [`example01.lua`](./example01.lua) combined with a simple mini 
+     game within the [LÖVE] game engine.
+
+     ![Screenshot example20](./screenshot20.png)
+     
+
+<!-- ---------------------------------------------------------------------------------------- -->
+
 [OOCairo]:                  https://luarocks.org/modules/osch/oocairo
 [LuaGL]:                    https://luarocks.org/modules/blueowl04/opengl
 [enhanced LuaGL rockspec]:  https://github.com/osch/luarocks-build-extended/blob/master/example/opengl-1.11-2.rockspec
 [lua-nanovg]:               https://luarocks.org/modules/xavier-wang/nanovg
+[LÖVE]:                     https://love2d.org/
 
 <!-- ---------------------------------------------------------------------------------------- -->

@@ -8,7 +8,6 @@ local Focusable   = lwtk.Focusable
 local Bordered    = lwtk.Bordered
 local Color       = lwtk.Color
 local newClass    = lwtk.newClass
-local fillRect    = lwtk.draw.fillRect
 
 local MyButton = newClass("MyButton", Widget)
 do
@@ -53,17 +52,15 @@ do
     end
     function MyButton:onDraw(ctx)
         local w, h = self:getSize()
-        fillRect(ctx, self:getStyleParam("Color"), 0, 0, w, h)
-        ctx:set_source_rgba(self:getStyleParam("TextColor"):toRGBA())
+        ctx:fillRect(self:getStyleParam("Color"), 0, 0, w, h)
+        ctx:setColor(self:getStyleParam("TextColor"))
         if self.text then
-            ctx:select_font_face("sans-serif", "normal", "normal")
-            ctx:set_font_size(self:getStyleParam("TextSize"))
-            local ext = ctx:text_extents(self.text)
+            ctx:selectFont("sans-serif", "normal", "normal", self:getStyleParam("TextSize"))
+            local tw, th = ctx:getTextMeasures(self.text)
             local offs = self:getStyleParam("TextOffset")
-            local tx = (w - ext.width)/2
-            local ty = (h - ext.height)/2 + ext.height
-            ctx:move_to(offs + math.floor(tx+0.5), offs + math.floor(ty+0.5)) -- sharper text
-            ctx:show_text(self.text)
+            local tx = (w - tw)/2
+            local ty = (h - th)/2 + th
+            ctx:drawText(offs + math.floor(tx+0.5), offs + math.floor(ty+0.5), self.text)
         end
     end
 end
@@ -71,7 +68,7 @@ local MyGroup = newClass("MyGroup", Group)
 do
     function MyGroup:onDraw(ctx)
         local w, h = self:getSize()
-        fillRect(ctx, self:getStyleParam("Color"), 0, 0, w, h)
+        ctx:fillRect(self:getStyleParam("Color"), 0, 0, w, h)
     end    
 end
 

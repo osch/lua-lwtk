@@ -33,7 +33,7 @@ end
 function Compound:_processDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
     local opacity = self:getStyleParam("Opacity") or 1
     if opacity < 1 then
-        ctx:push_group()
+        ctx:beginOpacity(opacity)
     end
 
     self:updateAnimation()
@@ -54,8 +54,7 @@ function Compound:_processDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
                    and exposedArea:intersects(x1, y1, w1, h1) 
                 then
                     ctx:save()
-                    ctx:rectangle(childX, childY, w, h)
-                    ctx:clip()
+                    ctx:intersectClip(childX, childY, w, h)
                     ctx:translate(childX, childY)
                     child:_processDraw(ctx, x, y, x1, y1, w1, h1, exposedArea)
                     ctx:restore()
@@ -65,8 +64,7 @@ function Compound:_processDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
     end
 
     if opacity < 1 then
-        ctx:pop_group_to_source()
-        ctx:paint_with_alpha(opacity)
+        ctx:endOpacity()
     end
 end
 

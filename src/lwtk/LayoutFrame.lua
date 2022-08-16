@@ -1,7 +1,5 @@
 local lwtk = require("lwtk")
 
-local drawBorder      = lwtk.draw.drawBorder
-local fillRect        = lwtk.draw.fillRect
 local getMeasures     = lwtk.layout.getMeasures
 local setOuterMargins = lwtk.layout.setOuterMargins
 
@@ -111,7 +109,7 @@ function LayoutFrame:onDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
     local p          = self:getStyleParam("BorderPadding") or 0
     local w, h = self.w, self.h
     if background then
-        fillRect(ctx, background, 0, 0, w, h)
+        ctx:fillRect(background, 0, 0, w, h)
     end
     local d = (p > b) and p or b
     if     b > 0 
@@ -119,9 +117,9 @@ function LayoutFrame:onDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
        and (background or (p > 0 and exposedArea:intersectsBorder(x0, y0, w, h, d)))
     then
         if b > 0 and color then
-            drawBorder(ctx, color, 
-                            b,
-                            0, 0, w, h)
+            ctx:drawBorder(color, 
+                           b,
+                           0, 0, w, h)
         end
     end
 end

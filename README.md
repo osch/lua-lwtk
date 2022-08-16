@@ -3,10 +3,10 @@
 [![build status](https://github.com/osch/lua-lwtk/workflows/test/badge.svg)](https://github.com/osch/lua-lwtk/actions/workflows/test.yml)
 [![Install](https://img.shields.io/badge/Install-LuaRocks-brightgreen.svg)](https://luarocks.org/modules/osch/lwtk)
 
-This toolkit provides a foundation for building cross platform GUI widgets in
-pure [Lua] on top of [LPugl]. For now only the cairo drawing backend is supported. 
-Backend abstraction and support for other backends could be possible in the
-future.
+This toolkit provides a foundation for building cross platform GUI widgets in pure [Lua] 
+on top of [LPugl] or within the [LÖVE] 2D game engine. For [LPugl] only the cairo drawing backend 
+is supported. Further Backend abstraction and support for other backends could be possible in 
+the future.
 
 This project is work in progress. First aim is to provide a basic infrastructure
 for creating and customizing widgets. Second aim is to implement a reasonable set 
@@ -18,7 +18,8 @@ of standard widgets. So far only very simple standard widgets are provided, e.g.
 #### Supported platforms: 
    * Linux (X11)
    * Windows
-   * Mac OS X 
+   * Mac OS X
+   * [LÖVE] 2D game engine
 
 
 <!-- ---------------------------------------------------------------------------------------- -->
@@ -111,6 +112,7 @@ of standard widgets. So far only very simple standard widgets are provided, e.g.
 <!-- ---------------------------------------------------------------------------------------- -->
 
 [lua]:                      https://www.lua.org/
+[LÖVE]:                     https://love2d.org/
 [lpugl]:                    https://github.com/osch/lua-lpugl#lpugl
 
 <!-- ---------------------------------------------------------------------------------------- -->

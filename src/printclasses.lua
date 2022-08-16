@@ -12,13 +12,19 @@ local getSuperClass = lwtk.getSuperClass
 
 local moduleNames = {}
 
-for entry in lfs.dir("lwtk") do
-    local n = entry:match("^([^.]+)%.lua$")
-    if n and n ~= "init" then
-        moduleNames[#moduleNames + 1] = n
+local function collect(dir)
+    for entry in lfs.dir(dir) do
+        local n = entry:match("^([^.]+)%.lua$")
+        if n and n ~= "init" then
+            moduleNames[#moduleNames + 1] = (dir.."/"..n):gsub("/", ".")
+        end
     end
 end
 
+collect("lwtk")
+collect("lwtk/internal")
+collect("lwtk/lpugl")
+collect("lwtk/love")
 
 local function getFullPath(c)
     local s = getSuperClass(c)
@@ -34,7 +40,7 @@ local classpaths = {}
 local stylepaths = {}
 for i = 1, #moduleNames do
     local n = moduleNames[i]
-    local m = require("lwtk."..n)
+    local m = require(n)
     if lwtk.type(m) == "lwtk.Class" then
         classes[n] = m
         if #n > maxl then

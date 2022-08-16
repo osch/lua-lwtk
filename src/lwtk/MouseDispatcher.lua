@@ -30,7 +30,7 @@ end
 
 
 local function processMouseMove(self, entered, mx, my)
-    
+
     self.mouseX = mx
     self.mouseY = my
     
@@ -162,12 +162,14 @@ function MouseDispatcher:_processMouseDown(mx, my, button, modState)
     local bChild = self.mouseButtonChild
     if bChild then
         self.mouseChildButtons[button] = true
+        local received, handled = false, false
         if self ~= bChild then
-            return bChild:_processMouseDown(mx - bChild.x, my - bChild.y,
-                                            button, modState)
+            received, handled = bChild:_processMouseDown(mx - bChild.x, my - bChild.y,
+                                                         button, modState)
         else
-            return call("onMouseDown", self, mx, my, button, modState)
+            handled = call("onMouseDown", self, mx, my, button, modState)
         end
+        return true, handled
     else
         local uChild = findChildAt(self, mx, my)
         if uChild then
@@ -175,11 +177,13 @@ function MouseDispatcher:_processMouseDown(mx, my, button, modState)
             self.mouseButtonChild = uChild
             self.mouseChildButtons[button] = true
             call("onMouseDown", self, mx, my, button, modState)
-            return uChild:_processMouseDown(mx - x, my - y, button, modState)
+            local received, handled = uChild:_processMouseDown(mx - x, my - y, button, modState)
+            return true, handled
         else
             self.mouseButtonChild = self
             self.mouseChildButtons[button] = true
-            return call("onMouseDown", self, mx, my, button, modState)
+            local handled = call("onMouseDown", self, mx, my, button, modState)
+            return false, handled
         end
     end
 end

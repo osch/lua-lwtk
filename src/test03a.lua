@@ -8,13 +8,12 @@ local Row         = lwtk.Row
 local Column      = lwtk.Column
 local Space       = lwtk.Space
 local newClass    = lwtk.newClass
-local fillRect    = lwtk.draw.fillRect
 
 local MyBox = newClass("MyBox", lwtk.Widget)
 do
     function MyBox:onDraw(ctx)
         local w, h = self:getSize()
-        fillRect(ctx, self:getStyleParam("Color"), 0, 0, w, h)
+        ctx:fillRect(self:getStyleParam("Color"), 0, 0, w, h)
     end
     function MyBox:setMeasures(m)
         self.measures = m
@@ -29,7 +28,7 @@ local MyColumn = newClass("MyColumn", Column)
 do
     function MyColumn:onDraw(ctx)
         local w, h = self:getSize()
-        fillRect(ctx, self:getStyleParam("Color"), 0, 0, w, h)
+        ctx:fillRect(self:getStyleParam("Color"), 0, 0, w, h)
     end
 end
 

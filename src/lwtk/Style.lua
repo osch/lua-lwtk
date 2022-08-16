@@ -152,6 +152,7 @@ function Style:addRules(rules)
         end
     end
     clearCache(self)
+    return self
 end
 
 local function findTypeRule(self, parName)

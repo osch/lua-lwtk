@@ -22,7 +22,8 @@ jobs:
     - name: setup linux
       if: matrix.os == 'ubuntu-latest'
       run: |
-        sudo apt-get install xvfb libglu1-mesa-dev freeglut3-dev mesa-common-dev
+        sudo apt-get install xvfb libglu1-mesa-dev freeglut3-dev mesa-common-dev x11-utils
+
         Xvfb :19 -screen 0 1024x768x16 &
         echo "DISPLAY=:19" >> $GITHUB_ENV
         sleep 1

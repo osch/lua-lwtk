@@ -1,5 +1,4 @@
-local lpugl = require"lpugl_cairo"
-local lwtk  = require"lwtk"
+local lwtk = require"lwtk"
 
 local Timer       = lwtk.Timer
 local Window      = lwtk.Window
@@ -31,22 +30,25 @@ function Application:new(arg1, arg2)
         initParams = arg1 or {}
         appName = extract(initParams, "name")
     end
-    assert(appName, "Application object needs name attribute")
+    self.driver = extract(initParams, "driver")
+    if not self.driver then
+        assert(appName, "Application object needs name attribute")
+        self.driver = lwtk.lpugl.Driver{ appName = appName }
+    end
     isClosed[self] = false
-    self.world     = lpugl.newWorld(appName)
     
     local style = initParams.style
     if style then
         initParams.style = nil
         if lwtk.Object.is(style, lwtk.Style) then
-            style:setScaleFactor((style.scaleFactor or 1) * self.world:getScreenScale())
+            style:setScaleFactor((style.scaleFactor or 1) * self.driver:getScreenScale())
         else
-            style.scaleFactor = (style.scaleFactor or 1) * self.world:getScreenScale()
+            style.scaleFactor = (style.scaleFactor or 1) * self.driver:getScreenScale()
             style = lwtk.Style(style)
         end
     else
         if not initParams.screenScale then
-            initParams.screenScale = self.world:getScreenScale()
+            initParams.screenScale = self.driver:getScreenScale()
         end
         style = lwtk.DefaultStyle(initParams)
     end
@@ -61,7 +63,7 @@ function Application:new(arg1, arg2)
     getStyle[self] = style
     getKeyBinding[self]  = lwtk.DefaultKeyBinding()
     do
-        local s = self.world:getScreenScale()
+        local s = self.driver:getScreenScale()
         self.scale = function(a, a2, a3, a4)
             if type(a) == "table" then
                 a[1] = a[1] * s
@@ -80,10 +82,9 @@ function Application:new(arg1, arg2)
         end
     end
     self.appName       = appName
-    self.windows       = {}
     self.damageReports = nil
 
-    getFontInfos[self]   = FontInfos(self.world:getDefaultBackend():getLayoutContext())
+    getFontInfos[self]   = FontInfos(self.driver:getLayoutContext())
 
     createClosures(self)
 
@@ -91,12 +92,12 @@ function Application:new(arg1, arg2)
 end
 
 function Application:close()
-    self.world:close()
+    self.driver:close()
     isClosed[self] = true
 end
 
 function Application:setErrorFunc(...)
-    return self.world:setErrorFunc(...)
+    return self.driver:setErrorFunc(...)
 end
 
 function Application:setExtensions(extensions)
@@ -104,7 +105,7 @@ function Application:setExtensions(extensions)
 end
 
 function Application:getLayoutContext()
-    return self.world:getLayoutContext()
+    return self.driver:getLayoutContext()
 end
 
 function Application:getFontInfo(family, slant, weight, size)
@@ -112,13 +113,12 @@ function Application:getFontInfo(family, slant, weight, size)
 end
 
 function Application:getScreenScale()
-    return self.world:getScreenScale()
+    return self.driver:getScreenScale()
 end
 
 local function resetStyle(self, style)
-    local windows = self.windows
-    for i = 1, #windows do
-        local w = windows[i]
+    for i = 1, #self do
+        local w = self[i]
         w:_setStyleFromParent(style)
     end
 end
@@ -128,7 +128,7 @@ function Application:setStyle(style)
         error("Style was alread added to app")
     end
     if lwtk.Object.is(style, lwtk.Style) then
-        style:setScaleFactor(style.scaleFactor * self.world:getScreenScale())
+        style:setScaleFactor(style.scaleFactor * self.driver:getScreenScale())
     else
         style = lwtk.Style(style)
     end
@@ -149,17 +149,25 @@ function Application:newWindow(attributes)
 end
 
 function Application:hasWindows()
-    return self.world:hasViews()
+    if not isClosed[self] then
+        if #self > 0 then
+            return true
+        end
+        local hasViews = self.driver.hasViews
+        return hasViews and hasViews(self.driver)
+    else
+        return false
+    end
 end
 
 function Application:_addWindow(win)
-    self.windows[#self.windows + 1] = win
+    self[#self + 1] = win
 end
 
 function Application:_removeWindow(win)
-    for i = 1, #self.windows do
-        if self.windows[i] == win then
-            table.remove(self.windows, i)
+    for i = 1, #self do
+        if self[i] == win then
+            table.remove(self, i)
         end
     end
 end
@@ -178,7 +186,7 @@ end
 
 createClosures = function(app)
 
-    local world           = app.world
+    local driver          = app.driver
     local deferredChanges = getDeferredChanges[app]
     local timers          = {}
     
@@ -200,7 +208,7 @@ createClosures = function(app)
             assert(type(func) == "function", "Timer object or function expected")
             timer = Timer(func, ...)
         end
-        local now  = world:getTime()
+        local now  = driver:getTime()
         local time = now + seconds
         timer.time = time
         for i = 1, n do
@@ -208,14 +216,14 @@ createClosures = function(app)
                 insert(timers, i, timer)
                 local t = timers[1].time - now
                 t = (t >= 0) and t or 0
-                world:setNextProcessTime(t)
+                driver:setNextProcessTime(t)
                 return timer
             end
         end
         timers[n + 1] = timer
         local t = timers[1].time - now
         t = (t >= 0) and t or 0
-        world:setNextProcessTime(t)
+        driver:setNextProcessTime(t)
         return timer
     end
 
@@ -224,7 +232,7 @@ createClosures = function(app)
     app._animations      = animations
 
     function app:getCurrentTime()
-        return world:getTime() 
+        return driver:getTime() 
     end
     
     local procssingDeferedChanges = false
@@ -236,7 +244,7 @@ createClosures = function(app)
         app._hasChanges = true
     end
     
-    local function _processAllChanges()
+    local function _processAllChanges(self)
         if app._hasChanges then
             local visibilityChanges = getVisibilityChanges[app]
             for widget, hidden in pairs(visibilityChanges) do
@@ -250,8 +258,7 @@ createClosures = function(app)
             end
             procssingDeferedChanges = false
             app._hasChanges = false
-            local windows = app.windows
-            for _, w in ipairs(windows) do
+            for _, w in ipairs(app) do
                 if w._hasChanges then
                     if w:_processChanges() then
                         postprocessNeeded[#postprocessNeeded + 1] = w
@@ -266,32 +273,41 @@ createClosures = function(app)
             postprocessNeeded[i] = nil
         end
     end
+    app._processAllChanges = _processAllChanges
     
-    function app:runEventLoop(timeout)
-        local endTime = timeout and (world:getTime() + timeout)
-        if not animationTimer.time then
-            _processAllChanges()
-        end
-        while world:hasViews() do
-            world:update(endTime and world:getTime() - endTime)
-            if not isClosed[app] and not animationTimer.time then
+    if driver.handleNextEvents then
+        function app:runEventLoop(timeout)
+            local endTime = timeout and (driver:getTime() + timeout)
+            if not animationTimer.time then
                 _processAllChanges()
             end
-            if endTime and world:getTime() >= endTime then
-                break
+            while app:hasWindows() do
+                driver:handleNextEvents(endTime and driver:getTime() - endTime)
+                if not isClosed[app] and not animationTimer.time then
+                    _processAllChanges()
+                end
+                if endTime and driver:getTime() >= endTime then
+                    break
+                end
             end
         end
-    end
-    
-    function app:update(timeout)
-        if not animationTimer.time then
-            _processAllChanges()
+    else
+        function app:runEventLoop(timeout)
+            error("method 'runEventLoop' not supported")
         end
-        return world:update(timeout)
     end
     
-    world:setProcessFunc(function()
-        local now = world:getTime()
+    if driver.handleNextEvents then
+        function app:update(timeout)
+            if not animationTimer.time then
+                _processAllChanges()
+            end
+            return driver:handleNextEvents(timeout)
+        end
+    end
+    
+    driver:setProcessFunc(function()
+        local now = driver:getTime()
         local closed = isClosed[app]
         while not closed do
             local timer = timers[1]
@@ -311,7 +327,7 @@ createClosures = function(app)
             local t = timer.time - now
             t = (t >= 0) and t or 0
             if not closed then
-                world:setNextProcessTime(t)
+                driver:setNextProcessTime(t)
             end
         end
         if not closed and not animationTimer.time then

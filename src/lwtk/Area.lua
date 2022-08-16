@@ -35,9 +35,16 @@ end
 
 function Area:addRect(x, y, w, h)
     if w > 0 and h > 0 then
-        for _, x2, y2, w2, h2 in iterator, self, 0 do
+        for i, x2, y2, w2, h2 in iterator, self, 0 do
             if doesRectContain(x2, y2, w2, h2, x, y, w, h) then
                 return
+            elseif doesRectContain(x, y, w, h, x2, y2, w2, h2) then
+                local i0 = (i-1) * 4
+                rawset(self, i0 + 1, x)
+                rawset(self, i0 + 2, y)
+                rawset(self, i0 + 3, w)
+                rawset(self, i0 + 4, h)
+                return 
             end
         end
         local count = self.count

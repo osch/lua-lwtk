@@ -75,9 +75,7 @@ function MyBox:onDraw(ctx)
         --print(self.id, "color", c, self.state.hover)
         --print(self.id, "draw", self.x, self.y, self.w, self.h, c)
     end
-    ctx:set_source_rgb(c:toRGB())
-    ctx:rectangle(0, 0, self.w, self.h)
-    ctx:fill()
+    ctx:fillRect(c, 0, 0, self.w, self.h)
 end
 
 MyGroup.setColor = MyBox.setColor

@@ -1,8 +1,7 @@
-local lpugl  = require"lpugl"
 local lwtk   = require"lwtk"
 local remove = table.remove
 
-local MOD_ALT               = lpugl.MOD_ALT
+local MOD_ALT               = lwtk.MOD_ALT
 local call                  = lwtk.call
 local getFocusableChildren  = lwtk.get.focusableChildren
 local getChildLookup        = lwtk.get.childLookup
@@ -502,17 +501,17 @@ local function handleHotkey(self, key)
 end
 
 
-function FocusHandler:onKeyDown(key, modifier, ...)
+function FocusHandler:onKeyDown(key, modifier, keyText, hotKeyName)
     local focusedChild = getFocusedChild[self]
     local handled 
     if focusedChild then
         local onKeyDown = focusedChild.onKeyDown 
         if onKeyDown then
-            handled = onKeyDown(focusedChild, key, modifier, ...)
+            handled = onKeyDown(focusedChild, key, modifier, keyText)
         end
     end
-    if not handled and modifier == 0 then
-        handled = handleHotkey(self, key)
+    if not handled and modifier == 0 and hotKeyName then
+        handled = handleHotkey(self, hotKeyName)
     end
     return handled
 end

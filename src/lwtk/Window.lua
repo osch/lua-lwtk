@@ -1,9 +1,9 @@
 local lwtk = require"lwtk"
 
-local Area        = lwtk.Area
+local floor = math.floor
 
+local Area            = lwtk.Area
 local ChildLookup     = lwtk.ChildLookup
-local fillRect        = lwtk.draw.fillRect
 local FocusHandler    = lwtk.FocusHandler
 local getFocusHandler = lwtk.get.focusHandler
 local getFocusedChild = lwtk.get.focusedChild
@@ -11,8 +11,8 @@ local getMeasures     = lwtk.layout.getMeasures
 local callRelayout    = lwtk.layout.callRelayout
 local setOuterMargins = lwtk.layout.setOuterMargins
 
-local Super        = lwtk.MouseDispatcher(lwtk.KeyHandler(lwtk.Styleable(lwtk.Object)))
-local Window       = lwtk.newClass("lwtk.Window", Super)
+local Super  = lwtk.MouseDispatcher(lwtk.KeyHandler(lwtk.Styleable(lwtk.Object)))
+local Window = lwtk.newClass("lwtk.Window", Super)
 
 Window.triggerLayout = lwtk.Component.triggerLayout
 Window.triggerRedraw = lwtk.Component.triggerRedraw
@@ -38,6 +38,7 @@ function Window:new(app, initParams)
     getApp[self]  = app
     getRoot[self] = self
     getFontInfos[self] = getFontInfos[app]
+    self.visible = false
     self.x = 0
     self.y = 0
     self.w = 0
@@ -57,6 +58,7 @@ function Window:new(app, initParams)
     self.initParams = {
         title          = extract(initParams, "title"),
         parent         = extract(initParams, "parent"),
+        frame          = extract(initParams, "frame"),
         size           = extract(initParams, "size"),
         minSize        = extract(initParams, "minSize"),
         maxSize        = extract(initParams, "maxSize"),
@@ -80,7 +82,10 @@ function Window:new(app, initParams)
     end
 end
 
+local adjustMinMaxSize
+
 local function realize(self)
+    adjustMinMaxSize(self)
     local initParams = extract(self, "initParams")
     local app = getApp[self]
     local color = self.color
@@ -92,10 +97,10 @@ local function realize(self)
               + math.floor(color.g * 0xff) * 0x100
               + math.floor(color.b * 0xff)
     end
-    self.view = app.world:newView {
+    self.driver = app.driver
+    local viewInitParams = {
         title           = initParams.title,
         parent          = initParams.parent,
-        size            = initParams.size,
         minSize         = initParams.minSize,
         maxSize         = initParams.maxSize,
         resizable       = true, 
@@ -103,8 +108,18 @@ local function realize(self)
         eventFunc       = {app._eventFunc, self},
         backgroundColor = color
     }
+    if initParams.frame then
+        viewInitParams.frame = initParams.frame
+    else
+        viewInitParams.size = initParams.size
+    end
+    self.view = app.driver:newView(self, viewInitParams)
+    local minSize = initParams.minSize
 end
 
+function Window:setOnSizeRequest(onSizeRequest)
+    self.onSizeRequest = onSizeRequest
+end
 
 function Window:setOnClose(onClose)
     self.onClose = onClose
@@ -156,15 +171,18 @@ local function getChildSizes(self, child)
     end
 end
 
-local function getMinMaxSizes(self, child)
+local function getMinBestMaxSizes(self, child)
 
-    local minW, minH, _, _, maxW, maxH,
+    local minW, minH, bestW, bestH, maxW, maxH,
           childTop, childRight, childBottom, childLeft = getChildSizes(self, child)
 
     if minW then          
         minW  = childLeft + minW  + childRight  
         minH  = childTop  + minH  + childBottom 
     
+        bestW  = childLeft + bestW  + childRight  
+        bestH  = childTop  + bestH  + childBottom 
+        
         if maxW > 0 then
             maxW = childLeft  + maxW + childRight 
         end
@@ -172,14 +190,14 @@ local function getMinMaxSizes(self, child)
             maxH = childTop   + maxH + childBottom
         end
     end
-    return minW, minH, maxW, maxH
+    return minW, minH, bestW, bestH, maxW, maxH
 end
 
-local function adjustMinMaxSize(self, forceMaxSize)
-    local minW, minH, maxW, maxH = 0, 0, 0, 0
+adjustMinMaxSize = function(self, forceMaxSize)
+    local minW, minH, bestW, bestH, maxW, maxH = 0, 0, 0, 0, 0, 0
     for i = 1, #self do
         local child = self[i]
-        local mw, mh, MW, MH = getMinMaxSizes(self, child)
+        local mw, mh, bw, bh, MW, MH = getMinBestMaxSizes(self, child)
         if mw then
             if mw > minW then minW = mw end
             if mh > minH then minH = mh end
@@ -193,9 +211,11 @@ local function adjustMinMaxSize(self, forceMaxSize)
             else
                 maxH = -1
             end
+            if child.visible then
+                bestW, bestH = bw, bh
+            end
         end
     end
-    self:setMinSize(minW, minH)
 
     if    (self.maxW and self.maxW >= 0 and minW >= self.maxW)
        or (self.maxH and self.maxH >= 0 and minH >= self.maxH)
@@ -203,8 +223,23 @@ local function adjustMinMaxSize(self, forceMaxSize)
         forceMaxSize = true
     end
     if forceMaxSize or not self.maxSizeFixed then
-        self:setMaxSize(maxW, maxH)
         self.maxW, self.maxH = maxW, maxH
+    end
+    if bestW < minW then
+        bestW = minW
+    end
+    if bestH < minH then
+        bestH = minH
+    end
+    local onSizeRequest = self.onSizeRequest
+    if onSizeRequest then
+        onSizeRequest(self, minW, minH, 
+                            bestW, bestH, 
+                            self.maxW, self.maxH)
+    else
+        self:setMinSize(minW, minH)
+        self:setSize(bestW, bestH)
+        self:setMaxSize(maxW, maxH)
     end
 end
 
@@ -220,11 +255,6 @@ function Window:addChild(child)
     if child.getMeasures then
         minW, minH, bestW, bestH, maxW, maxH, 
           childTop, childRight, childBottom, childLeft = handleChildSizes(child, getMeasures(child))
-        if bestW > 0 and bestH > 0 then
-            if child.visible then
-                self:setSize(bestW + childLeft + childRight, bestH + childTop + childBottom)
-            end
-        end
     end
     if self.view and self:isVisible() then
         adjustMinMaxSize(self)
@@ -240,11 +270,31 @@ function Window:addChild(child)
     return child
 end
 
+function Window:setFrame(x, y, w, h)
+    if not y then
+        y = x[2]
+        w = x[3]
+        h = x[4]
+        x = x[1]
+    end
+    x = floor(x + 0.5)
+    y = floor(y + 0.5)
+    w = floor(w + 0.5)
+    h = floor(h + 0.5)
+    if self.view then
+        self.view:setFrame(x, y, w, h)
+    else
+        self.initParams.frame = { x, y, w, h }
+    end
+end
+
 function Window:setSize(w, h)
     if not h then
         h = w[2]
         w = w[1]
     end
+    w = floor(w + 0.5)
+    h = floor(h + 0.5)
     if self.view then
         self.view:setSize(w, h)
     else
@@ -270,6 +320,10 @@ function Window:setMinSize(w, h)
     end
     if self.view then
         self.view:setMinSize(w, h)
+        local onMinSizeChanged = self.onMinSizeChanged
+        if onMinSizeChanged then
+            onMinSizeChanged(self, w, h)
+        end
     else
         self.initParams.minSize = { w, h }
     end
@@ -291,6 +345,7 @@ function Window:getNativeHandle()
     if not self.view then
         realize(self)
     end
+    assert(self.view.getNativeHandle, "native handle not supported")
     return self.view:getNativeHandle()
 end
 
@@ -332,11 +387,13 @@ function Window:show()
     if not self.view then
         realize(self)
     end
+    self.visible = true
     self.view:show()
 end
 
 function Window:hide()
     if self.view then
+        self.visible = false
         self.view:hide()
     end
 end
@@ -382,27 +439,26 @@ end
 
 function Window:_handleExpose(x, y, w, h, count)
     if self._grabFocus then
-        self.view:grabFocus()
+        self.driver:grabFocus(self)
         self._grabFocus = nil
     end
     self.exposedArea:addRect(x, y, w, h)
     if count == 0 then
+        local ctx = self.driver:getDrawContext(self.view)
         self.fullRedisplayOutstanding = false
-        local ctx = self.view:getDrawContext()
         local color = self.color
         if color == true then
             color = self:getStyleParam("BackgroundColor")
         end
         if color and self.w then
-            fillRect(ctx, color, 0, 0, self.w, self.h)
+            ctx:fillRect(color, 0, 0, self.w, self.h)
         end
         for i = 1, #self do
             local child = self[i]
             if not child._ignored then
                 ctx:save()
                 local cx, cy, cw, ch = child.x, child.y, child.w, child.h
-                ctx:rectangle(cx, cy, cw, ch)
-                ctx:clip()
+                ctx:intersectClip(cx, cy, cw, ch)
                 ctx:translate(cx, cy)
                 child:_processDraw(ctx, cx, cy, cx, cy, cw, ch, self.exposedArea)
                 ctx:restore()
@@ -502,7 +558,7 @@ Window._handleClose = Window.requestClose
 
 function Window:requestFocus()
     if self.view and self.mapped then
-        self.view:grabFocus()
+        self.driver:grabFocus(self)
     else
         self._grabFocus = true
     end

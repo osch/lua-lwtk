@@ -1,6 +1,10 @@
 local lwtk = {}
 
-lwtk.platform = require("lpugl").platform
+lwtk.MOD_SHIFT =  1
+lwtk.MOD_CTRL  =  2
+lwtk.MOD_ALT   =  4
+lwtk.MOD_SUPER =  8
+lwtk.MOD_ALTGR = 16
 
 setmetatable(lwtk, {
     __index = function(t,k)
