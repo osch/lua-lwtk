@@ -14,7 +14,7 @@ description = {
 dependencies = {
     "lua >= 5.1, <= 5.4",
     "compat53",
-    "luautf8",
+    "luautf8 >= 0.1.4",
     "lpugl_cairo"
 }
 build = {
