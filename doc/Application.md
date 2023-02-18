@@ -17,7 +17,7 @@ TODO
 ##   Application Methods
 <!-- ---------------------------------------------------------------------------------------- -->
 
-* <a id="Application_runEventLoop">**`         Application:runEventLoop(timeout)
+* <a id="Application_runEventLoop">**`Application:runEventLoop(timeout)
   `**</a>
 
   Update by processing events from the window system.
@@ -32,7 +32,7 @@ TODO
   
 <!-- ---------------------------------------------------------------------------------------- -->
 
-* <a id="Application_update">**`               Application:update(timeout)
+* <a id="Application_update">**`Application:update(timeout)
   `**</a>
 
   Update by processing events from the window system.

@@ -1,6 +1,5 @@
 local lwtk = require"lwtk"
 
-local unpack = unpack or table.unpack
 local getApp = lwtk.get.app
 
 local Super = lwtk.MouseDispatcher(lwtk.Application)
@@ -38,7 +37,7 @@ local keyNameMap =
     kpenter     = "KP_Enter",
     ["kp+"]     = "KP_Add",
     ["kp-"]     = "KP_Subtract",
-    ["kp7"]     = "KP_Divide",
+    ["kp/"]     = "KP_Divide",
     ["kp,"]     = "KP_Separator",
     ["kp."]     = "KP_Separator",
     

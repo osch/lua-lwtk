@@ -12,5 +12,6 @@ ignore = {
         "213", -- unused loop variable
         "212", -- unused argument
 }
+globals = { "love" }
 
 

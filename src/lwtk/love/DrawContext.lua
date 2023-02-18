@@ -1,7 +1,5 @@
 local lwtk = require"lwtk"
 
-local floor = math.floor
-
 local Super = lwtk.love.LayoutContext
 local DrawContext = lwtk.newClass("lwtk.love.DrawContext", Super)
 
@@ -89,7 +87,6 @@ function DrawContext:translate(x, y)
 end
 
 function DrawContext:drawBorder(color, borderThickness, x, y, w, h)
-    local ctx = self.ctx
     local d = borderThickness / 2
     self:setColor(color)
     love.graphics.setLineWidth(borderThickness-0.5)

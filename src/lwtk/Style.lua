@@ -110,7 +110,7 @@ function Style:setRules(rules)
     local hasLocal = false
     for k, v in pairs(rules) do
         if not ruleList[k] and k ~= "types" and k ~= "scaleFactor" then
-            localParams[k] = v
+            localParams[lower(k)] = v
             hasLocal = true
         end
     end
@@ -140,7 +140,7 @@ function Style:addRules(rules)
     end
     local localParams
     for k, v in pairs(rules) do
-        if not ruleList[k] and k ~= "types" and k ~= "scaleFactor" then
+        if not (type(k) == "number" and ruleList[n + k]) and k ~= "types" and k ~= "scaleFactor" then
             if not localParams then
                 localParams = self.localParams
                 if not localParams then
@@ -148,7 +148,7 @@ function Style:addRules(rules)
                     self.localParams = localParams
                 end
             end
-            localParams[k] = v
+            localParams[lower(k)] = v
         end
     end
     clearCache(self)
@@ -195,7 +195,7 @@ function Style:isScalable(parName)
     end
 end
 
-local function _getStyleParam(self, selector, parName, classSelectorPath, stateSelectorPath, localStyle, ctxRules)
+local function _getStyleParam3(self, selector, parName, classSelectorPath, stateSelectorPath, localStyle, ctxRules, localParams)
     local typeRule
     local context
     local function evalRule(rule)
@@ -218,7 +218,7 @@ local function _getStyleParam(self, selector, parName, classSelectorPath, stateS
                         end
                     end
                     cr[rule] = true
-                    context = StyleRuleContext(cr, localStyle, classSelectorPath, stateSelectorPath)
+                    context = StyleRuleContext(cr, localStyle, classSelectorPath, stateSelectorPath, localParams)
                 end
                 param = param(context)
             end
@@ -240,23 +240,24 @@ local function _getStyleParam(self, selector, parName, classSelectorPath, stateS
         local found, rslt = evalRule(rule)
         if found then
             --print(">>>>>>>>>2", selector, typeRule[#typeRule]) 
-            return rslt, typeRule
+            return rslt, typeRule, (context and context.localInvolved)
         end
     end
     local parent = self.parent
     if parent then
-        return _getStyleParam(parent, selector, parName, classSelectorPath, stateSelectorPath, localStyle, ctxRules)
+        return _getStyleParam3(parent, selector, parName, classSelectorPath, stateSelectorPath, localStyle, ctxRules, localParams)
     end
 end
 
 function Style:_getStyleParam2(parName, classSelectorPath, stateSelectorPath, ctxRules)
     local selector = lower(parName).."@"..classSelectorPath..":"..lower(stateSelectorPath)
-    return _getStyleParam(self, selector, parName, classSelectorPath, stateSelectorPath, self, ctxRules)
+    return _getStyleParam3(self, selector, parName, classSelectorPath, stateSelectorPath, self, ctxRules)
 end
 
 function Style:_getStyleParam(parName, classSelectorPath, stateSelectorPath, considerLocal)
     local cache = self.cache
-    local selector = lower(parName).."@"..classSelectorPath..":"..lower(stateSelectorPath)
+    local lowerParName = lower(parName)
+    local selector = lowerParName.."@"..classSelectorPath..":"..lower(stateSelectorPath)
     local cached = cache[selector]
     if cached ~= nil then
         if cached then
@@ -264,12 +265,13 @@ function Style:_getStyleParam(parName, classSelectorPath, stateSelectorPath, con
         end
     else
         local rslt, typeRule
-        local isLocal = false
+        local localInvolved = false
         
-        if considerLocal and self.localParams then
-            rslt = self.localParams[parName]
+        local localParams = considerLocal and self.localParams
+        if localParams then
+            rslt = localParams[lowerParName]
             if rslt then
-                isLocal = true
+                localInvolved = true
                 typeRule = findTypeRule(self, parName)
                 if not typeRule then
                     errorf("Cannot deduce type for style parameter name %q", parName)
@@ -277,7 +279,7 @@ function Style:_getStyleParam(parName, classSelectorPath, stateSelectorPath, con
             end
         end
         if not rslt then
-            rslt, typeRule = _getStyleParam(self, selector, parName, classSelectorPath, stateSelectorPath, self, nil)
+            rslt, typeRule, localInvolved = _getStyleParam3(self, selector, parName, classSelectorPath, stateSelectorPath, self, nil, localParams)
         end
         
         if rslt then
@@ -289,12 +291,12 @@ function Style:_getStyleParam(parName, classSelectorPath, stateSelectorPath, con
                     rslt = 1
                 end
             end
-            if not isLocal then
+            if not localInvolved then
                 cache[selector] = rslt
             end
             return rslt
         else
-            if not isLocal then
+            if not localInvolved then
                 cache[selector] = false
             end
         end

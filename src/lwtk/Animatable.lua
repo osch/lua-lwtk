@@ -291,6 +291,13 @@ function Animatable:getStyleParam(paramName)
     return value
 end
 
+function Animatable:getMandatoryStyleParam(paramName)
+    local p = self:getStyleParam(paramName)
+    if not p then
+        lwtk.errorf("Missing StyleParam %q", paramName)
+    end
+    return p
+end
 
 function Animatable:updateAnimation()
     if self._animationUpdated then

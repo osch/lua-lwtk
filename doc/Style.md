@@ -575,12 +575,14 @@ local g1 = lwtk.Group {
 local win = app:newWindow { g1 }
 
 assert(g1:getStyleParam("FooSeconds")  == 23) -- from group
+assert(g1:getStyleParam("xxxSeconds")  == 33) -- from group
 
 assert(w1a:getStyleParam("FooColumns") == 15)  -- from app
 assert(w1a:getStyleParam("FooSeconds") == 33)  -- from group
 
 assert(w1b:getStyleParam("FooColumns") == 15)  -- from app
 assert(w1b:getStyleParam("FooSeconds") == 22)  -- from widget
+assert(w1b:getStyleParam("xxxSeconds") == 33)  -- from group
 ```
 
 TODO

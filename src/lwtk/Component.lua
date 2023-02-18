@@ -394,6 +394,10 @@ function Component:getStyleParam(paramName)
     return getParent[self]:getStyleParam(paramName)
 end
 
+function Component:getMandatoryStyleParam(paramName)
+    return getParent[self]:getMandatoryStyleParam(paramName)
+end
+
 function Component:_processDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
     local onDraw = self.onDraw
     if onDraw then

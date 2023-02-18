@@ -57,17 +57,7 @@ function Object.newSubClass(className, superClass)
 end
 
 
-function Object:is(T)
-  local mt = getmetatable(self)
-  while mt do
-    if mt == T then
-      return true
-    end
-    mt = getSuperClass[mt]
-  end
-  return false
-end
-
+Object.isInstanceOf = lwtk.isInstanceOf
 
 function Object:setAttributes(attr)
     if attr ~= nil then

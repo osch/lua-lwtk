@@ -12,6 +12,7 @@ local getKeyBinding        = lwtk.get.keyBinding
 local getFontInfos         = lwtk.get.fontInfos
 local getVisibilityChanges = lwtk.get.visibilityChanges
 local getDeferredChanges   = lwtk.get.deferredChanges
+local isInstanceOf         = lwtk.isInstanceOf
 
 local isClosed        = setmetatable({}, { __mode = "k" })
 local createClosures
@@ -21,7 +22,7 @@ function Application:new(arg1, arg2)
     local initParams
     if type(arg1) == "string" then
         appName = arg1
-        if lwtk.Object.is(arg2, lwtk.Style) then
+        if isInstanceOf(arg2, lwtk.Style) then
             initParams =  { style = arg2 }
         else
             initParams = arg2 or {}
@@ -40,7 +41,7 @@ function Application:new(arg1, arg2)
     local style = initParams.style
     if style then
         initParams.style = nil
-        if lwtk.Object.is(style, lwtk.Style) then
+        if isInstanceOf(style, lwtk.Style) then
             style:setScaleFactor((style.scaleFactor or 1) * self.driver:getScreenScale())
         else
             style.scaleFactor = (style.scaleFactor or 1) * self.driver:getScreenScale()
@@ -127,7 +128,7 @@ function Application:setStyle(style)
     if getApp[style] then
         error("Style was alread added to app")
     end
-    if lwtk.Object.is(style, lwtk.Style) then
+    if isInstanceOf(style, lwtk.Style) then
         style:setScaleFactor(style.scaleFactor * self.driver:getScreenScale())
     else
         style = lwtk.Style(style)

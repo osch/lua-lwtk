@@ -162,7 +162,7 @@ function MouseDispatcher:_processMouseDown(mx, my, button, modState)
     local bChild = self.mouseButtonChild
     if bChild then
         self.mouseChildButtons[button] = true
-        local received, handled = false, false
+        local received, handled = false, false -- luacheck: ignore 231/received 311/handled
         if self ~= bChild then
             received, handled = bChild:_processMouseDown(mx - bChild.x, my - bChild.y,
                                                          button, modState)
@@ -177,7 +177,7 @@ function MouseDispatcher:_processMouseDown(mx, my, button, modState)
             self.mouseButtonChild = uChild
             self.mouseChildButtons[button] = true
             call("onMouseDown", self, mx, my, button, modState)
-            local received, handled = uChild:_processMouseDown(mx - x, my - y, button, modState)
+            local received, handled = uChild:_processMouseDown(mx - x, my - y, button, modState) -- luacheck: ignore 211/received
             return true, handled
         else
             self.mouseButtonChild = self

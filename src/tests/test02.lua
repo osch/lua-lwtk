@@ -30,7 +30,7 @@ function Box:getMeasures()
 end
 
 local function update(app)
-    while app:update(0.100) do end
+    while app:update(0.200) do end
     print("========== updated =======")
 end
 
@@ -378,6 +378,80 @@ do
     assertEq(g:childById("g1"):getStyleParam("BarWidth"), 2 * 4 * 11)
     assertEq(g:childById("b1"):getStyleParam("FooWidth"), 2 * 4 *  6)
     assertEq(g:childById("b1"):getStyleParam("BarWidth"), 2 * 4 * 11)
+end
+PRINT("----------------------------------------------------------------------------------")
+do
+    local g = lwtk.Group {
+        style = {
+            { "FooWidth",  5 },
+            FooWidth = 10
+        },
+        lwtk.Group {
+            id = "g1",
+        },
+    }
+    assertEq(g:getStyleParam("FooWidth"), 10)
+    assertEq(g:childById("g1"):getStyleParam("FooWidth"), 5)
+    assertEq(lwtk.get.style[g].localParams.foowidth, 10)
+    assertEq(lwtk.get.style[g].cache["foowidth@<lwtk.widget><lwtk.group>:"], 5)
+end
+PRINT("----------------------------------------------------------------------------------")
+do
+    local g = lwtk.Group {
+        style = {
+            { "FooWidth",  5 },
+            { "xWidth",  lwtk.StyleRef.get("FooWidth") },
+            { "yWidth",  lwtk.StyleRef.scale(2, "FooWidth") },
+            FooWidth = 3
+        },
+        lwtk.Group {
+            id = "g1",
+        },
+        lwtk.Group {
+            id = "g2",
+            style = {
+                FooWidth = 1000
+            }
+        },
+    }
+    assertEq(g:getStyleParam("FooWidth"), 3)
+    assertEq(g:getStyleParam("xWidth"),   3)
+    assertEq(g:getStyleParam("yWidth"),   6)
+    assertEq(g:childById("g1"):getStyleParam("FooWidth"), 5)
+    assertEq(g:childById("g1"):getStyleParam("xWidth"), 5)
+    assertEq(g:childById("g1"):getStyleParam("yWidth"), 10)
+    assertEq(g:childById("g2"):getStyleParam("FooWidth"), 1000)
+    assertEq(g:childById("g2"):getStyleParam("xWidth"), 1000)
+    assertEq(g:childById("g2"):getStyleParam("yWidth"), 2000)
+end
+PRINT("----------------------------------------------------------------------------------")
+do
+    local g = lwtk.Group {
+        style = {
+            { "FooWidth",  5 },
+            { "xWidth",  lwtk.StyleRef.get("FooWidth") },
+            { "yWidth",  lwtk.StyleRef.scale(2, lwtk.StyleRef.get("FooWidth")) },
+            FooWidth = 3
+        },
+        lwtk.Group {
+            id = "g1",
+        },
+        lwtk.Group {
+            id = "g2",
+            style = {
+                FooWidth = 1000
+            }
+        },
+    }
+    assertEq(g:getStyleParam("FooWidth"), 3)
+    assertEq(g:getStyleParam("xWidth"),   3)
+    assertEq(g:getStyleParam("yWidth"),   6)
+    assertEq(g:childById("g1"):getStyleParam("FooWidth"), 5)
+    assertEq(g:childById("g1"):getStyleParam("xWidth"), 5)
+    assertEq(g:childById("g1"):getStyleParam("yWidth"), 10)
+    assertEq(g:childById("g2"):getStyleParam("FooWidth"), 1000)
+    assertEq(g:childById("g2"):getStyleParam("xWidth"), 1000)
+    assertEq(g:childById("g2"):getStyleParam("yWidth"), 2000)
 end
 PRINT("----------------------------------------------------------------------------------")
 print("OK.")

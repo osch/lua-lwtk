@@ -10,22 +10,24 @@ local Mixin = lwtk.Mixin
 local function newMixin(name, ...)
     assert(type(name) == "string", "arg 1 must be string")
     local mixin = { name = name }
-    for i = 1, select("#", ...) do
+    local nargs = select("#", ...)
+    for i = 1, nargs do
         local arg = select(i, ...)
         if type(arg) ~= "lwtk.Mixin" then
             break
         end
         mixin[i] = arg
     end
-    mixin.cargs = { select(#mixin + 1, ...) }
+    mixin.cargs = { nargs = nargs - #mixin, 
+                    select(#mixin + 1, ...) }
     local self = setmetatable({}, Mixin)
     mixins[self] = mixin
     caches[self] = setmetatable({}, { __mode = "v" })
     return self
 end
 
-function Mixin.__index:is(mt)
-    return lwtk.Object.is(self, mt)
+function Mixin.__index:isInstanceOf(mt)
+    return lwtk.isInstanceOf(self, mt)
 end
 
 function Mixin:__tostring()
@@ -41,7 +43,8 @@ function Mixin:__call(baseClass, ...)
         for i = #mixin, 1, -1 do
             baseClass = mixin[i](baseClass)
         end
-        class = baseClass.newSubClass(mixin.name, baseClass, unpack(mixin.cargs))
+        local cargs = mixin.cargs
+        class = baseClass.newSubClass(mixin.name, baseClass, unpack(cargs, 1, cargs.nargs))
         for k, v in pairs(self) do
             if k ~= "initClass" and k ~= "extra" then
                 class[k] = v

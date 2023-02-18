@@ -9,6 +9,7 @@ local getParent      = lwtk.get.parent
 local getStyle       = lwtk.get.style
 local getStylePath   = lwtk.get.stylePath
 local getSuperClass  = lwtk.get.superClass
+local isInstanceOf   = lwtk.isInstanceOf
 
 local getStateStylePath = setmetatable({}, { __mode = "k" })
 
@@ -74,7 +75,7 @@ end
 
 function Styleable:setStyle(style)
     self:triggerLayout()
-    if not lwtk.Object.is(style, lwtk.Style) then
+    if not isInstanceOf(style, lwtk.Style) then
         style = lwtk.Style(style)
     end
     if self._hasOwnStyle then

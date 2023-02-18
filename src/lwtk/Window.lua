@@ -114,7 +114,6 @@ local function realize(self)
         viewInitParams.size = initParams.size
     end
     self.view = app.driver:newView(self, viewInitParams)
-    local minSize = initParams.minSize
 end
 
 function Window:setOnSizeRequest(onSizeRequest)
@@ -250,7 +249,7 @@ function Window:addChild(child)
     getFocusHandler[child] = focusHandler
     child:_setParent(self)
     self:_clearChildLookup()
-    local minW, minH, bestW, bestH, maxW, maxH,        -- luacheck: ignore 231/minH 231/maxW 231/maxH
+    local minW, minH, bestW, bestH, maxW, maxH,        -- luacheck: ignore 231/minH 231/bestW 231/bestH 231/maxW 231/maxH
           childTop, childRight, childBottom, childLeft
     if child.getMeasures then
         minW, minH, bestW, bestH, maxW, maxH, 

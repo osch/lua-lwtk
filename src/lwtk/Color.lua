@@ -2,11 +2,11 @@ local format = string.format
 local floor  = math.floor
 
 local lwtk   = require"lwtk"
+local vivid  = lwtk.vivid
 
-local vivid    = lwtk.vivid
-
-local Object = lwtk.Object
 local Color  = lwtk.newClass("lwtk.Color")
+
+local isInstanceOf = lwtk.isInstanceOf
 
 local hexCharPat = "[0-9A-Fa-f]"
 local hexBytePat = "("..hexCharPat..hexCharPat..")"
@@ -102,7 +102,7 @@ function Color:__tostring()
 end
 
 function Color.__mul(factor, color) 
-    assert(Object.is(color, Color))
+    assert(isInstanceOf(color, Color))
     assert(type(factor) == "number" and 0 <= factor and factor <= 1)
     local a = color.a or 1
     return Color(factor * color.r,
@@ -112,8 +112,8 @@ function Color.__mul(factor, color)
 end
 
 function Color.__add(color1, color2) 
-    assert(Object.is(color1, Color))
-    assert(Object.is(color2, Color))
+    assert(isInstanceOf(color1, Color))
+    assert(isInstanceOf(color2, Color))
     local a1, a2 = color1.a or 1, color2.a or 1
     return Color(color1.r + color2.r,
                  color1.g + color2.g,

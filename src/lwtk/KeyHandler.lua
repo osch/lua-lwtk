@@ -133,7 +133,7 @@ function KeyHandler:_handleKeyDown(keyName, keyState, keyText)
         keyName, keyState, keyText = interceptKeyDown(self, keyName, keyState, keyText)
     end
     local state = getState[self]
-    local keyName = toHotKeyChar(keyName) or keyName
+    keyName = toHotKeyChar(keyName) or keyName
     if keyName and isModifier[keyName] then
         state.mod = keyName
     else

@@ -92,6 +92,7 @@ build = {
         ["lwtk.internal.StyleRuleContext"] = "src/lwtk/internal/StyleRuleContext.lua",
         ["lwtk.internal.TypeRule"]         = "src/lwtk/internal/TypeRule.lua",
         ["lwtk.internal.utf8string"]       = "src/lwtk/internal/utf8string.lua",
+        ["lwtk.isInstanceOf"]              = "src/lwtk/isInstanceOf.lua",
         ["lwtk.layout"]                    = "src/lwtk/layout.lua",
         ["lwtk.lpugl"]                     = "src/lwtk/lpugl/init.lua",
         ["lwtk.lpugl.CairoDrawContext"]    = "src/lwtk/lpugl/CairoDrawContext.lua",

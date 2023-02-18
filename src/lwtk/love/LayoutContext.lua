@@ -36,12 +36,12 @@ function LayoutContext:getFontHeightMeasures()
 end
 
 function LayoutContext:getTextWidth(text)
-    local text = love.graphics.newText(self.font, text)
+    text = love.graphics.newText(self.font, text)
     return floor(text:getWidth() + 0.5)
 end
 
 function LayoutContext:getTextMeasures(text)
-    local text = love.graphics.newText(self.font, text)
+    text = love.graphics.newText(self.font, text)
     return text:getWidth(), text:getHeight()
 end
 
