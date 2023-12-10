@@ -9,8 +9,8 @@ local calculateTBMeasures = lwtk.internal.LayoutImpl.calculateTBMeasures
 local applyLRLayout       = lwtk.internal.LayoutImpl.applyLRLayout
 local applyTBLayout       = lwtk.internal.LayoutImpl.applyTBLayout
 
-local lr4Caches = setmetatable({}, { __mode = "k" })
-local tb4Caches = setmetatable({}, { __mode = "k" })
+local lr4Caches = lwtk.WeakKeysTable()
+local tb4Caches = lwtk.WeakKeysTable()
 
 -------------------------------------------------------------------------------------------------
 
@@ -72,13 +72,15 @@ end
 
 -------------------------------------------------------------------------------------------------
 
-function ColumnImpl.implementColumn(class, isRow)
+function ColumnImpl.implementColumn(isRow)
 
+    local impl = {}
+    
     local getChildLRMeasures = isRow and getChildLRMeasuresForRow 
                                       or getChildLRMeasuresForColumn
     local getChildTBMeasures = isRow and getChildTBMeasuresForRow
                                       or getChildTBMeasuresForColumn
-    function class:getMeasures()
+    function impl:getMeasures()
         local minWidth, bestWidth, maxWidth,
               leftMargin, rightMargin = calculateLRMeasures(self, getChildLRMeasures)
 
@@ -102,7 +104,7 @@ function ColumnImpl.implementColumn(class, isRow)
                topMargin, rightMargin, bottomMargin, leftMargin
     end
 
-    function class:onLayout(width, height, isLayoutTransition)
+    function impl:onLayout(width, height, isLayoutTransition)
         if not isLayoutTransition then
             local topMargin, rightMargin, bottomMargin, leftMargin = getOuterMargins(self)
             if isRow then
@@ -130,6 +132,8 @@ function ColumnImpl.implementColumn(class, isRow)
             end
         end
     end
+    
+    return impl
 end
 
 

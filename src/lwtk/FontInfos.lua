@@ -4,6 +4,11 @@ local FontInfo  = lwtk.FontInfo
 
 local FontInfos = lwtk.newClass("lwtk.FontInfos")
 
+FontInfos:declare(
+    "layoutContext",
+    "cache"
+)
+
 function FontInfos:new(layoutContext)
     self.layoutContext = layoutContext
     self.cache = {}

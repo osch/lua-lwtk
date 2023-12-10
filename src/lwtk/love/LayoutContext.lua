@@ -4,6 +4,13 @@ local floor = math.floor
 
 local LayoutContext = lwtk.newClass("lwtk.love.LayoutContext")
 
+LayoutContext:declare(
+    "fonts",
+    "font",
+    "fontHeight",
+    "fontAscent"
+)
+
 function LayoutContext:new()
     love.graphics.reset()
     self.fonts = {}

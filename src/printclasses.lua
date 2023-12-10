@@ -8,7 +8,7 @@ local format = string.format
 local lwtk   = require("lwtk")
 local lfs    = require("lfs")
 
-local getSuperClass = lwtk.getSuperClass
+lwtk.NDEBUG = true
 
 local moduleNames = {}
 
@@ -26,12 +26,6 @@ collect("lwtk/internal")
 collect("lwtk/lpugl")
 collect("lwtk/love")
 
-local function getFullPath(c)
-    local s = getSuperClass(c)
-    local p = s and getFullPath(s)..">" or ""
-    return p..c.__name:match("^lwtk%.(.*)$")
-end
-
 table.sort(moduleNames)
 
 local maxl = 0
@@ -46,7 +40,7 @@ for i = 1, #moduleNames do
         if #n > maxl then
             maxl = #n
         end
-        classpaths[#classpaths + 1] = getFullPath(m)
+        classpaths[#classpaths + 1] = m:getReverseClassPath():gsub("([/#])lwtk%.", "%1")
         stylepaths[#stylepaths + 1] = lwtk.get.stylePath[m]
     end
 end

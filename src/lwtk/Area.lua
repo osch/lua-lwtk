@@ -1,16 +1,35 @@
 local lwtk = require"lwtk"
 
 local Rect = lwtk.Rect
+
+
+--[[
+    A list of rectangle coordinates forming an area.
+]]
 local Area = lwtk.newClass("lwtk.Area")
 
 local rawget              = rawget
 local areRectsIntersected = Rect.areRectsIntersected
 local doesRectContain     = Rect.doesRectContain
 
+Area:declare(
+    "count" -- number of rectangles in the area
+)
+
+--[[
+    Creates an empty area object.
+]]
 function Area:new()
     self.count = 0
 end
 
+--[[
+    Obtain coordinates of the i-th rectangle from the area.
+       
+       * *i* - index of the rectangle, *1 <= i <= area.count*
+       
+    Returns *x, y, w, h* rectangle coordinates
+]]
 function Area:getRect(i)
     local i0 = (i - 1) * 4
     return rawget(self, i0 + 1), 
@@ -29,10 +48,22 @@ local function iterator(self, i)
     end
 end
 
+--[[
+    Iterate through all rectangle coordinates. 
+    
+    Returns an *iterator function*, *self* and *0*, so that the construction
+    ```lua
+        for i, x, y, w, h in area:iteration() do ... end
+    ```
+    will iterate over all rectangle indices and coordinates.
+]]
 function Area:iteration()
     return iterator, self, 0
 end
 
+--[[
+    Adds the rectangle coordinates to the area.
+]]
 function Area:addRect(x, y, w, h)
     if w > 0 and h > 0 then
         for i, x2, y2, w2, h2 in iterator, self, 0 do
@@ -57,6 +88,10 @@ function Area:addRect(x, y, w, h)
     end
 end
 
+--[[
+    Returns *true* if the given rectangle coordinates intersect
+    the area.
+]]
 function Area:intersects(x, y, w, h)
     for _, x2, y2, w2, h2 in iterator, self, 0 do
         if areRectsIntersected(x, y, w, h, x2, y2, w2, h2) then
@@ -66,6 +101,10 @@ function Area:intersects(x, y, w, h)
     return false
 end
 
+--[[
+    Returns *true* if the given rectangle coordinates are 
+    within the area.
+]]
 function Area:isWithin(x, y, w, h)
     for _, x2, y2, w2, h2 in iterator, self, 0 do
         if not doesRectContain(x, y, w, h, x2, y2, w2, h2) then
@@ -90,7 +129,10 @@ function Area:intersectsBorder(x, y, w, h, borderWidth)
     return false
 end
 
-
+--[[
+    Clears all rectangle coordinates. After this the
+    area does not contain any rectangle, i.e. *area.count == 0*. 
+]]
 function Area:clear()
     self.count = 0
 end

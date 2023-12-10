@@ -14,10 +14,16 @@ local getDefault            = lwtk.WeakKeysTable()
 local getHotkeys            = lwtk.WeakKeysTable()
 local registeredWidgets     = lwtk.WeakKeysTable()
 
-local Super        = lwtk.Actionable
+local Super        = lwtk.Actionable()
 local FocusHandler = lwtk.newClass("lwtk.FocusHandler", Super)
 
-function FocusHandler:new(baseWidget)
+FocusHandler:declare(
+    "baseWidget",
+    "_hasFocus",
+    "defaultPostponed"
+)
+
+function FocusHandler.override:new(baseWidget)
     Super.new(self)
     self.baseWidget = baseWidget
     getFocusableChildren[self] = {}
@@ -459,7 +465,7 @@ function FocusHandler:setFocusTo(newFocusChild)
     end
 end
 
-function FocusHandler:hasActionMethod(actionMethodName)
+function FocusHandler.override:hasActionMethod(actionMethodName)
     local focusedChild = getFocusedChild[self]
     if focusedChild then
         local childHasActionMethod = focusedChild.hasActionMethod
@@ -470,7 +476,7 @@ function FocusHandler:hasActionMethod(actionMethodName)
     return Super.hasActionMethod(self, actionMethodName)
 end
 
-function FocusHandler:invokeActionMethod(actionMethodName)
+function FocusHandler.override:invokeActionMethod(actionMethodName)
     local focusedChild = getFocusedChild[self]
     if focusedChild then
         local childInvokeActionMethod = focusedChild.invokeActionMethod

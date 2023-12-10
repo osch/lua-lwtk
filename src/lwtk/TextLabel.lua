@@ -6,7 +6,13 @@ local TextFragment    = lwtk.TextFragment
 local Super           = lwtk.Button
 local TextLabel       = lwtk.newClass("lwtk.TextLabel", Super)
 
-function TextLabel:new(initParams)
+TextLabel:declare(
+    "textFragment",
+    "text",
+    "input"
+)
+
+function TextLabel.override:new(initParams)
     Super.new(self)
     self.textFragment = self:addChild(TextFragment { considerHotkey = true })
     self:setInitParams(initParams)
@@ -23,14 +29,14 @@ function TextLabel:setInput(inputId)
     self.input = inputId
 end
 
-function TextLabel:onHotkeyEnabled(hotkey)
+function TextLabel.override:onHotkeyEnabled(hotkey)
     Super.onHotkeyEnabled(self, hotkey)
     if self.textFragment.hotkey == hotkey then
         self.textFragment:setShowHotkey(true)
     end
 end
 
-function TextLabel:onHotkeyDisabled(hotkey)
+function TextLabel.override:onHotkeyDisabled(hotkey)
     Super.onHotkeyDisabled(self, hotkey)
     if self.textFragment.hotkey == hotkey then
         self.textFragment:setShowHotkey(false)
@@ -46,13 +52,13 @@ function TextLabel:onHotkeyDown()
         end
     end
 end
-function TextLabel:onMouseDown(x, y, button, modState)
+function TextLabel.implement:onMouseDown(x, y, button, modState)
     if button == 1 then
         self:onHotkeyDown()
     end
 end
 
-function TextLabel:getMeasures()
+function TextLabel.implement:getMeasures()
     local addW =   (self:getStyleParam("LeftPadding") or 0)
                  + (self:getStyleParam("RightPadding") or 0)
                  + 2 * (self:getStyleParam("BorderPadding") or 0)
@@ -123,7 +129,7 @@ function TextLabel:getMeasures()
 end
 
 
-function TextLabel:onLayout(width, height)
+function TextLabel.override:onLayout(width, height)
     Super.onLayout(self, width, height)
     local iw, ih = self.textFragment:getSize()
     local tw, th, ascent = self.textFragment:getTextMeasures()

@@ -26,7 +26,7 @@ function Rect:toXYWH()
     return self.x, self.y, self.width, self.height
 end
 
-local function areRectsIntersected(x1, y1, w1, h1, x2, y2, w2, h2)
+function Rect.areRectsIntersected(x1, y1, w1, h1, x2, y2, w2, h2)
     if x1 >= x2 + w2 or x1 + w1 <= x2 then
         return false; -- one rectangle is on left side of other
     end
@@ -37,14 +37,14 @@ local function areRectsIntersected(x1, y1, w1, h1, x2, y2, w2, h2)
 
 end
 
-Rect.areRectsIntersected = areRectsIntersected
+local areRectsIntersected = Rect.areRectsIntersected
 
 function Rect:intersects(x, y, w, h)
     return areRectsIntersected(self.x, self.y, self.width, self.height,
                                     x,      y,      w,          h)
 end
 
-local function doesRectContain(x1, y1, w1, h1, x2, y2, w2, h2)
+function Rect.doesRectContain(x1, y1, w1, h1, x2, y2, w2, h2)
     local myX0, myY0 = x1, y1
     local myX1, myY1 = myX0 + w1, myY0 + h1
     
@@ -58,7 +58,7 @@ local function doesRectContain(x1, y1, w1, h1, x2, y2, w2, h2)
        and myY0 <  otherY1  and  otherY1 <= myY1
 end
 
-Rect.doesRectContain = doesRectContain
+local doesRectContain = Rect.doesRectContain
 
 function Rect:contains(x, y, w, h)
     return doesRectContain(self.x, self.y, self.width, self.height,
@@ -76,7 +76,7 @@ function Rect:__tostring()
     return format("lwtk.Rect(%d,%d,%d,%d)",  self:toXYWH())
 end
 
-local function intersectRects(x1, y1, w1, h1, x2, y2, w2, h2)
+function Rect.intersectRects(x1, y1, w1, h1, x2, y2, w2, h2)
     if areRectsIntersected(x1, y1, w1, h1, x2, y2, w2, h2) then
         local x = (x1 >= x2) and x1 or x2
         local y = (y1 >= y2) and y1 or y2
@@ -88,6 +88,5 @@ local function intersectRects(x1, y1, w1, h1, x2, y2, w2, h2)
     end
 end
 
-Rect.intersectRects = intersectRects
 
 return Rect

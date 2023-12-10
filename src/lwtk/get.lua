@@ -4,6 +4,8 @@ local WeakKeysTable = lwtk.WeakKeysTable
 
 local get = {}
 
+get.objectMeta         = WeakKeysTable()
+get.class              = WeakKeysTable()
 get.superClass         = WeakKeysTable()
 get.app                = WeakKeysTable()
 get.root               = WeakKeysTable()
@@ -13,9 +15,6 @@ get.focusHandler       = WeakKeysTable()
 get.parentFocusHandler = WeakKeysTable()
 get.focusedChild       = WeakKeysTable()
 
-get.wrapper            = WeakKeysTable()
-get.wrappedChild       = WeakKeysTable()
-get.wrappingParent     = WeakKeysTable()
 get.focusableChildren  = WeakKeysTable()
 get.actions            = WeakKeysTable()
 get.keyBinding         = WeakKeysTable()
@@ -24,5 +23,6 @@ get.fontInfos          = WeakKeysTable()
 get.childLookup        = WeakKeysTable()
 get.visibilityChanges  = WeakKeysTable()
 get.deferredChanges    = WeakKeysTable()
+get.mixinBase          = WeakKeysTable()
 
 return get

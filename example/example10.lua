@@ -8,6 +8,8 @@ local newClass    = lwtk.newClass
 
 local MyButton = newClass("MyButton", Widget)
 do
+    MyButton:declare("onClicked", "text")
+    
     function MyButton:setOnClicked(onClicked)
         self.onClicked = onClicked
     end
@@ -15,22 +17,22 @@ do
         self.text = text
         self:triggerRedraw()
     end
-    function MyButton:onMouseEnter(x, y)
+    function MyButton.implement:onMouseEnter(x, y)
         self:setState("hover", true)
     end
-    function MyButton:onMouseLeave(x, y)
+    function MyButton.implement:onMouseLeave(x, y)
         self:setState("hover", false)
     end
-    function MyButton:onMouseDown(x, y, button, modState)
+    function MyButton.implement:onMouseDown(x, y, button, modState)
         self:setState("pressed", true)
     end
-    function MyButton:onMouseUp(x, y, button, modState)
+    function MyButton.implement:onMouseUp(x, y, button, modState)
         self:setState("pressed", false)
         if self.state.hover and self.onClicked then
             self:onClicked()
         end
     end
-    function MyButton:onDraw(ctx)
+    function MyButton.implement:onDraw(ctx)
         local w, h = self:getSize()
         ctx:fillRect(self:getStyleParam("BackgroundColor"), 0, 0, w, h)
         ctx:setColor(self:getStyleParam("TextColor"):toRGBA())

@@ -98,7 +98,7 @@ end
 local module = {
 	dump    = string.dump,
 	byte    = string.byte,
-	code    = utf8.codepoint,
+--	code    = utf8.codepoint,
 	char    = utf8.char,
 	format  = string.format,
 	rep     = string.rep,

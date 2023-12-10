@@ -15,6 +15,12 @@ local extract = lwtk.extract
 
 local Driver = lwtk.newClass("lwtk.lpugl.Driver")
 
+Driver:declare(
+    "world",
+    "layoutContext",
+    "drawContext"
+)
+
 function Driver:new(initParams)
     self.world = extract(initParams, "world")
     if not self.world then

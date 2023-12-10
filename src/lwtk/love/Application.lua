@@ -1,77 +1,28 @@
 local lwtk = require"lwtk"
 
-local getApp = lwtk.get.app
+local getApp     = lwtk.get.app
+local keyNameMap = lwtk.love.keyNameMap
 
-local Super = lwtk.MouseDispatcher(lwtk.Application)
+local Super = lwtk.MouseDispatcher(lwtk.Node(lwtk.Application))
+
+--[[
+    Application implementation for the [LÖVE](https://love2d.org/) 2D game engine.
+    
+    Use lwtk.Application for runing standalone desktop applications.
+]]
 local Application = lwtk.newClass("lwtk.love.Application", Super)
 
-local keyNameMap = 
-{
-    space       = "Space",
-    up          = "Up",
-    down        = "Down",
-    right       = "Right",
-    left        = "Left",
-    home        = "Home",
-    ["end"]     = "End",
-    pageup      = "Page_Up",
-    pagedown    = "Page_Down",
-    insert      = "Insert",
-    backspace   = "Backspace",
-    tab         = "Tab",
-    clear       = "Clear",
-    ["return"]  = "Return",
-    delete      = "Delete",
-    escape      = "Escape",
-    
-    kp0         = "KP_0",
-    kp1         = "KP_1",
-    kp2         = "KP_2",
-    kp3         = "KP_3",
-    kp4         = "KP_4",
-    kp5         = "KP_5",
-    kp6         = "KP_6",
-    kp7         = "KP_7",
-    kp8         = "KP_8",
-    kp9         = "KP_9",
-    kpenter     = "KP_Enter",
-    ["kp+"]     = "KP_Add",
-    ["kp-"]     = "KP_Subtract",
-    ["kp/"]     = "KP_Divide",
-    ["kp,"]     = "KP_Separator",
-    ["kp."]     = "KP_Separator",
-    
-    f1          = "F1",
-    f2          = "F2",
-    f3          = "F3",
-    f4          = "F4",
-    f5          = "F5",
-    f6          = "F6",
-    f7          = "F7",
-    f8          = "F8",
-    f9          = "F9",
-    f10         = "F10",
-    f11         = "F11",
-    f12         = "F12",
-    f13         = "F13",
-    f14         = "F14",
-    f15         = "F15",
-    f16         = "F16",
-    f17         = "F17",
-    f18         = "F18",
+Application:declare(
+    "_implicitWindowFocus",
+    "_keyModState",
+    "modKeyToBit",
+    "mouseEntered",
+    "focusWindow",
+    "_handledKey"
+)
 
-    rshift      = "Shift_R",
-    lshift      = "Shift_L",
-    rctrl       = "Ctrl_R",
-    lctrl       = "Ctrl_L",
-    ralt        = "Alt_R",
-    lalt        = "Alt_L",
-    rgui        = "Super_R",
-    lgui        = "Super_L",
-    capslock    = "Caps_Lock",
-}
 
-function Application:new(initParams)
+function Application.override:new(initParams)
     if not initParams then
         initParams = {}
     end
@@ -98,7 +49,7 @@ end
 
 local setFocusWindow
 
-function Application:update()
+function Application.override:update()
     local driver = self.driver
     do
         local newWindows = driver.newWindows 

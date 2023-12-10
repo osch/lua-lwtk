@@ -11,45 +11,52 @@ local getStylePath   = lwtk.get.stylePath
 local getSuperClass  = lwtk.get.superClass
 local isInstanceOf   = lwtk.isInstanceOf
 
-local getStateStylePath = setmetatable({}, { __mode = "k" })
-
-local Styleable = lwtk.newMixin("lwtk.Styleable")
+local getStateStylePath = lwtk.WeakKeysTable()
 
 local NO_STYLE_SELECTOR = {}
-Styleable.NO_STYLE_SELECTOR = NO_STYLE_SELECTOR
 
 local function addToStyleSelectorClassPath(path, name)
     return (path or "").."<"..lower(name)..">"
 end
 
-function Styleable.initClass(Styleable, Super)  -- luacheck: ignore 431/Styleable
+local Styleable = lwtk.newMixin("lwtk.Styleable",
+    
+    function(Styleable, Super)
 
-    function Styleable.newSubClass(className, baseClass, ...)
-        local newClass = Super.newSubClass(className, baseClass, ...)
-        local path = getStylePath[getSuperClass[newClass]]
-        local addToStyleSelector = true
-        for i = 1, select("#", ...) do
-            if select(i, ...) == NO_STYLE_SELECTOR then
-                addToStyleSelector = false
-                break
+        Styleable:declare(
+            "_hasOwnStyle",
+            "state"
+        )
+
+        function Styleable.static.newSubClass(baseClass, className, ...)
+            local newClass = Super.newSubClass(baseClass, className, ...)
+            local path = getStylePath[getSuperClass[newClass]]
+            local addToStyleSelector = true
+            for i = 1, select("#", ...) do
+                if select(i, ...) == NO_STYLE_SELECTOR then
+                    addToStyleSelector = false
+                    break
+                end
             end
+            if addToStyleSelector then
+                path = addToStyleSelectorClassPath(path, className:match("^[^(]*"), ...)
+            end
+            getStylePath[newClass] = path
+            return newClass
         end
-        if addToStyleSelector then
-            path = addToStyleSelectorClassPath(path, className, ...)
+    
+        function Styleable.override:new(initParams)
+            local stylePath = getStylePath[self:getClass()]
+            if stylePath then
+                getStylePath[self] = stylePath
+                self.state = {}
+            end
+            Super.new(self, initParams)
         end
-        getStylePath[newClass] = path
-        return newClass
     end
+)
 
-    function Styleable:new(initParams)
-        local stylePath = getStylePath[getmetatable(self)]
-        if stylePath then
-            getStylePath[self] = stylePath
-            self.state = {}
-        end
-        Super.new(self, initParams)
-    end
-end
+Styleable.NO_STYLE_SELECTOR = NO_STYLE_SELECTOR
 
 function Styleable:setState(name, flag)
     flag = flag and true or false
@@ -58,7 +65,7 @@ function Styleable:setState(name, flag)
     getStateStylePath[state] = false
 end
 
-function Styleable:_setStyleFromParent(parentStyle)
+function Styleable.implement:_setStyleFromParent(parentStyle)
     self:triggerLayout()
     local style
     if self._hasOwnStyle then
@@ -68,8 +75,8 @@ function Styleable:_setStyleFromParent(parentStyle)
         style = parentStyle
         getStyle[self] = style
     end
-    for _, child in ipairs(self) do
-        call("_setStyleFromParent", child, style)
+    for i = 1, #self do
+        call("_setStyleFromParent", self[i], style)
     end
 end
 
@@ -86,7 +93,8 @@ function Styleable:setStyle(style)
         style:_setParentStyle(getStyle[self])
     end
     getStyle[self] = style
-    for _, child in ipairs(self) do
+    for i = 1, #self do
+        local child = rawget(self, i)
         call("_setStyleFromParent", child, style)
     end
 end
@@ -132,7 +140,7 @@ end
 
 local getStateString = Styleable.getStateString
 
-local function _getStyleParam(self, style, paramName)
+local function _getStyleParam2(self, paramName, style, extraParentStyle)
     local stylePath = getStylePath[self]
     if not stylePath then
         local p = getParent[self]
@@ -149,22 +157,29 @@ local function _getStyleParam(self, style, paramName)
     end
     assert(stylePath, "Widget not connected to parent")
     local statePath = getStateString(self)
-    local rslt = style:_getStyleParam(paramName, stylePath, statePath, self._hasOwnStyle)
+    local rslt = style:_getStyleParam(paramName, stylePath, statePath, self._hasOwnStyle, extraParentStyle)
     if not rslt and paramName:match("^.*Opacity$") then
         return 1
     else
         return rslt
     end
 end
-Styleable._getStyleParam = _getStyleParam
+function Styleable:_getStyleParam(style, paramName)
+    local myStyle = getStyle[self]
+    if myStyle then
+        return _getStyleParam2(self, paramName, myStyle, style)
+    else
+        return _getStyleParam2(self, paramName, style)
+    end
+end
 
-function Styleable:getStyleParam(paramName)
+function Styleable.override:getStyleParam(paramName)
     if not self.visible and paramName == "Opacity" then
         return 0
     end
     local style = getStyle[self]
     if style then
-        return _getStyleParam(self, style, paramName)
+        return _getStyleParam2(self, paramName, style)
     end
 end
 

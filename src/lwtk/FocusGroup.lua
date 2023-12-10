@@ -10,12 +10,16 @@ local FocusHandler          = lwtk.FocusHandler
 local Super      = lwtk.Focusable(lwtk.Box)
 local FocusGroup = lwtk.newClass("lwtk.FocusGroup", Super)
 
-function FocusGroup:new(...)
+FocusGroup:declare(
+    "entered"
+)
+
+function FocusGroup.override:new(...)
     Super.new(self, ...)
     getFocusHandler[self] = FocusHandler(self)
 end
 
-function FocusGroup:_setApp(app)
+function FocusGroup.override:_setApp(app)
     getApp[getFocusHandler[self]] = app
     Super._setApp(self, app)
     local parentHandler = getParent[self]:getFocusHandler()
@@ -29,14 +33,14 @@ function FocusGroup:_setApp(app)
     end
 end
 
-function FocusGroup:_handleFocusIn()
+function FocusGroup.override:_handleFocusIn()
     Super._handleFocusIn(self)
     if self.entered then
         getFocusHandler[self]:_handleFocusIn()
     end
 end
 
-function FocusGroup:_handleFocusOut(reallyLostFocus)
+function FocusGroup.override:_handleFocusOut(reallyLostFocus)
     Super._handleFocusOut(self)
     getFocusHandler[self]:_handleFocusOut()
     if reallyLostFocus then
@@ -45,14 +49,14 @@ function FocusGroup:_handleFocusOut(reallyLostFocus)
     end
 end
 
-function FocusGroup:_processMouseDown(mx, my, button, modState)
+function FocusGroup.override:_processMouseDown(mx, my, button, modState)
     if button == 1 and not self.disabled then
         getParentFocusHandler[self]:setFocusTo(self)
     end
     return Super._processMouseDown(self, mx, my, button, modState)
 end
 
-function FocusGroup:_handleChildRequestsFocus()
+function FocusGroup.implement:_handleChildRequestsFocus()
     if not self.entered then
         self.entered = true
         self:setState("entered", true)
@@ -69,7 +73,7 @@ function FocusGroup:_handleChildRequestsFocus()
     end
 end
 
-function FocusGroup:setFocus(flag)
+function FocusGroup.override:setFocus(flag)
     if not self.disabled and (flag == nil or flag) then
         local focusHandler = getParentFocusHandler[self]
         if focusHandler then
@@ -80,7 +84,7 @@ function FocusGroup:setFocus(flag)
     end
 end
 
-function FocusGroup:onKeyDown(key, modifier, ...)
+function FocusGroup.override:onKeyDown(key, modifier, ...)
     local handled
     if self.entered then
         handled = getFocusHandler[self]:onKeyDown(key, modifier, ...)
@@ -88,7 +92,7 @@ function FocusGroup:onKeyDown(key, modifier, ...)
     return handled
 end
 
-function FocusGroup:handleHotkey(key, modifier, ...)
+function FocusGroup.implement:handleHotkey(key, modifier, ...)
     local handled
     if self.entered then
         handled = getFocusHandler[self]:handleHotkey(key, modifier, ...)
@@ -96,7 +100,7 @@ function FocusGroup:handleHotkey(key, modifier, ...)
     return handled
 end
 
-function FocusGroup:invokeActionMethod(actionMethodName)
+function FocusGroup.override:invokeActionMethod(actionMethodName)
     local handled
     if self.entered then
         handled = getFocusHandler[self]:invokeActionMethod(actionMethodName)

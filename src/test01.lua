@@ -62,13 +62,17 @@ local app  = lwtk.Application("test01.lua", lwtk.Style {
 
 local MyGroup = lwtk.newClass("MyGroup", lwtk.Group)
 
+MyGroup:declare("color")
+
 local MyBox = lwtk.newClass("MyBox", lwtk.Widget)
+
+MyBox:declare("color")
 
 function MyBox:setColor(color)
     self.color = color
 end
 
-function MyBox:onDraw(ctx)
+function MyBox.override:onDraw(ctx)
     local c = self:getStyleParam("Color")
     if self.id == "mb1" then
     --do
@@ -79,14 +83,14 @@ function MyBox:onDraw(ctx)
 end
 
 MyGroup.setColor = MyBox.setColor
-MyGroup.onDraw = MyBox.onDraw
+MyGroup.override.onDraw = MyBox.onDraw
 
-function MyBox:onMouseEnter(x, y)
+function MyBox.override:onMouseEnter(x, y)
 --    print(self.id, "move", x, y)
     self:setState("hover", true)
 end
 
-function MyBox:onMouseLeave(x, y)
+function MyBox.override:onMouseLeave(x, y)
 --    print(self.id, "leave", x, y)
     self:setState("hover", false)
 end
@@ -120,13 +124,13 @@ local win1 = app:newWindow {
 
 print(win1:childById("b1"))
 print(win1:childById("mb1"))
-assert(win1:childById("mb1").__name == "MyBox")
-assert(win1:childById("b1").__name == "lwtk.Button")
-assert(win1:childById("b2").__name == "lwtk.PushButton")
-assert(win1:childById("b2"):is(PushButton))
-assert(win1:childById("b2"):is(Button))
-assert(win1:childById("b1"):is(Button))
-assert(not win1:childById("b1"):is(PushButton))
+assert(lwtk.type(win1:childById("mb1")) == "MyBox")
+assert(lwtk.type(win1:childById("b1")) == "lwtk.Button")
+assert(lwtk.type(win1:childById("b2")) == "lwtk.PushButton")
+assert(win1:childById("b2"):isInstanceOf(PushButton))
+assert(win1:childById("b2"):isInstanceOf(Button))
+assert(win1:childById("b1"):isInstanceOf(Button))
+assert(not win1:childById("b1"):isInstanceOf(PushButton))
 
 local g1a = Group {
     id = "g1",
@@ -144,7 +148,7 @@ g:addChild(g1a)
 print(g:addChild(Button { id = "b3" }))
 print(g:addChild(Button()):getStyleParam"borderColor")
 local b = g:addChild(PushButton())
-print(b, b.__name, b.className)
+print(b, lwtk.type(b), getmetatable(b).__name)
 b.state.xxx = true
 print(b:getStyleParam"borderColor")
 win1:show()

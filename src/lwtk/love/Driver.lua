@@ -5,6 +5,15 @@ local View     = lwtk.love.View
 
 local Driver   = lwtk.newClass("lwtk.love.Driver")
 
+Driver:declare(
+    "drawContext",
+    "layoutContext",
+    "newWindows",
+    "processFunc",
+    "nextProcessTime",
+    "hasViews"
+)
+
 function Driver:new(initParams)
     self.drawContext   = lwtk.love.DrawContext()
     self.layoutContext = lwtk.love.LayoutContext()

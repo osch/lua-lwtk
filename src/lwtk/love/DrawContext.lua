@@ -3,13 +3,18 @@ local lwtk = require"lwtk"
 local Super = lwtk.love.LayoutContext
 local DrawContext = lwtk.newClass("lwtk.love.DrawContext", Super)
 
-function DrawContext:new(...)
+DrawContext:declare(
+    "opacityStack",
+    "scissorStack"
+)
+
+function DrawContext.override:new(...)
     Super.new(self, ...)
     self.opacityStack = {}
     self.scissorStack = {}
 end
 
-function DrawContext:_reset()
+function DrawContext.override:_reset()
     Super._reset()
     local opacityStack = self.opacityStack
     for k, v in pairs(opacityStack) do

@@ -37,6 +37,7 @@ jobs:
 
     - name: setup common
       run: |
+        luarocks install lpath
         luarocks install oocairo
         luarocks --server=https://luarocks.org/dev install lpugl
         luarocks --server=https://luarocks.org/dev install lpugl_cairo
@@ -49,7 +50,9 @@ jobs:
       run: |
         set -e
         lua -v
+        lua src/alltests.lua src/tests
         cd src
-        lua alltests.lua
-        lua doctest.lua  ../doc/*md
+        export LUA_PATH='./?.lua;./?/init.lua;'$LUA_PATH
+        echo "LUA_PATH=$LUA_PATH"
+        lua doctest.lua 
         

@@ -5,7 +5,7 @@ local utf8   = lwtk.utf8
 local upper  = utf8.upper
 local lower  = utf8.lower
 
-local KeyBinding = lwtk.newClass("lwtk.KeyBinding")
+local KeyBinding = lwtk.newMeta("lwtk.KeyBinding")
 
 local function normalizeKeyName(key)
     key = string.gsub(key, "^ *(.-) *$", "%1")

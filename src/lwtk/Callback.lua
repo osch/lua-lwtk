@@ -1,6 +1,10 @@
 local lwtk = require("lwtk")
 
-local Callback = lwtk.newClass("lwtk.Callback")
+--[[
+    Holds a function with arguments that can
+    be called.
+]]
+local Callback = lwtk.newMeta("lwtk.Callback")
 
 
 function Callback:new(func, ...)
@@ -20,7 +24,7 @@ local function unpack(t, i, n, ...)
     end
 end
 
-function Callback:call(...)
+function Callback:__call(...)
     self.func(unpack(self, 1, self.n, ...))
 end
 

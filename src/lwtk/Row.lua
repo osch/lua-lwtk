@@ -5,7 +5,17 @@ local Row        = lwtk.newClass("lwtk.Row", Super)
 
 -------------------------------------------------------------------------------------------------
 
-lwtk.internal.ColumnImpl.implementColumn(Row, true)
+local impl = lwtk.internal.ColumnImpl.implementColumn(true)
+
+--[[
+    @function(self)
+]]
+Row.implement.getMeasures = impl.getMeasures
+
+--[[
+    @function(self, width, height, isLayoutTransition)
+]]
+Row.implement.onLayout = impl.onLayout
 
 -------------------------------------------------------------------------------------------------
 

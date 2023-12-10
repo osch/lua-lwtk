@@ -1,3 +1,6 @@
+--[[
+    Root module for all other *lwtk* modules.
+]]
 local lwtk = {}
 
 lwtk.MOD_SHIFT =  1

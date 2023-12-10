@@ -7,13 +7,16 @@ local getParent         = lwtk.get.parent
 local getChildLookup    = lwtk.get.childLookup
 local getStyle          = lwtk.get.style
 
-    
 local Super = lwtk.MouseDispatcher(lwtk.Compound(lwtk.Widget))
 local Group = lwtk.newClass("lwtk.Group", Super)
 
+Group:declare(
+    "_handleChildRequestsFocus"
+)
+
 local Super_addChild = Super.addChild
 
-function Group:new(initParams)
+function Group.override:new(initParams)
     Super.new(self)
     getChildLookup[self] = ChildLookup(self)
     local childList = {}
@@ -49,7 +52,7 @@ function Group:childById(id)
     end
 end
 
-function Group:addChild(child)
+function Group.override:addChild(child)
     Super_addChild(self, child)
     self:_clearChildLookup()
     local style = getStyle[self]

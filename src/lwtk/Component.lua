@@ -21,21 +21,45 @@ local callOnLayout         = lwtk.layout.callOnLayout
 local getFontInfos         = lwtk.get.fontInfos
 local getChildLookup       = lwtk.get.childLookup
 
-local Super       = lwtk.Actionable
+local Super       = lwtk.Drawable(lwtk.Node(lwtk.Actionable()))
 local Component   = lwtk.newClass("lwtk.Component", Super)
 
-function Component:new(initParams)
-    getApp[self]  = false
-    getRoot[self] = self
-    self.visible  = true
+Component:declare(
+    "_animationActive",
+    "_animationTriggered",
+    "_handleFocusIn", 
+    "_handleHasFocusHandler", 
+    "_hasChanges", 
+    "_isRelayouting", 
+    "_needsRedraw", 
+    "_needsRelayout", 
+    "_positionsChanged", 
+    "_frameTransition",
+    "_hidden",
+    "_ignored",
+    "initParams", 
+    "oldX",  "oldY",  "oldW",  "oldH", 
+    "getMeasures",
+    "onDisabled", 
+    "onDraw", 
+    "onHotkeyEnabled", 
+    "onEffectiveVisibilityChanged",
+    "onLayout",
+    "onRealize"
+)
+
+function Component.override:new(initParams)
     self.x = 0
     self.y = 0
     self.w = 0
     self.h = 0
+    self.visible = true
+    getApp[self]  = false
+    getRoot[self] = self
     Super.new(self, initParams)
 end
 
-function Component:setInitParams(initParams)
+function Component.override:setInitParams(initParams)
     if initParams then
         local id = initParams.id
         if id then
@@ -57,7 +81,7 @@ function Component:setInitParams(initParams)
     end
 end
 
-function Component:handleRemainingInitParams(initParams)
+function Component.override:handleRemainingInitParams(initParams)
     local hasRemaining = false
     for k, v in pairs(initParams) do
         assert(type(k) == "string", "attribute names  must be string")
@@ -78,14 +102,11 @@ end
 function Component:setTimer(seconds, func, ...)
     local p = assert(getParent[self], "Component not connected to parent")
     p:setTimer(seconds, func, ...)
-    self.setTimer = p.setTimer
 end
 
 function Component:getCurrentTime()
-    local p = assert(getParent[self], "Component not connected to parent")
-    local rslt = p:getCurrentTime()
-    self.getCurrentTime = p.getCurrentTime
-    return rslt
+    local app = assert(getApp[self], "Component not connected to Application")
+    return app:getCurrentTime()
 end
 
 function Component:getFontInfo(family, slant, weight, size)
@@ -141,7 +162,8 @@ local function setAppAndRoot(self, app, root)
     if app then
         self:_setApp(app)
     end
-    for _, child in ipairs(self) do
+    for i = 1, #self do
+        local child = rawget(self, i)
         setAppAndRoot(child, app, root)
     end 
     if (self._handleFocusIn or self.onHotkeyEnabled) and not getFocusHandler[self] then
@@ -180,7 +202,8 @@ end
 function Component:_setParent(parent)
     assert(not getParent[self], "Component was already added to parent")
     getParent[self] = parent
-    setAppAndRoot(self, getApp[parent],
+    local app = getApp[parent]
+    setAppAndRoot(self, app,
                         getRoot[parent])
     local _needsRelayout = self._needsRelayout
     if self._hasChanges then
@@ -192,6 +215,9 @@ function Component:_setParent(parent)
             w._hasChanges    = true
             w._needsRelayout = _needsRelayout
             w = getParent[w]
+            if not w and app then
+                app._hasChanges = true
+            end
         until not w
     end
 end
@@ -259,6 +285,12 @@ function Component:_setFrame(newX, newY, newW, newH, fromFrameAnimation)
                     end
                     widget._hasChanges = true
                     widget = getParent[widget]
+                    if not widget then
+                        local app = getApp[self]
+                        if app then
+                            app._hasChanges = true
+                        end
+                    end
                 until not widget
             end
             self.x, self.y, self.w, self.h = newX, newY, newW, newH
@@ -342,13 +374,17 @@ end
 
 
 function Component:triggerLayout()
-    if getApp[self] then
+    local app = getApp[self]
+    if app then
         self._needsRelayout = true
         local p = getParent[self]
         while p and not p._needsRelayout do
             p._hasChanges = true
             p._needsRelayout = true
             p = getParent[p]
+            if not p then
+                app._hasChanges = true
+            end
         end
     end
 end
@@ -363,6 +399,12 @@ function Component:triggerRedraw()
             end
             w._hasChanges = true
             w = getParent[w]
+            if not w then
+                local app = getApp[self]
+                if app then
+                    app._hasChanges = true
+                end
+            end
         until not w
     end
 end
@@ -390,14 +432,6 @@ function Component:updateAnimation()
     getParent[self]:updateAnimation()
 end
 
-function Component:getStyleParam(paramName)
-    return getParent[self]:getStyleParam(paramName)
-end
-
-function Component:getMandatoryStyleParam(paramName)
-    return getParent[self]:getMandatoryStyleParam(paramName)
-end
-
 function Component:_processDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
     local onDraw = self.onDraw
     if onDraw then
@@ -411,44 +445,6 @@ function Component:_processDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
             ctx:endOpacity()
         end
     end
-end
-
-function Component:_processMouseEnter(x, y)
-    call("onMouseEnter", self, x, y)
-end
-
-function Component:_processMouseMove(mouseEntered, x, y)
-    call("onMouseMove", self, x, y)
-end
-
-function Component:_processMouseLeave(x, y)
-    call("onMouseLeave", self, x, y)
-end
-
-function Component:_processMouseScroll(dx, dy)
-    local comp = self
-    while true do
-        local onMouseScroll = comp.onMouseScroll
-        if onMouseScroll and onMouseScroll(comp, dx, dy) then
-            return true
-        end
-        comp = getParent[comp]
-        if not comp then 
-            return false
-        end
-    end
-end
-
-function Component:_processMouseDown(mx, my, button, modState)
-    local onMouseDown = self.onMouseDown
-    if onMouseDown then
-        onMouseDown(self, mx, my, button, modState)
-        return true, true
-    end
-end
-
-function Component:_processMouseUp(mouseEntered, mx, my, button, modState)
-    call("onMouseUp", self, mx, my, button, modState)
 end
 
 return Component

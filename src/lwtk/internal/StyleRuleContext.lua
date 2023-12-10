@@ -6,6 +6,15 @@ local errorf = lwtk.errorf
 
 local StyleRuleContext = lwtk.newClass("lwtk.internal.StyleRuleContext")
 
+StyleRuleContext:declare(
+    "ctxRules",
+    "style",
+    "classSelectorPath",
+    "stateSelectorPath",
+    "localParams",
+    "localInvolved"
+)
+
 function StyleRuleContext:new(ctxRules, style, classSelectorPath, stateSelectorPath, localParams)
     self.ctxRules          = ctxRules
     self.style             = style

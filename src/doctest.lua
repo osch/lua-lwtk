@@ -1,6 +1,22 @@
 #!/usr/bin/lua
 
+os.setlocale("C")
+
 local args = {...}
+
+if #args == 0 then
+    local path = require("path")     -- https://luarocks.org/modules/xavier-wang/lpath
+    local fs   = require("path.fs")  -- https://luarocks.org/modules/xavier-wang/lpath
+
+    for n, t in fs.scandir("../doc") do
+        if n:match("%.md$") and not n:match("/gen/") and t == "file" and path.isfile(n) then
+            args[#args + 1] = n
+        end
+    end
+    table.sort(args)
+end
+
+local lwtk = require("lwtk")
 
 function assertEq(a1, a2)
     if not (a1 == a2) then
@@ -62,5 +78,5 @@ for argI = 1, #args do
         error(err)
     end
     
-    scriptFunc()                        
+    scriptFunc()
 end

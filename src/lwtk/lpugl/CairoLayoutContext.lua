@@ -4,6 +4,12 @@ local floor = math.floor
 
 local CairoLayoutContext = lwtk.newClass("lwtk.lpugl.CairoLayoutContext")
 
+CairoLayoutContext:declare(
+    "ctx",
+    "platform",
+    "adjustFamilyName"
+)
+
 function CairoLayoutContext:new(cairoCtx, platform)
     self.ctx = assert(cairoCtx)
     self.platform = assert(platform)

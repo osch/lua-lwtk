@@ -3,7 +3,11 @@ local lwtk = require"lwtk"
 local Super = lwtk.lpugl.CairoLayoutContext
 local CairoDrawContext = lwtk.newClass("lwtk.lpugl.CairoDrawContext", Super)
 
-function CairoDrawContext:new(...)
+CairoDrawContext:declare(
+    "opacityStack"
+)
+
+function CairoDrawContext.override:new(...)
     Super.new(self, ...)
     self.opacityStack = {}
 end

@@ -1,3 +1,4 @@
+os.setlocale("C")
 local rockspecFilename, listFilename = ...
 local inList = false
 local rockspecFile = io.open(rockspecFilename, "r")
@@ -8,9 +9,10 @@ end
 rockspecFile:close()
 local out = {}
 for _, line in ipairs(lines) do
-    local m = line:match("^%s*%-%- MODULES ([A-Z_]+)")
+    local pre, m = line:match("^(%s*%-%-) MODULES ([A-Z_]+)")
     if m == "BEGIN" then 
         out[#out+1] = line
+        out[#out+1] = pre
         inList = true 
         local modules = {}
         local files   = {}
@@ -26,15 +28,28 @@ for _, line in ipairs(lines) do
                 files[module] = file
             end
         end
-        table.sort(modules)
+        table.sort(modules, function(a,b)
+            local am, bm = a:match("^lwtk.internal"), b:match("^lwtk.internal")
+            if (am and bm) or (not am and not bm) then
+                return a < b 
+            else
+                return not am
+            end
+        end)
+        local isInternal
         for _, module in ipairs(modules) do
             local file = files[module]
+            if not isInternal and module:match("^lwtk.internal") then
+                isInternal = true
+                out[#out+1] = pre
+            end
             out[#out+1] = string.format([[        ["%s"]%s = "src/lwtk/%s",]], 
                                         module:gsub("%/", "."),
                                         string.rep(" ", maxl - #module),
                                         file)
         end
     elseif m == "END" then 
+        out[#out+1] = pre
         out[#out+1] = line
         inList = false 
     elseif not inList then

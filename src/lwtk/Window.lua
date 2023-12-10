@@ -1,6 +1,7 @@
 local lwtk = require"lwtk"
 
 local floor = math.floor
+local rawset = rawset
 
 local Area            = lwtk.Area
 local ChildLookup     = lwtk.ChildLookup
@@ -11,7 +12,7 @@ local getMeasures     = lwtk.layout.getMeasures
 local callRelayout    = lwtk.layout.callRelayout
 local setOuterMargins = lwtk.layout.setOuterMargins
 
-local Super  = lwtk.MouseDispatcher(lwtk.KeyHandler(lwtk.Styleable(lwtk.Object)))
+local Super  = lwtk.MouseDispatcher(lwtk.KeyHandler(lwtk.Styleable(lwtk.Drawable(lwtk.Node(lwtk.Actionable())))))
 local Window = lwtk.newClass("lwtk.Window", Super)
 
 Window.triggerLayout = lwtk.Component.triggerLayout
@@ -19,9 +20,31 @@ Window.triggerRedraw = lwtk.Component.triggerRedraw
 Window.getRoot       = lwtk.Component.getRoot
 Window.childById     = lwtk.Group.childById
 
-Window.color = true
+Window:declare(
+    "_hasChanges",
+    "_needsRelayout",
+    "_positionsChanged",
+    "_handleChildRequestsFocus",
+    "_grabFocus",
+    "color",
+    "damagedArea",
+    "driver",
+    "exposedArea",
+    "fullRedisplayOutstanding",
+    "hasFocus",
+    "initParams",
+    "mapped",
+    "maxH",
+    "maxSizeFixed",
+    "maxW",
+    "mouseEntered",
+    "onClose",
+    "view",
+    "onSizeRequest",
+    "onMinSizeChanged",
+    "interceptMouseDown"
+)
 
-local getParent       = lwtk.get.parent
 local getStyle        = lwtk.get.style
 local getApp          = lwtk.get.app
 local getRoot         = lwtk.get.root
@@ -32,9 +55,10 @@ local extract         = lwtk.extract
 
 local childSizes      = lwtk.WeakKeysTable()
 
-function Window:new(app, initParams)
+function Window.override:new(app, initParams)
     Super.new(self)
     self.fullRedisplayOutstanding = true
+    self.color = true
     getApp[self]  = app
     getRoot[self] = self
     getFontInfos[self] = getFontInfos[app]
@@ -43,9 +67,6 @@ function Window:new(app, initParams)
     self.y = 0
     self.w = 0
     self.h = 0
-    self.getCurrentTime  = app.getCurrentTime
-    self.setTimer        = app.setTimer
-    getParent[self]      = app
     getKeyBinding[self]  = getKeyBinding[app]
     getStyle[self]       = getStyle[app]
     Super.new(self)
@@ -80,6 +101,10 @@ function Window:new(app, initParams)
             self:addChild(c)
         end
     end
+end
+
+function Window:getCurrentTime()
+    getApp[self]:getCurrentTime()
 end
 
 local adjustMinMaxSize
@@ -236,14 +261,16 @@ adjustMinMaxSize = function(self, forceMaxSize)
                             bestW, bestH, 
                             self.maxW, self.maxH)
     else
-        self:setMinSize(minW, minH)
-        self:setSize(bestW, bestH)
-        self:setMaxSize(maxW, maxH)
+        if bestW > 0 and bestH > 0 then
+            self:setMinSize(minW, minH)
+            self:setSize(bestW, bestH)
+            self:setMaxSize(maxW, maxH)
+        end
     end
 end
 
-function Window:addChild(child)
-    self[#self + 1] = child
+function Window.implement:addChild(child)
+    rawset(self, #self + 1, child)
     local focusHandler = FocusHandler(child)
     getApp[focusHandler] = getApp[self]
     getFocusHandler[child] = focusHandler
@@ -280,6 +307,7 @@ function Window:setFrame(x, y, w, h)
     y = floor(y + 0.5)
     w = floor(w + 0.5)
     h = floor(h + 0.5)
+    assert(w > 0 and h > 0, "width and height must be > 0")
     if self.view then
         self.view:setFrame(x, y, w, h)
     else
@@ -294,6 +322,7 @@ function Window:setSize(w, h)
     end
     w = floor(w + 0.5)
     h = floor(h + 0.5)
+    assert(w > 0 and h > 0, "width and height must be > 0")
     if self.view then
         self.view:setSize(w, h)
     else
@@ -356,7 +385,7 @@ function Window:setColor(color)
     if self.color ~= color then
         self.color = color
         self._hasChanges = true
-        local p = getParent[self]
+        local p = getApp[self]
         if p then p._hasChanges = true end
     end
 end
@@ -404,7 +433,7 @@ end
 function Window:close()
     if self.view and not self.view:isClosed() then
         self.view:close()
-        getParent[self]:_removeWindow(self)
+        getApp[self]:_removeWindow(self)
     end
 end
 
@@ -553,8 +582,6 @@ function Window:requestClose()
     end
 end
 
-Window._handleClose = Window.requestClose
-
 function Window:requestFocus()
     if self.view and self.mapped then
         self.driver:grabFocus(self)
@@ -625,6 +652,10 @@ end
 
 function Window:_postProcessChanges()
     adjustMinMaxSize(self)
+end
+
+function Window:setTimer(seconds, func, ...)
+    getApp[self]:setTimer(seconds, func, ...)
 end
 
 return Window

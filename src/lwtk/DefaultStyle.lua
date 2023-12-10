@@ -7,7 +7,7 @@ local scale    = lwtk.StyleRef.scale
 local Super        = lwtk.Style
 local DefaultStyle = lwtk.newClass("lwtk.DefaultStyle", Super)
 
-function DefaultStyle:new(initParams)
+function DefaultStyle.override:new(initParams)
     
     local function par(name)
         local rslt = initParams and initParams[name]
@@ -37,6 +37,7 @@ function DefaultStyle:new(initParams)
 
         { "TextSize",                            12 },
         { "FontFamily",                "sans-serif" },
+        { "ScrollBarSize",                       12 },
 
         { "BackgroundColor",           backgroundColor },
         { "TextColor",                 textColor   },
@@ -48,10 +49,11 @@ function DefaultStyle:new(initParams)
         { "CursorColor:focused",              Color"000000" },
         { "CursorWidth",                        2 },
 
-        {         "*Margin@Control",       8 },
-        {          "Height@Control",      24 },
-        {   "BorderPadding@Control",       3 },
-        { "TextFullVisible@Control",    true },
+        {          "Margin@Control",           8 },
+        {         "*Margin@Control", get"Margin" },
+        {          "Height@Control",          24 },
+        {   "BorderPadding@Control",           3 },
+        { "TextFullVisible@Control",        true },
         
         {    "BorderSize@Box",            1 },
         { "BorderPadding@Box",            3 },

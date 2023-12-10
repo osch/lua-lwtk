@@ -7,15 +7,16 @@ local Callback              = lwtk.Callback
 local Super       = lwtk.Animatable(lwtk.Component)
 local Widget      = lwtk.newClass("lwtk.Widget", Super)
 
-function Widget:new(initParams)
+Widget:declare(
+    "default",
+    "_isInput"
+)
+
+function Widget.override:new(initParams)
     Super.new(self)
     if initParams then
         self:setInitParams(initParams)
     end
-end
-
-function Widget:setInitParams(initParams)
-    Super.setInitParams(self, initParams)
 end
 
 function Widget:setOnInputChanged(onInputChanged)
@@ -37,7 +38,7 @@ function Widget:notifyInputChanged()
     until w == nil
 end
 
-function Widget:_setApp(app)
+function Widget.override:_setApp(app)
     if self._hasOwnStyle then
         local ownStyle = getStyle[self]
         if not ownStyle.parent then
@@ -53,7 +54,7 @@ function Widget:_setApp(app)
     end
 end
 
-function Widget:_setParent(parent)
+function Widget.override:_setParent(parent)
     local pstyle = getStyle[parent]
     if pstyle then
         self:_setStyleFromParent(pstyle)

@@ -1,7 +1,9 @@
-# lwtk.Style
+# lwtk.Style Usage
 
 The appearance of gui widgets can be configured for the whole application using
-objects of type *lwtk.Style*. 
+objects of type [lwtk.Style]. 
+
+[lwtk.Style]: ./gen/lwtk/Style.md
 
 *Style* objects contain rule sets for determining the values of named parameters
 for a widget according to the widget's class name and the widget's state.
@@ -97,9 +99,8 @@ assert(not ok and err:match("Cannot deduce parameter type"))
 Let's define more widget classes:
 
 ```lua
-local MyWidget1 = lwtk.newClass("MyWidget1", lwtk.Widget)
 local MyWidget2 = lwtk.newClass("MyWidget2", lwtk.Widget)
-local MyWidget3 = lwtk.newClass("MyWidget3", MyWidget2)   -- MyWidget3 is derived from MyWidget2
+local MyWidget3 = lwtk.newClass("MyWidget3", MyWidget2)   -- MyWidget3 is subclass of MyWidget2
 local MyWidget4 = lwtk.newClass("MyWidget4", lwtk.Widget)
 ```
 

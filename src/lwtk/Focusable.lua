@@ -3,62 +3,75 @@ local lwtk = require"lwtk"
 local call            = lwtk.call
 local getFocusHandler = lwtk.get.focusHandler
 
-local Focusable = lwtk.newMixin("lwtk.Focusable")
-
-Focusable.extra = {}
-
 local handlePostponedStates
 
-function Focusable.initClass(Focusable, Super)  -- luacheck: ignore 431/Focusable
+local Focusable = lwtk.newMixin("lwtk.Focusable",
 
-    function Focusable:_handleHasFocusHandler(focusHandler)
-        if Super._handleHasFocusHandler then
-            Super._handleHasFocusHandler(self, focusHandler)
-        end
-        if not self._hidden then
-            handlePostponedStates(self, focusHandler)
-        end
-    end
+    function(Focusable, Super)
 
-    function Focusable:onEffectiveVisibilityChanged(hidden)
-        local superCall = Super.onEffectiveVisibilityChanged
-        if superCall then
-            superCall(self, hidden)
-        end
-        if not hidden then
-            local focusHandler = getFocusHandler[self]
-            if focusHandler then
+        Focusable:declare(
+            "_focusDisabled",
+            "_wantsDefault",
+            "_wantsFocus",
+            "_wantsFocusDisabled",
+            "disabled",
+            "onHotkeyDown",
+            "onKeyDown",
+            "hasFocus",
+            "onFocusIn",
+            "onFocusOut",
+            "handleHotkey"
+        )
+        
+        function Focusable.override:_handleHasFocusHandler(focusHandler)
+            if Super._handleHasFocusHandler then
+                Super._handleHasFocusHandler(self, focusHandler)
+            end
+            if not self._hidden then
                 handlePostponedStates(self, focusHandler)
             end
-        else
-            local focusHandler = getFocusHandler[self]
-            if focusHandler then
-                if self.hasFocus then
-                    focusHandler:releaseFocus(self)
+        end
+    
+        function Focusable.override:onEffectiveVisibilityChanged(hidden)
+            local superCall = Super.onEffectiveVisibilityChanged
+            if superCall then
+                superCall(self, hidden)
+            end
+            if not hidden then
+                local focusHandler = getFocusHandler[self]
+                if focusHandler then
+                    handlePostponedStates(self, focusHandler)
                 end
-                local isCurrentDefault, isPrincipalDefault = focusHandler:isDefault(self)
-                if isCurrentDefault or isPrincipalDefault then
-                    focusHandler:setDefault(self, false)
+            else
+                local focusHandler = getFocusHandler[self]
+                if focusHandler then
+                    if self.hasFocus then
+                        focusHandler:releaseFocus(self)
+                    end
+                    local isCurrentDefault, isPrincipalDefault = focusHandler:isDefault(self)
+                    if isCurrentDefault or isPrincipalDefault then
+                        focusHandler:setDefault(self, false)
+                    end
                 end
             end
         end
-    end
-
-    local Super_onDisabled = Super.onDisabled
-
-    function Focusable:onDisabled(disableFlag)
-        local focusHandler = getFocusHandler[self]
-        if focusHandler then
-            focusHandler:setFocusDisabled(self, disableFlag)
-        else
-            self._wantsFocusDisabled = true
-        end
-        if Super_onDisabled then
-            Super_onDisabled(self, disableFlag)
-        end
-    end
     
-end
+        local Super_onDisabled = Super.onDisabled
+    
+        function Focusable.override:onDisabled(disableFlag)
+            local focusHandler = getFocusHandler[self]
+            if focusHandler then
+                focusHandler:setFocusDisabled(self, disableFlag)
+            else
+                self._wantsFocusDisabled = true
+            end
+            if Super_onDisabled then
+                Super_onDisabled(self, disableFlag)
+            end
+        end
+        
+    end
+)
 
 handlePostponedStates = function(self, focusHandler)
     if self._wantsFocus then
@@ -74,7 +87,7 @@ handlePostponedStates = function(self, focusHandler)
     end
 end
 
-function Focusable:_handleFocusIn()
+function Focusable.implement:_handleFocusIn()
     self.hasFocus = true
     call("onFocusIn", self)
     self:setState("focused", true)

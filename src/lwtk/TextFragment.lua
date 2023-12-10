@@ -4,10 +4,24 @@ local utf8         = lwtk.utf8
 local Super        = lwtk.Component
 local TextFragment = lwtk.newClass("lwtk.TextFragment", Super)
 
-function TextFragment:new(initParams)
-    self.tx = false
-    self.ty = false
-    self.label = ""
+TextFragment:declare(
+    "tx",
+    "ty",
+    "label",
+    "labelLeft",
+    "labelKey",
+    "labelRight",
+    "text",
+    "textWidth",
+    "considerHotkey",
+    "hotkey",
+    "fontInfo",
+    "textSize",
+    "fontFamily",
+    "showHotKey"
+)
+
+function TextFragment.override:new(initParams)
     Super.new(self, initParams)
 end
 
@@ -78,13 +92,20 @@ local function getFontInfo(self)
     end
 end
 
-TextFragment.getFontInfo = getFontInfo
+function TextFragment.override:getFontInfo(family, slant, weight, size)
+    if family then
+        return Super_getFontInfo(self, family, slant, weight, size)
+    else
+        return getFontInfo(self)
+    end
+end
 
 function TextFragment:getTextMeasures()
     local fontInfo, changed = getFontInfo(self)
     local textWidth = self.textWidth
     if changed or not textWidth then
-        textWidth = fontInfo:getTextWidth(self.label)
+        local label = self.label
+        textWidth = label and fontInfo:getTextWidth(label) or 0
         self.textWidth = textWidth
     end
     return textWidth, fontInfo.height, fontInfo.ascent
@@ -98,7 +119,7 @@ function TextFragment:setTextPos(tx, ty)
     end
 end
 
-function TextFragment:onDraw(ctx, ...)
+function TextFragment.implement:onDraw(ctx, ...)
     local label = self.label
     if label then
         local fontInfo = getFontInfo(self)
@@ -118,7 +139,7 @@ function TextFragment:onDraw(ctx, ...)
         if self.hotkey and self.showHotKey then
             local x1 = tx + fontInfo:getTextWidth(self.labelLeft)
             local x2 = x1 + fontInfo:getTextWidth(self.labelKey)
-            local y1 = ty + math.floor(fontInfo.descent / 2 + 0.5) - 0.5
+            local y1 = ty + 1.5
             ctx:setLineWidth(1)
             ctx:drawLine(x1, y1, x2, y1)
         end

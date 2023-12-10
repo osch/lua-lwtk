@@ -1,5 +1,8 @@
 local lwtk = require"lwtk"
 
+--[[
+    Returns new lwtk.KeyBinding object with default settings.
+]]
 return function()
     return lwtk.KeyBinding 
     {

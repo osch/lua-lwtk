@@ -7,7 +7,7 @@ local setOuterMargins = lwtk.layout.setOuterMargins
 local Super           = lwtk.Colored(lwtk.Group)
 local ViewSwitcher    = lwtk.newClass("lwtk.ViewSwitcher", Super)
 
-function ViewSwitcher:onLayout(w, h)
+function ViewSwitcher.implement:onLayout(w, h)
     local topMargin, rightMargin, bottomMargin, leftMargin = getOuterMargins(self)
     for i = 1, #self do
         local child = self[i]
@@ -16,7 +16,7 @@ function ViewSwitcher:onLayout(w, h)
     end
 end
 
-function ViewSwitcher:getMeasures()
+function ViewSwitcher.implement:getMeasures()
 
     local minW, minH, bestW, bestH, maxW, maxH, 
           childTop, childRight, childBottom, childLeft
@@ -62,7 +62,7 @@ function ViewSwitcher:getMeasures()
     end
 end
 
-function ViewSwitcher:addChild(child)
+function ViewSwitcher.override:addChild(child)
     local childVisible = child.visible
     if childVisible then
         for i = 1, #self do

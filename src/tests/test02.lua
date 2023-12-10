@@ -21,11 +21,11 @@ end
 
 local Box = lwtk.newClass("Box", lwtk.Widget)
 
-function Box:onDraw(ctx)
+function Box.implement:onDraw(ctx)
     print("onDraw", self.id)
 end
 
-function Box:getMeasures()
+function Box.implement:getMeasures()
     return 0, 0, 20, 10, 200, 100
 end
 

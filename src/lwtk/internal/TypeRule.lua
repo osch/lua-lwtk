@@ -5,9 +5,9 @@ local lower  = string.lower
 local gsub   = string.gsub
 local errorf = lwtk.errorf
 
-local TypeRule = {}
+local StyleTypeAttributes = lwtk.StyleTypeAttributes
 
-local toAttrName = lwtk.StyleTypeAttributes.toAttrName
+local TypeRule = {}
 
 function TypeRule.toPattern(rule)
     local n = #rule
@@ -15,9 +15,8 @@ function TypeRule.toPattern(rule)
     local result = {}
     for i = 1, n do
         local arg = rule[i]
-        local name = toAttrName[arg]
-        if name then
-            result[name] = true
+        if StyleTypeAttributes[arg] then
+            result[arg] = true
         else
             result[#result + 1] = arg
         end

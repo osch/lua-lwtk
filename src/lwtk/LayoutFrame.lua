@@ -4,21 +4,20 @@ local getMeasures     = lwtk.layout.getMeasures
 local setOuterMargins = lwtk.layout.setOuterMargins
 
 
-local LayoutFrame       = lwtk.newMixin("lwtk.LayoutFrame", lwtk.Styleable.NO_STYLE_SELECTOR)
-      LayoutFrame.extra = {}
+local LayoutFrame = lwtk.newMixin("lwtk.LayoutFrame", lwtk.Styleable.NO_STYLE_SELECTOR,
 
-function LayoutFrame.initClass(LayoutFrame, Super)  -- luacheck: ignore 431/LayoutFrame
+    function(LayoutFrame, Super)
 
-    local Super_addChild = Super.addChild
-
-    function LayoutFrame:addChild(child)
-        if self[1] then
-            lwtk.errorf("object of type %s can only have one child", lwtk.type(self))
+        local Super_addChild = Super.addChild
+    
+        function LayoutFrame.override:addChild(child)
+            if rawget(self, 1) then
+                lwtk.errorf("object of type %s can only have one child", lwtk.type(self))
+            end
+            return Super_addChild(self, child)
         end
-        return Super_addChild(self, child)
     end
-
-end
+)
 
 function LayoutFrame.extra:getMeasures()
     local child = self[1]
@@ -55,7 +54,7 @@ function LayoutFrame.extra:getMeasures()
     end
 end
 
-function LayoutFrame:onLayout(w, h)
+function LayoutFrame.implement:onLayout(w, h)
     local child = self[1]
     if child then
         local p = self:getStyleParam("BorderPadding") or 0
@@ -102,7 +101,7 @@ function LayoutFrame:onLayout(w, h)
     end
 end
 
-function LayoutFrame:onDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
+function LayoutFrame.implement:onDraw(ctx, x0, y0, cx, cy, cw, ch, exposedArea)
     local background = self:getStyleParam("BackgroundColor")
     local color      = self:getStyleParam("BorderColor")
     local b          = self:getStyleParam("BorderSize") or 0

@@ -6,14 +6,14 @@ local setOuterMargins = lwtk.layout.setOuterMargins
 local Super  = lwtk.Group
 local Square = lwtk.newClass("lwtk.Square", Super)
 
-function Square:addChild(child)
+function Square.override:addChild(child)
     if self[1] then
         lwtk.errorf("object of type %s can only have one child", lwtk.type(self))
     end
     return Super.addChild(self, child)
 end
 
-function Square:getMeasures()
+function Square.implement:getMeasures()
     local child = self[1]
     local topMargin, rightMargin, bottomMargin, leftMargin
     if child then
@@ -34,7 +34,7 @@ function Square:getMeasures()
     return 0, 0, 0, 0, 0, 0
 end
 
-function Square:onLayout(w, h)
+function Square.implement:onLayout(w, h)
     local child = self[1]
     if child then
         local tM, rM, bM, lM = getOuterMargins(self)

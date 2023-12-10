@@ -15,12 +15,24 @@ local getApp          = lwtk.get.app
 local Super      = lwtk.Focusable(lwtk.Control(lwtk.Compound(lwtk.Widget)))
 local TextInput  = lwtk.newClass("lwtk.TextInput", Super)
 
-TextInput.getMeasures = lwtk.TextLabel.getMeasures
-TextInput._isInput    = true
+TextInput:declare(
+    "initActions",
+    "inner",
+    "cursor",
+    "textFragment",
+    "cursorPos",
+    "tx",
+    "text",
+    "filterInput"
+)
 
-function TextInput:new(initParams)
+TextInput.implement.getMeasures = lwtk.TextLabel.getMeasures
+
+TextInput.implement._isInput = true
+
+function TextInput.override:new(initParams)
     Super.new(self)
-    self.initActions = extract(initParams, "initActions")
+    self.initActions  = extract(initParams, "initActions")
     self.inner        = self:addChild(InnerCompound())
     self.cursor       = self.inner:addChild(TextCursor())
     self.textFragment = self.inner:addChild(TextFragment())
@@ -32,7 +44,7 @@ function TextInput:new(initParams)
     end
 end
 
-function TextInput:onRealize()
+function TextInput.implement:onRealize()
     if Super.onRealize then
         Super.onRealize(self)
     end
@@ -116,12 +128,12 @@ function TextInput:setDefault(buttonId)
     end
 end
 
-function TextInput:onLayout(width, height)
+function TextInput.override:onLayout(width, height)
     Super.onLayout(self, width, height)
     innerLayout(self)
 end
 
-function TextInput:onFocusIn()
+function TextInput.implement:onFocusIn()
     self:setState("focused", true)
     if self.default then
         local focusHandler = getFocusHandler[self]
@@ -130,7 +142,7 @@ function TextInput:onFocusIn()
         end
     end
 end
-function TextInput:onFocusOut()
+function TextInput.implement:onFocusOut()
     self:setState("focused", false)
     if self.default then
         local focusHandler = getFocusHandler[self]
@@ -140,7 +152,7 @@ function TextInput:onFocusOut()
     end
 end
 
-function TextInput:onMouseDown(mx, my, button, modState)
+function TextInput.implement:onMouseDown(mx, my, button, modState)
     if button == 1 then
         self:setFocus(true)
         local fontInfo = self.textFragment:getFontInfo()
@@ -255,7 +267,7 @@ function TextInput:setFilterInput(filterInput)
     self.filterInput = filterInput
 end
 
-function TextInput:onKeyDown(keyName, keyState, keyText)
+function TextInput.implement:onKeyDown(keyName, keyState, keyText)
     if keyText and keyText ~= "" then
         local filterInput = self.filterInput
         if filterInput then

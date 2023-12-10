@@ -1,9 +1,11 @@
 local lwtk = require"lwtk"
 
+local insert      = table.insert
+local remove      = table.remove
+
 local Timer       = lwtk.Timer
 local Window      = lwtk.Window
 local FontInfos   = lwtk.FontInfos
-local Application = lwtk.newClass("lwtk.Application")
 
 local extract              = lwtk.extract
 local getApp               = lwtk.get.app
@@ -14,8 +16,38 @@ local getVisibilityChanges = lwtk.get.visibilityChanges
 local getDeferredChanges   = lwtk.get.deferredChanges
 local isInstanceOf         = lwtk.isInstanceOf
 
-local isClosed        = setmetatable({}, { __mode = "k" })
-local createClosures
+local isClosed = lwtk.WeakKeysTable()
+
+--[[
+    Default application implementation.
+    
+    Use this for standalone desktop applications. Use lwtk.love.Application for
+    running within the [LÖVE](https://love2d.org/) 2D game engine.
+]]
+local Application = lwtk.newClass("lwtk.Application")
+
+Application:declare(
+    "_animations",
+    "_eventFunc",
+    "_hasChanges",
+    "animationTimer",
+    "appName",
+    "driver",
+    "postprocessNeeded",
+    "procssingDeferedChanges",
+    "scale",
+    "timers"
+)    
+
+local function unpack2(t, i, n)
+    if i <= n then
+        return t[i], unpack2(t, i + 1, n)
+    end
+end
+local function unpack(t)
+    return unpack2(t, 1, t.n)
+end
+
 
 function Application:new(arg1, arg2)
     local appName
@@ -31,13 +63,17 @@ function Application:new(arg1, arg2)
         initParams = arg1 or {}
         appName = extract(initParams, "name")
     end
-    self.driver = extract(initParams, "driver")
-    if not self.driver then
+    local driver = extract(initParams, "driver")
+    if not driver then
         assert(appName, "Application object needs name attribute")
-        self.driver = lwtk.lpugl.Driver{ appName = appName }
+        driver = lwtk.lpugl.Driver{ appName = appName }
     end
+    self.driver = driver
     isClosed[self] = false
-    
+
+    local timers = {}    
+    self.timers = timers
+
     local style = initParams.style
     if style then
         initParams.style = nil
@@ -55,7 +91,7 @@ function Application:new(arg1, arg2)
     end
     
     getVisibilityChanges[self] = lwtk.WeakKeysTable()
-    getDeferredChanges[self]   = lwtk.WeakKeysTable()
+    getDeferredChanges[self]   = {}
 
     if getApp[style] then
         error("Style was alread added to app")
@@ -82,14 +118,83 @@ function Application:new(arg1, arg2)
             end
         end
     end
-    self.appName       = appName
-    self.damageReports = nil
-
-    getFontInfos[self]   = FontInfos(self.driver:getLayoutContext())
-
-    createClosures(self)
+    self.appName           = appName
+    self.postprocessNeeded = {}
+    self._animations       = lwtk.Animations(self)
+    local animationTimer   = self._animations.timer
+    self.animationTimer    = animationTimer    
+    
+    getFontInfos[self]     = FontInfos(self.driver:getLayoutContext())
 
     self:setAttributes(initParams)
+
+    driver:setProcessFunc(function()
+        local now = driver:getTime()
+        local closed = isClosed[self]
+        while not closed do
+            local timer = timers[1]
+            if not timer or timer.time > now then
+                break
+            end
+            remove(timers, 1)
+            if timer == animationTimer then
+                self:_processAllChanges()
+            end
+            timer.time = false
+            timer.func(unpack(timer))
+            closed = isClosed[self]
+        end
+        local timer = timers[1]
+        if timer then
+            local t = timer.time - now
+            t = (t >= 0) and t or 0
+            if not closed then
+                driver:setNextProcessTime(t)
+            end
+        end
+        if not closed and not animationTimer.time then
+            self:_processAllChanges()
+        end
+    end)
+
+
+    self._eventFunc = function(window, view, event, ...)
+        --print(event, ...)
+        if event == "CONFIGURE" then
+            window:_handleConfigure(...)
+        elseif event == "EXPOSE" then
+            window:_handleExpose(...)
+        elseif event == "MOTION" then
+            window:_handleMouseMove(...)
+        elseif event == "POINTER_OUT" then
+            window:_handleMouseLeave(...)
+        elseif event == "POINTER_IN" then
+            window:_handleMouseEnter(...)
+        elseif event == "KEY_PRESS" then
+            window:_handleKeyDown(...)
+        elseif event == "KEY_RELEASE" then
+            window:_handleKeyUp(...)
+        elseif event == "BUTTON_PRESS" then
+            window:_handleMouseDown(...)
+        elseif event == "BUTTON_RELEASE" then
+            window:_handleMouseUp(...)
+        elseif event == "FOCUS_IN" then
+            window:_handleFocusIn(...)
+        elseif event == "FOCUS_OUT" then
+            window:_handleFocusOut(...)
+        elseif event == "SCROLL" then
+            window:_handleMouseScroll(...)
+        elseif event == "CLOSE" then
+            window:requestClose()
+        elseif event == "MAP" then
+            window:_handleMap(...)
+        elseif event == "CREATE" then
+            return
+        end
+        if not isClosed[self] and not animationTimer.time then
+            self:_processAllChanges()
+        end
+    end
 end
 
 function Application:close()
@@ -162,218 +267,158 @@ function Application:hasWindows()
 end
 
 function Application:_addWindow(win)
-    self[#self + 1] = win
+    rawset(self, #self + 1, win)
 end
 
 function Application:_removeWindow(win)
-    for i = 1, #self do
+    for i = #self, 1, -1 do
         if self[i] == win then
             table.remove(self, i)
         end
     end
 end
 
-local insert = table.insert
-local remove = table.remove
+function Application:setTimer(seconds, func, ...)
+    local driver          = self.driver
+    local timers          = self.timers
 
-local function unpack2(t, i, n)
-    if i <= n then
-        return t[i], unpack2(t, i + 1, n)
-    end
-end
-local function unpack(t)
-    return unpack2(t, 1, t.n)
-end
-
-createClosures = function(app)
-
-    local driver          = app.driver
-    local deferredChanges = getDeferredChanges[app]
-    local timers          = {}
-    
-    function app:setTimer(seconds, func, ...)
-        local n = #timers
-        local timer
-        if type(func) == "table" then
-            timer = func
-            if timer.time then
-                for i = 1, n do
-                    if timers[i] == timer then
-                        remove(timers, i)
-                        n = n - 1
-                        break
-                    end
-                end
-            end
-        else
-            assert(type(func) == "function", "Timer object or function expected")
-            timer = Timer(func, ...)
-        end
-        local now  = driver:getTime()
-        local time = now + seconds
-        timer.time = time
-        for i = 1, n do
-            if timers[i].time > time then
-                insert(timers, i, timer)
-                local t = timers[1].time - now
-                t = (t >= 0) and t or 0
-                driver:setNextProcessTime(t)
-                return timer
-            end
-        end
-        timers[n + 1] = timer
-        local t = timers[1].time - now
-        t = (t >= 0) and t or 0
-        driver:setNextProcessTime(t)
-        return timer
-    end
-
-    local animations     = lwtk.Animations(app)
-    local animationTimer = animations.timer
-    app._animations      = animations
-
-    function app:getCurrentTime()
-        return driver:getTime() 
-    end
-    
-    local procssingDeferedChanges = false
-    local postprocessNeeded = {}
-    
-    function app:deferChanges(callback)
-        assert(not procssingDeferedChanges)
-        deferredChanges[#deferredChanges + 1] = callback
-        app._hasChanges = true
-    end
-    
-    local function _processAllChanges(self)
-        if app._hasChanges then
-            local visibilityChanges = getVisibilityChanges[app]
-            for widget, hidden in pairs(visibilityChanges) do
-                widget:onEffectiveVisibilityChanged(hidden)
-                visibilityChanges[widget] = nil
-            end
-            procssingDeferedChanges = true
-            for i = 1, #deferredChanges do 
-                deferredChanges[i]:call()
-                deferredChanges[i] = nil
-            end
-            procssingDeferedChanges = false
-            app._hasChanges = false
-            for _, w in ipairs(app) do
-                if w._hasChanges then
-                    if w:_processChanges() then
-                        postprocessNeeded[#postprocessNeeded + 1] = w
-                    end
-                    assert(not w._hasChanges)
-                end
-            end
-            assert(not app._hasChanges)
-        end
-        for i = 1, #postprocessNeeded do
-            postprocessNeeded[i]:_postProcessChanges()
-            postprocessNeeded[i] = nil
-        end
-    end
-    app._processAllChanges = _processAllChanges
-    
-    if driver.handleNextEvents then
-        function app:runEventLoop(timeout)
-            local endTime = timeout and (driver:getTime() + timeout)
-            if not animationTimer.time then
-                _processAllChanges()
-            end
-            while app:hasWindows() do
-                driver:handleNextEvents(endTime and driver:getTime() - endTime)
-                if not isClosed[app] and not animationTimer.time then
-                    _processAllChanges()
-                end
-                if endTime and driver:getTime() >= endTime then
+    local n = #timers
+    local timer
+    if type(func) == "table" then
+        timer = func
+        if timer.time then
+            for i = 1, n do
+                if timers[i] == timer then
+                    remove(timers, i)
+                    n = n - 1
                     break
                 end
             end
         end
     else
-        function app:runEventLoop(timeout)
-            error("method 'runEventLoop' not supported")
-        end
+        assert(type(func) == "function", "Timer object or function expected")
+        timer = Timer(func, ...)
     end
-    
-    if driver.handleNextEvents then
-        function app:update(timeout)
-            if not animationTimer.time then
-                _processAllChanges()
-            end
-            return driver:handleNextEvents(timeout)
-        end
-    end
-    
-    driver:setProcessFunc(function()
-        local now = driver:getTime()
-        local closed = isClosed[app]
-        while not closed do
-            local timer = timers[1]
-            if not timer or timer.time > now then
-                break
-            end
-            remove(timers, 1)
-            if timer == animationTimer then
-                _processAllChanges()
-            end
-            timer.time = false
-            timer.func(unpack(timer))
-            closed = isClosed[app]
-        end
-        local timer = timers[1]
-        if timer then
-            local t = timer.time - now
+    local now  = driver:getTime()
+    local time = now + seconds
+    timer.time = time
+    for i = 1, n do
+        if timers[i].time > time then
+            insert(timers, i, timer)
+            local t = timers[1].time - now
             t = (t >= 0) and t or 0
-            if not closed then
-                driver:setNextProcessTime(t)
+            driver:setNextProcessTime(t)
+            return timer
+        end
+    end
+    timers[n + 1] = timer
+    local t = timers[1].time - now
+    t = (t >= 0) and t or 0
+    driver:setNextProcessTime(t)
+    return timer
+end
+
+function Application:getCurrentTime()
+    return self.driver:getTime() 
+end
+
+function Application:deferChanges(callback)
+    assert(not self.procssingDeferedChanges)
+    local deferredChanges = getDeferredChanges[self]
+    deferredChanges[#deferredChanges + 1] = callback
+    self._hasChanges = true
+end
+
+function Application:_processAllChanges()
+    local postprocessNeeded = self.postprocessNeeded
+    if self._hasChanges then
+        local visibilityChanges = getVisibilityChanges[self]
+        for widget, hidden in pairs(visibilityChanges) do
+            widget:onEffectiveVisibilityChanged(hidden)
+            visibilityChanges[widget] = nil
+        end
+        self.procssingDeferedChanges = true
+        local deferredChanges = getDeferredChanges[self]
+        for i = 1, #deferredChanges do 
+            deferredChanges[i]()
+            deferredChanges[i] = nil
+        end
+        self.procssingDeferedChanges = false
+        self._hasChanges = false
+        for i = 1, #self do
+            local w = self[i]
+            if w._hasChanges then
+                if w:_processChanges() then
+                    postprocessNeeded[#postprocessNeeded + 1] = w
+                end
+                assert(not w._hasChanges)
             end
         end
-        if not closed and not animationTimer.time then
-            _processAllChanges()
-        end
-    end)
-    
-    function app._eventFunc(window, view, event, ...)
-        --print(event, ...)
-        if event == "CONFIGURE" then
-            window:_handleConfigure(...)
-        elseif event == "EXPOSE" then
-            window:_handleExpose(...)
-        elseif event == "MOTION" then
-            window:_handleMouseMove(...)
-        elseif event == "POINTER_OUT" then
-            window:_handleMouseLeave(...)
-        elseif event == "POINTER_IN" then
-            window:_handleMouseEnter(...)
-        elseif event == "KEY_PRESS" then
-            window:_handleKeyDown(...)
-        elseif event == "KEY_RELEASE" then
-            window:_handleKeyUp(...)
-        elseif event == "BUTTON_PRESS" then
-            window:_handleMouseDown(...)
-        elseif event == "BUTTON_RELEASE" then
-            window:_handleMouseUp(...)
-        elseif event == "FOCUS_IN" then
-            window:_handleFocusIn(...)
-        elseif event == "FOCUS_OUT" then
-            window:_handleFocusOut(...)
-        elseif event == "SCROLL" then
-            window:_handleMouseScroll(...)
-        elseif event == "CLOSE" then
-            window:_handleClose()
-        elseif event == "MAP" then
-            window:_handleMap(...)
-        elseif event == "CREATE" then
-            return
-        end
-        if not isClosed[app] and not animationTimer.time then
-            _processAllChanges()
-        end
+        assert(not self._hasChanges)
+    end
+    for i = 1, #postprocessNeeded do
+        postprocessNeeded[i]:_postProcessChanges()
+        postprocessNeeded[i] = nil
     end
 end
+
+--[[
+    Update by processing events from the window system.
+
+    * *timeout*  - optional float, timeout in seconds  
+  
+    If *timeout* is given, this function will process events from the window system until
+    the time period in seconds has elapsed or until all window objects have been closed.
+  
+    If *timeout* is `nil` or not given, this function will process events from the window system
+    until all window objects have been closed.
+]]
+function Application:runEventLoop(timeout)
+    local driver = self.driver
+    if driver.handleNextEvents then
+        local endTime = timeout and (driver:getTime() + timeout)
+        if not self.animationTimer.time then
+            self:_processAllChanges()
+        end
+        while self:hasWindows() do
+            driver:handleNextEvents(endTime and driver:getTime() - endTime)
+            if not isClosed[self] and not self.animationTimer.time then
+                self:_processAllChanges()
+            end
+            if endTime and driver:getTime() >= endTime then
+                break
+            end
+        end
+    else
+        error("method 'runEventLoop' not supported")
+    end
+end
+
+--[[
+    Update by processing events from the window system.
+  
+    * *timeout*  - optional float, timeout in seconds  
+  
+    If *timeout* is given, this function will wait for *timeout* seconds until
+    events from the window system become available. If *timeout* is `nil` or not
+    given, this function will block indefinitely until an event occurs.
+  
+    As soon as events are available, all events in the queue are processed and this function 
+    returns `true`.
+    
+    If *timeout* is given and there are no events available after *timeout*
+    seconds, this function will return `false`.
+]]
+function Application:update(timeout)
+    local driver = self.driver
+    if driver.handleNextEvents then
+        if not self.animationTimer.time then
+            self:_processAllChanges()
+        end
+        return driver:handleNextEvents(timeout)
+    end
+end
+
 
 
 

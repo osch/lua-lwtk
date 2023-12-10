@@ -2,16 +2,24 @@ local lwtk = require("lwtk")
 
 local call = lwtk.call
 
-local MouseDispatcher = lwtk.newMixin("lwtk.MouseDispatcher", lwtk.Styleable.NO_STYLE_SELECTOR)
+local MouseDispatcher = lwtk.newMixin("lwtk.MouseDispatcher", lwtk.Styleable.NO_STYLE_SELECTOR,
+    
+    function(MouseDispatcher, Super)
 
-function MouseDispatcher.initClass(MouseDispatcher, Super)  -- luacheck: ignore 431/MouseDispatcher
-
-    function MouseDispatcher:new(initParams)
-        self.mouseChildButtons = {}
-        Super.new(self, initParams)
+        MouseDispatcher:declare(
+            "mouseButtonChild",
+            "mouseChildButtons",
+            "mouseHoverChild",
+            "mouseX",
+            "mouseY"
+        )
+    
+        function MouseDispatcher.override:new(initParams)
+            self.mouseChildButtons = {}
+            Super.new(self, initParams)
+        end
     end
-
-end
+)
 
 
 local function findChildAt(self, mx, my)
@@ -118,22 +126,22 @@ local function processMouseMove(self, entered, mx, my)
     end
 end
 
-function MouseDispatcher:_processMouseEnter(mx, my)
+function MouseDispatcher.override:_processMouseEnter(mx, my)
     processMouseMove(self, true, mx, my)
 end
 
-function MouseDispatcher:_processMouseMove(mouseEntered, mx, my)
+function MouseDispatcher.override:_processMouseMove(mouseEntered, mx, my)
     processMouseMove(self, mouseEntered, mx, my)
 end
 
-function MouseDispatcher:_processMouseScroll(dx, dy)
+function MouseDispatcher.override:_processMouseScroll(dx, dy)
     local hChild = self.mouseHoverChild
     if hChild and hChild ~= self then
         hChild:_processMouseScroll(dx, dy)
     end
 end
 
-function MouseDispatcher:_processMouseLeave(mx, my)
+function MouseDispatcher.override:_processMouseLeave(mx, my)
     self.mouseX = mx
     self.mouseY = my
     local bChild = self.mouseButtonChild
@@ -156,7 +164,7 @@ function MouseDispatcher:_processMouseLeave(mx, my)
     end
 end
 
-function MouseDispatcher:_processMouseDown(mx, my, button, modState)
+function MouseDispatcher.override:_processMouseDown(mx, my, button, modState)
     self.mouseX = mx
     self.mouseY = my
     local bChild = self.mouseButtonChild
@@ -194,7 +202,7 @@ local function hasButtons(buttons)
     end
 end
 
-function MouseDispatcher:_processMouseUp(mouseEntered, mx, my, button, modState)
+function MouseDispatcher.override:_processMouseUp(mouseEntered, mx, my, button, modState)
     self.mouseX = mx
     self.mouseY = my
     local bChild = self.mouseButtonChild

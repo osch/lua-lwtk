@@ -12,16 +12,20 @@ local calculateLRMeasures = lwtk.internal.LayoutImpl.calculateLRMeasures
 local calculateTBMeasures = lwtk.internal.LayoutImpl.calculateTBMeasures
 local applyTBLayout       = lwtk.internal.LayoutImpl.applyTBLayout
 
-local getRowAdapters    = setmetatable({}, { __mode = "k" })
-local getColumnAdapters = setmetatable({}, { __mode = "k" })
+local getRowAdapters    = lwtk.WeakKeysTable()
+local getColumnAdapters = lwtk.WeakKeysTable()
 
-local col4Caches        = setmetatable({}, { __mode = "k" })
-local row4Caches        = setmetatable({}, { __mode = "k" })
+local col4Caches        = lwtk.WeakKeysTable()
+local row4Caches        = lwtk.WeakKeysTable()
 
 local ColumnAdapter = lwtk.newClass("lwtk.Matrix.ColumnAdapter")
 local RowAdapter    = lwtk.newClass("lwtk.Matrix.RowAdapter")
 
 -------------------------------------------------------------------------------------------------
+
+ColumnAdapter:declare("visible")
+
+RowAdapter:declare("visible")
 
 function ColumnAdapter:new()
     self.visible = true
@@ -40,7 +44,10 @@ end
 
 -------------------------------------------------------------------------------------------------
 
-function Matrix:new(initParams)
+Matrix:declare("columnCount",
+               "rowCount")
+
+function Matrix.override:new(initParams)
     local columnCount = 0
     local rows = {}
     for i = 1, #initParams do
@@ -103,7 +110,7 @@ end
 
 -------------------------------------------------------------------------------------------------
 
-function Matrix:getMeasures()
+function Matrix.implement:getMeasures()
     local rowAdapters    = getRowAdapters[self]
     local columnAdapters = getColumnAdapters[self]
 
@@ -127,7 +134,7 @@ end
 
 -------------------------------------------------------------------------------------------------
 
-function Matrix:onLayout(width, height, isLayoutTransition)
+function Matrix.implement:onLayout(width, height, isLayoutTransition)
     if not isLayoutTransition then
         local topMargin, rightMargin, bottomMargin, leftMargin = getOuterMargins(self)
         local rowAdapters    = getRowAdapters[self]

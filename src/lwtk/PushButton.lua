@@ -4,10 +4,19 @@ local TextFragment = lwtk.TextFragment
 local Super        = lwtk.Focusable(lwtk.Button)
 local PushButton   = lwtk.newClass("lwtk.PushButton", Super)
 
-PushButton.getMeasures = lwtk.TextLabel.getMeasures
+PushButton.implement.getMeasures = lwtk.TextLabel.getMeasures
 PushButton.setDefault  = lwtk.Focusable.extra.setDefault
 
-function PushButton:new(initParams)
+PushButton:declare(
+    "textFragment",
+    "text",
+    "onClicked",
+    "mousePressed",
+    "mouseEntered",
+    "_mouseDownTime"
+)
+
+function PushButton.override:new(initParams)
     Super.new(self)
     self.textFragment = self:addChild(TextFragment { considerHotkey = true })
     self:setInitParams(initParams)
@@ -44,19 +53,19 @@ function PushButton:setText(text)
         self:triggerLayout()
     end
 end
-function PushButton:onMouseEnter(x, y)
+function PushButton.implement:onMouseEnter(x, y)
     self.mouseEntered = true
     if not self.disabled then
         self:setState("hover", true)
     end
 end
-function PushButton:onMouseLeave(x, y)
+function PushButton.implement:onMouseLeave(x, y)
     self.mouseEntered = false
     if not self.disabled then
         self:setState("hover", false)
     end
 end
-function PushButton:onMouseDown(x, y, button, modState)
+function PushButton.implement:onMouseDown(x, y, button, modState)
     if button == 1 and not self.disabled then
         self.mousePressed = true
         self:setState("pressed", true)
@@ -72,7 +81,7 @@ local function onMouseUp2(self)
     end
 end
 
-function PushButton:onMouseUp(x, y, button, modState)
+function PushButton.implement:onMouseUp(x, y, button, modState)
     if button == 1 and not self.disabled and self.mousePressed then
         local simulateSeconds = self:getStyleParam("SimulateButtonClickSeconds") or 0.1
         local mouseDownSeconds = self:getCurrentTime() - self._mouseDownTime
@@ -106,7 +115,7 @@ local function simulateButtonClick1(self)
                   simulateButtonClick2, self)
 end
 
-function PushButton:onHotkeyDown()
+function PushButton.implement:onHotkeyDown()
     simulateButtonClick1(self)
 end
 
@@ -115,14 +124,14 @@ function PushButton:onActionFocusedButtonClick()
 end
 
 
-function PushButton:onHotkeyEnabled(hotkey)
+function PushButton.override:onHotkeyEnabled(hotkey)
     Super.onHotkeyEnabled(self, hotkey)
     if self.textFragment.hotkey == hotkey then
         self.textFragment:setShowHotkey(true)
     end
 end
 
-function PushButton:onHotkeyDisabled(hotkey)
+function PushButton.override:onHotkeyDisabled(hotkey)
     Super.onHotkeyDisabled(self, hotkey)
     if self.textFragment.hotkey == hotkey then
         self.textFragment:setShowHotkey(false)
@@ -130,7 +139,7 @@ function PushButton:onHotkeyDisabled(hotkey)
 end
 
 
-function PushButton:onLayout(width, height)
+function PushButton.override:onLayout(width, height)
     Super.onLayout(self, width, height)
     local iw, ih = self.textFragment:getSize()
     local tw, th, ascent = self.textFragment:getTextMeasures()

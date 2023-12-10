@@ -1,4 +1,5 @@
 local lua_version = _VERSION:match("[%d%.]*$")
+local isLua51  = (lua_version == "5.1")
 local isOldLua = (#lua_version == 3 and lua_version < "5.3")
 
 -------------------------------------------------------------------------------------------
@@ -28,15 +29,16 @@ end
 
 PRINT("----------------------------------------------------------------------------------")
 do
-    local M1 = lwtk.newMixin("M1")
-    function M1.initClass(M1, Super)   -- luacheck: ignore 431/M1
-        function M1:new(value)
-            Super.new(self, 1000 + value)
+    local M1 = lwtk.newMixin("M1",
+        function(M1, Super)
+            function M1.override:new(value)
+                Super.new(self, 1000 + value)
+            end
+            function M1.override:getValue()
+                return 1000 + Super.getValue(self)
+            end
         end
-        function M1:getValue()
-            return 1000 + Super.getValue(self)
-        end
-    end
+    )
     function M1:getValue2()
         return 555
     end
@@ -45,12 +47,13 @@ do
     assert(not M1:isInstanceOf(lwtk.Object))
     assert(not M1:isInstanceOf(lwtk.Class))
     assert(lwtk.isInstanceOf(M1, lwtk.Mixin))
-    assert(tostring(M1) == "lwtk.Mixin(M1)")
+    assert(tostring(M1) == "lwtk.Mixin<M1>")
     local C1 = lwtk.newClass("C1")
     assert(C1:isInstanceOf(lwtk.Class))
     assert(not C1:isInstanceOf(lwtk.Object))
     assert(not C1:isInstanceOf(lwtk.Mixin))
     assert(lwtk.isInstanceOf(C1, lwtk.Class))
+    C1.value = false
     function C1:new(value)
         self.value = value + 1
     end
@@ -58,7 +61,7 @@ do
         return self.value + 1
     end
     assert(lwtk.type(C1) == "lwtk.Class")
-    assert(tostring(C1) == "C1")
+    assert(tostring(C1) == "lwtk.Class<C1>")
 
     local c1 = C1(100)
 
@@ -67,11 +70,8 @@ do
     assert(not c1:isInstanceOf(lwtk.Class))
     assert(not c1:isInstanceOf(lwtk.Mixin))
     assert(lwtk.Object.isInstanceOf(c1, lwtk.Object))
-    assert(lwtk.Object.super == nil)
     assert(getSuperClass(lwtk.Object) == nil)
-    assert(C1.super == nil)
     assert(getSuperClass(C1) == lwtk.Object)
-    assert(c1.super == nil)
     assert(getSuperClass(c1) == nil)
 
     assert(lwtk.type(c1) == "C1")
@@ -81,24 +81,24 @@ do
 
     local M1C1 = M1(C1)
     assertEq(lwtk.type(M1C1), "lwtk.Class")
-    assertEq(tostring(M1C1), "M1")
+    assertEq(tostring(M1C1), "lwtk.Class<M1(C1)>")
     assertEq(getSuperClass(M1C1), C1)
     
     local M1C1_2 = M1(C1)
     assertEq(lwtk.type(M1C1_2), "lwtk.Class")
-    assertEq(tostring(M1C1_2), "M1")
+    assertEq(tostring(M1C1_2), "lwtk.Class<M1(C1)>")
     assertEq(getSuperClass(M1C1_2), C1)
     assertEq(M1C1_2, M1C1)
 
     local m1c1 = M1C1(100)
-    assertEq(lwtk.type(m1c1), "M1")
+    assertEq(lwtk.type(m1c1), "M1(C1)")
     assert(m1c1:getValue(), 2102)
     assert(m1c1:getValue(), 2102)
     assert(m1c1:getValue2(), 555)
     
     local C2 = lwtk.newClass("C2", M1(C1))
     assertEq(lwtk.type(C2), "lwtk.Class")
-    assertEq(tostring(C2), "C2")
+    assertEq(tostring(C2), "lwtk.Class<C2>")
     assertEq(getSuperClass(C2), M1C1)
 
     local c2 = C2(200)
@@ -106,17 +106,21 @@ do
     assert(c2:getValue(), 2202)
     assert(c2:getValue(), 2202)
     
-    local C3 = lwtk.newClass("C3", M1(M1(C1)))
-    assertEq(lwtk.type(C3), "lwtk.Class")
-    assertEq(tostring(C3), "C3")
-    assertEq(lwtk.type(getSuperClass(C3)), "lwtk.Class")
-    assertEq(tostring(getSuperClass(C3)),  "M1")
-    assertEq(getSuperClass(C3), M1(M1(C1)))
-
-    local c3 = C3(300)
-    assertEq(lwtk.type(c3), "C3")
-    assert(c3:getValue(), 2304)
-    assert(c3:getValue(), 2304)
+    assert(not pcall(function() lwtk.newClass("C3", M1(M1(C1))) end))
+end
+PRINT("----------------------------------------------------------------------------------")
+do
+    local T = setmetatable({}, { __mode = "v" })
+    T.C1 = lwtk.newClass("C1")
+    collectgarbage()
+    if isLua51 then
+        assert(T.C1 ~= nil)
+        lwtk.undef(T.C1)
+        collectgarbage()
+        assert(T.C1 == nil)
+    else
+        assert(T.C1 == nil)
+    end
 end
 PRINT("----------------------------------------------------------------------------------")
 do
@@ -136,12 +140,13 @@ do
     assert(C1.a == "a1")
     assert(C1.extra.b == "b1")
     assert(c1.a == "a1")
-    assert(c1.extra.b == "b1")
+    assert(not pcall(function() return c1.extra end))
+    assert(C1.extra.b == "b1")
 
     assert(C2.a == "a1")
-    assert(C2.extra == nil)
+    assert(next(C2.extra) == nil)
     assert(c2.a == "a1")
-    assert(c2.extra == nil)
+    assert(not pcall(function() return c2.extra end))
 
     local C3 = lwtk.newClass("C3", C1)
     C3.extra = {}
@@ -149,53 +154,68 @@ do
     local c3 = C3()
     assert(c3:m1(2) == 3)
     assert(C3.extra.c == "c3")
-    assert(c3.extra.c == "c3")
+    assert(not pcall(function() return c3.extra end))
 end
+if isLua51 then
+    lwtk.undef("C1") -- for Lua 5.1
+    lwtk.undef("C2") -- for Lua 5.1
+end
+collectgarbage()
 PRINT("----------------------------------------------------------------------------------")
 do
-    local M1 = lwtk.newMixin("M1")
-    function M1.initClass(M1, Super)   -- luacheck: ignore 431/M1
-    end
-    local M2 = lwtk.newMixin("M2", M1)
-    function M2.initClass(M2, Super)   -- luacheck: ignore 431/M2
-    end
+    local M1 = lwtk.newMixin("M1",
+        function(M1, Super)
+        end
+    )
+    local M2 = lwtk.newMixin("M2", M1, 
+        function(M2, Super)
+        end
+    )
     assertEq(lwtk.type(M2), "lwtk.Mixin")
-    assertEq(tostring(M2), "lwtk.Mixin(M2)")
+    assertEq(tostring(M2), "lwtk.Mixin<M2>")
     local C1 = lwtk.newClass("C1")
     assertEq(lwtk.type(C1), "lwtk.Class")
     local M2C1 = M2(C1)
     assertEq(lwtk.type(M2C1), "lwtk.Class")
     local C2 = lwtk.newClass("C2", M2C1)
     assertEq(lwtk.type(C2), "lwtk.Class")
-    assertEq(tostring(C2), "C2")
-    assertEq(tostring(getSuperClass(C2)), "M2")
-    assertEq(tostring(getSuperClass(getSuperClass(C2))), "M1")
-    assertEq(tostring(getSuperClass(getSuperClass(getSuperClass(C2)))), "C1")
+    assertEq(tostring(C2), "lwtk.Class<C2>")
+    assertEq(tostring(getSuperClass(C2)), "lwtk.Class<M2(M1(C1))>")
+    assertEq(tostring(getSuperClass(getSuperClass(C2))), "lwtk.Class<M1(C1)>")
+    assertEq(tostring(getSuperClass(getSuperClass(getSuperClass(C2)))), "lwtk.Class<C1>")
 end
+if isLua51 then
+    lwtk.undef("C1") -- for Lua 5.1
+    lwtk.undef("C2") -- for Lua 5.1
+end
+collectgarbage()
 PRINT("----------------------------------------------------------------------------------")
 do
-    local M1 = lwtk.newMixin("M1")
-    function M1.initClass(M1, Super)   -- luacheck: ignore 431/M1
-    end
-    local M2 = lwtk.newMixin("M2")
-    function M2.initClass(M2, Super)   -- luacheck: ignore 431/M2
-    end
-    local M3 = lwtk.newMixin("M3", M1, M2)
-    function M3.initClass(M3, Super)   -- luacheck: ignore 431/M3
-    end
+    local M1 = lwtk.newMixin("M1",
+        function(M1, Super)
+        end
+    )
+    local M2 = lwtk.newMixin("M2",
+        function(M2, Super)
+        end
+    )
+    local M3 = lwtk.newMixin("M3", M1, M2,
+        function(M3, Super)
+        end
+    )
     assertEq(lwtk.type(M3), "lwtk.Mixin")
-    assertEq(tostring(M3), "lwtk.Mixin(M3)")
+    assertEq(tostring(M3), "lwtk.Mixin<M3>")
     local C1 = lwtk.newClass("C1")
     assertEq(lwtk.type(C1), "lwtk.Class")
     local M3C1 = M3(C1)
     assertEq(lwtk.type(M3C1), "lwtk.Class")
     local C2 = lwtk.newClass("C2", M3C1)
     assertEq(lwtk.type(C2), "lwtk.Class")
-    assertEq(tostring(C2), "C2")
-    assertEq(tostring(getSuperClass(C2)), "M3")
-    assertEq(tostring(getSuperClass(getSuperClass(C2))), "M1")
-    assertEq(tostring(getSuperClass(getSuperClass(getSuperClass(C2)))), "M2")
-    assertEq(tostring(getSuperClass(getSuperClass(getSuperClass(getSuperClass(C2))))), "C1")
+    assertEq(tostring(C2), "lwtk.Class<C2>")
+    assertEq(tostring(getSuperClass(C2)), "lwtk.Class<M3(M1(M2(C1)))>")
+    assertEq(tostring(getSuperClass(getSuperClass(C2))), "lwtk.Class<M1(M2(C1))>")
+    assertEq(tostring(getSuperClass(getSuperClass(getSuperClass(C2)))), "lwtk.Class<M2(C1)>")
+    assertEq(tostring(getSuperClass(getSuperClass(getSuperClass(getSuperClass(C2))))), "lwtk.Class<C1>")
 end
 PRINT("----------------------------------------------------------------------------------")
 
@@ -230,7 +250,7 @@ do
 end
 PRINT("----------------------------------------------------------------------------------")
 do
-    assert(tostring(lwtk.Button) == "lwtk.Button")
+    assert(tostring(lwtk.Button) == "lwtk.Class<lwtk.Button>")
     assert(tostring(lwtk.Button()):match("^lwtk.Button: [x0-9A-Fa-f]+$"))
     local ok, err = pcall(function() lwtk.Button()() end)
     
@@ -242,13 +262,15 @@ do
     
     local MyButton = lwtk.newClass("MyButton", lwtk.Widget)
     do
+        MyButton.text = false
+        
         function MyButton:setText(text)
             self.text = text
             self:triggerRedraw()
         end
     end
     
-    assertEq(tostring(MyButton), "MyButton")
+    assertEq(tostring(MyButton), "lwtk.Class<MyButton>")
     assert(tostring(MyButton()):match("^MyButton: [x0-9A-Fa-f]+$"))
     
     local g1 = Group {
@@ -265,7 +287,6 @@ do
     assert(g1:childById("b1") ~= nil)
     assert(g1:childById("b2") ~= nil)
     assertEq(g1:childById("b2").text, "B2")
-    assertEq(g1.root, nil)
     assertEq(g1:childById("b2"):getRoot(), g1)
     assertEq(g1:childById("b2"):getRoot(), g1)
     assertEq(g1:childById("b2"):getRoot():childById("b1").text, "B1")
@@ -282,9 +303,6 @@ do
     assert  (g2:childById("b2") ~= nil)
     assertEq(g2:childById("b2"):getRoot(), g2)
     
-    local BorderedButton = lwtk.Bordered(lwtk.Button)
-    assert(tostring(BorderedButton) == "lwtk.Bordered(lwtk.Button)")
-    assert(tostring(BorderedButton()):match("^lwtk.Bordered%(lwtk.Button%)%: [x0-9A-Fa-f]+$"))
 end
 PRINT("----------------------------------------------------------------------------------")
 do
@@ -385,25 +403,28 @@ do
     
     local MyBox = lwtk.newClass("MyBox", lwtk.Widget)
     
+    MyBox.color = false
+    
     function MyBox:setColor(color)
         self.color = color
     end
     
-    function MyBox:onDraw(ctx)
+    function MyBox.implement:onDraw(ctx)
         local c = self:getStyleParam("Color")
         ctx:set_source_rgb(c:toRGB())
         ctx:rectangle(0, 0, self.w, self.h)
         ctx:fill()
     end
     
+    MyGroup.color = false
     MyGroup.setColor = MyBox.setColor
-    MyGroup.onDraw = MyBox.onDraw
+    MyGroup.implement.onDraw = MyBox.onDraw
     
-    function MyBox:onMouseEnter(x, y)
+    function MyBox.implement:onMouseEnter(x, y)
         self:setState("hover", true)
     end
     
-    function MyBox:onMouseLeave(x, y)
+    function MyBox.implement:onMouseLeave(x, y)
     --    print(self.id, "leave", x, y)
         self:setState("hover", false)
     end
@@ -443,9 +464,9 @@ do
     --local b0 = win1.child.child.xxx
     print(win1:childById("b1"))
     print(win1:childById("mb1"))
-    assert(win1:childById("mb1").__name == "MyBox")
-    assert(win1:childById("b1").__name == "lwtk.Button")
-    assert(win1:childById("b2").__name == "lwtk.PushButton")
+    assertEq(getmetatable(win1:childById("mb1")).__name, "MyBox")
+    assertEq(getmetatable(win1:childById("b1")).__name, "lwtk.Button")
+    assert(getmetatable(win1:childById("b2")).__name == "lwtk.PushButton")
     assert(win1:childById("b2"):isInstanceOf(PushButton))
     assert(win1:childById("b2"):isInstanceOf(Button))
     assert(win1:childById("b1"):isInstanceOf(Button))
@@ -518,6 +539,19 @@ do
     assertEq(g:childById("g2/b2"):byId("g/g1/b2").text, "g1b2")
     assertEq(g:childById("g2"):byId("g/g1"):childById("b1").text, "g1b1")
     assertEq(g:childById("g1"):byId("g/g2"):childById("b2").text, "g2b2")
+end
+PRINT("----------------------------------------------------------------------------------")
+do
+    local get   = lwtk.StyleRef.get
+    local scale = lwtk.StyleRef.scale
+    
+    local s = lwtk.DefaultStyle()
+    
+    local w1 = lwtk.Widget { }
+    local w2 = lwtk.Widget { style = { TextSize = scale(100, get"TextSize") } }
+    
+    assert(s:getStyleParam(w2, "TextSize") == 100 * s:getStyleParam(w1, "TextSize"))
+
 end
 PRINT("----------------------------------------------------------------------------------")
 print("OK.")

@@ -18,11 +18,25 @@ local childStyles = WeakKeysTable()
 local toTypePattern  = TypeRule.toPattern
 local toStylePattern = StyleRule.toPattern
 
+Style:declare(
+    "typeList",
+    "myScaleFactor",
+    "ruleList",
+    "cache",
+    "animatable",
+    "scalable",
+    "scaleFactor",
+    "localParams",
+    "parent"
+)
+
 function Style:new(ruleList)
     self:setRules(ruleList)
 end
 
-local function clearCache(self)
+local clearCache
+
+function Style:clearCache()
     self.cache = {}
     self.animatable = {}
     self.scalable   = {}
@@ -35,7 +49,7 @@ local function clearCache(self)
     end
 end
 
-Style.clearCache = clearCache
+clearCache = Style.clearCache
 
 function Style:setScaleFactor(scaleFactor)
     self.myScaleFactor = scaleFactor
@@ -195,7 +209,7 @@ function Style:isScalable(parName)
     end
 end
 
-local function _getStyleParam3(self, selector, parName, classSelectorPath, stateSelectorPath, localStyle, ctxRules, localParams)
+local function _getStyleParam3(self, selector, parName, classSelectorPath, stateSelectorPath, localStyle, ctxRules, localParams, extraParentStyle)
     local typeRule
     local context
     local function evalRule(rule)
@@ -243,7 +257,7 @@ local function _getStyleParam3(self, selector, parName, classSelectorPath, state
             return rslt, typeRule, (context and context.localInvolved)
         end
     end
-    local parent = self.parent
+    local parent = extraParentStyle or self.parent
     if parent then
         return _getStyleParam3(parent, selector, parName, classSelectorPath, stateSelectorPath, localStyle, ctxRules, localParams)
     end
@@ -254,7 +268,7 @@ function Style:_getStyleParam2(parName, classSelectorPath, stateSelectorPath, ct
     return _getStyleParam3(self, selector, parName, classSelectorPath, stateSelectorPath, self, ctxRules)
 end
 
-function Style:_getStyleParam(parName, classSelectorPath, stateSelectorPath, considerLocal)
+function Style:_getStyleParam(parName, classSelectorPath, stateSelectorPath, considerLocal, extraParentStyle)
     local cache = self.cache
     local lowerParName = lower(parName)
     local selector = lowerParName.."@"..classSelectorPath..":"..lower(stateSelectorPath)
@@ -276,10 +290,14 @@ function Style:_getStyleParam(parName, classSelectorPath, stateSelectorPath, con
                 if not typeRule then
                     errorf("Cannot deduce type for style parameter name %q", parName)
                 end
+                if type(rslt) == "function" then
+                    local context = StyleRuleContext(nil, extraParentStyle or self.parent, classSelectorPath, stateSelectorPath)
+                    rslt = rslt(context)
+                end
             end
         end
         if not rslt then
-            rslt, typeRule, localInvolved = _getStyleParam3(self, selector, parName, classSelectorPath, stateSelectorPath, self, nil, localParams)
+            rslt, typeRule, localInvolved = _getStyleParam3(self, selector, parName, classSelectorPath, stateSelectorPath, self, nil, localParams, extraParentStyle)
         end
         
         if rslt then

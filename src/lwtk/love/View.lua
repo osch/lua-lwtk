@@ -3,9 +3,16 @@ local lwtk = require"lwtk"
 local floor  = math.floor
 local unpack = unpack or table.unpack
 
+local getWindow = lwtk.WeakKeysTable()
+
 local View = lwtk.newClass("lwtk.love.View")
 
-local getWindow = lwtk.WeakKeysTable()
+View:declare(
+    "x", "y", "w", "h",
+    "damagedArea",
+    "canvas",
+    "closed"
+)
 
 function View:new(window, initParams)
     getWindow[self] = window

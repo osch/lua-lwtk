@@ -11,8 +11,6 @@ local len             = utf8.len
 local getKeyBinding   = lwtk.get.keyBinding
 local getFocusHandler = lwtk.get.focusHandler
 
-local KeyHandler = lwtk.newMixin("lwtk.KeyHandler")
-
 local modMap = {}
 local caches = {}
 local keyMap = {}
@@ -31,16 +29,23 @@ local isModifier = {
     Super_R = "Super"
 }
 
-local getState = setmetatable({}, { __mode = "k" })
+local getState = lwtk.WeakKeysTable()
 
-function KeyHandler.initClass(KeyHandler, Super)  -- luacheck: ignore 431/KeyHandler
+local KeyHandler = lwtk.newMixin("lwtk.KeyHandler",
 
-    function KeyHandler:new(...)
-        Super.new(self, ...)
-        getState[self] = { current = false, mod = false }
+    function(KeyHandler, Super)
+
+        KeyHandler:declare(
+            "interceptKeyDown"
+        )
+
+        function KeyHandler.override:new(...)
+            Super.new(self, ...)
+            getState[self] = { current = false, mod = false }
+        end
+    
     end
-
-end
+)
 
 function KeyHandler:resetKeyHandling()
     local state = getState[self]
@@ -177,7 +182,7 @@ function KeyHandler:_handleKeyUp(keyName, keyState, keyText)
             state.mod = false
             keyName = toModKeyString(keyName, keyState)
             local keyBinding = getKeyBinding[self]
-            local actions = keyBinding[keyName]                    
+            local actions = keyBinding[keyName]
             if actions then
                 local child = getVisibleChild(self)
                 if child then

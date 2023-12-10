@@ -1,5 +1,7 @@
 local lwtk = require("lwtk")
 
+local rawget = rawget
+
 local getMeasures     = lwtk.layout.getMeasures
 local getOuterMargins = lwtk.layout.getOuterMargins
 local setOuterMargins = lwtk.layout.setOuterMargins
@@ -7,19 +9,23 @@ local setOuterMargins = lwtk.layout.setOuterMargins
 local Super        = lwtk.Group
 local Space        = lwtk.newClass("lwtk.Space", Super)
 
+Space:declare(
+    "unlimited"
+)
+
 function Space:setUnlimited(unlimited)
     self.unlimited = unlimited
 end
 
-function Space:addChild(child)
-    if self[1] then
+function Space.override:addChild(child)
+    if rawget(self, 1) then
         lwtk.errorf("object of type %s can only have one child", lwtk.type(self))
     end
     return Super.addChild(self, child)
 end
 
-function Space:getMeasures()
-    local child = self[1]
+function Space.implement:getMeasures()
+    local child = rawget(self, 1)
     local unlimited = self.unlimited and -1 or -2
     if child then
         local minW, minH, bestW, bestH, _, _, 
@@ -31,8 +37,8 @@ function Space:getMeasures()
     end
 end
 
-function Space:onLayout(w, h)
-    local child = self[1]
+function Space.implement:onLayout(w, h)
+    local child = rawget(self, 1)
     if child then
         local tM, rM, bM, lM = getOuterMargins(self)
         if child.getMeasures then

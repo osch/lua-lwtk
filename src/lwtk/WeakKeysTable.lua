@@ -1,8 +1,7 @@
-local weakKeysMeta = { __name = "lwtk.WeakKeysTable",
-                       __mode = "k" }
+local lwtk = require("lwtk")
 
-local function WeakKeysTable()
-    return setmetatable({}, weakKeysMeta)
-end
+local WeakKeysTable = lwtk.newMeta("lwtk.WeakKeysTable")
+
+WeakKeysTable.__mode = "k"
 
 return WeakKeysTable

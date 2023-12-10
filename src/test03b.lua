@@ -6,18 +6,19 @@ local Widget      = lwtk.Widget
 local Color       = lwtk.Color
 local Row         = lwtk.Row
 local newClass    = lwtk.newClass
-local fillRect    = lwtk.draw.fillRect
 
 local MyBox = newClass("MyBox", lwtk.Widget)
 do
-    function MyBox:onDraw(ctx)
+    MyBox:declare("measures")
+
+    function MyBox.implement:onDraw(ctx)
         local w, h = self:getSize()
-        fillRect(ctx, self:getStyleParam("Color"), 0, 0, w, h)
+        ctx:fillRect(self:getStyleParam("Color"), 0, 0, w, h)
     end
     function MyBox:setMeasures(m)
         self.measures = m
     end
-    function MyBox:getMeasures() 
+    function MyBox.implement:getMeasures() 
         local m = self.measures
         return m[1], m[2], m[3], m[4], m[5], m[6]
     end
@@ -25,9 +26,9 @@ end
 
 local MyRow = newClass("MyRow", Row)
 do
-    function MyRow:onDraw(ctx)
+    function MyRow.implement:onDraw(ctx)
         local w, h = self:getSize()
-        fillRect(ctx, self:getStyleParam("Color"), 0, 0, w, h)
+        ctx:fillRect(self:getStyleParam("Color"), 0, 0, w, h)
     end
 end
 

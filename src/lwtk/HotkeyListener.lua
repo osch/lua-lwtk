@@ -4,43 +4,44 @@ local getFocusHandler   = lwtk.get.focusHandler
 local getHotkeys        = lwtk.WeakKeysTable()
 local registeredHotkeys = lwtk.WeakKeysTable()
 
-local HotkeyListener    = lwtk.newMixin("lwtk.HotkeyListener", lwtk.Styleable.NO_STYLE_SELECTOR)
-
 local processHotKeyRegistration
 
-function HotkeyListener.initClass(HotkeyListener, Super)  -- luacheck: ignore 431/HotkeyListener
+local HotkeyListener = lwtk.newMixin("lwtk.HotkeyListener", lwtk.Styleable.NO_STYLE_SELECTOR,
 
-    local Super_onEffectiveVisibilityChanged = Super.onEffectiveVisibilityChanged
-    
-    function HotkeyListener:onEffectiveVisibilityChanged(hidden)
-        if Super_onEffectiveVisibilityChanged then
-            Super_onEffectiveVisibilityChanged(self, hidden)
-        end
-        processHotKeyRegistration(self, not hidden)
-    end
+    function(HotkeyListener, Super)
 
-    function HotkeyListener:_handleHasFocusHandler(focusHandler)
-        local superCall = Super._handleHasFocusHandler
-        if superCall then
-            superCall(self, focusHandler)
+        local Super_onEffectiveVisibilityChanged = Super.onEffectiveVisibilityChanged
+        
+        function HotkeyListener.implement:onEffectiveVisibilityChanged(hidden)
+            if Super_onEffectiveVisibilityChanged then
+                Super_onEffectiveVisibilityChanged(self, hidden)
+            end
+            processHotKeyRegistration(self, not hidden)
         end
-        local hotkeys = getHotkeys[self]
-        if hotkeys and not self._hidden then
-            focusHandler:registerHotkeys(self, hotkeys)
-            registeredHotkeys[self] = hotkeys
-        end
-    end
     
-    local Super_onDisabled = Super.onDisabled
-
-    function HotkeyListener:onDisabled(disableFlag)
-        processHotKeyRegistration(self, not disableFlag)
-        if Super_onDisabled then
-            Super_onDisabled(self, disableFlag)
+        function HotkeyListener.implement:_handleHasFocusHandler(focusHandler)
+            local superCall = Super._handleHasFocusHandler
+            if superCall then
+                superCall(self, focusHandler)
+            end
+            local hotkeys = getHotkeys[self]
+            if hotkeys and not self._hidden then
+                focusHandler:registerHotkeys(self, hotkeys)
+                registeredHotkeys[self] = hotkeys
+            end
         end
-    end
+        
+        local Super_onDisabled = Super.onDisabled
     
-end
+        function HotkeyListener.implement:onDisabled(disableFlag)
+            processHotKeyRegistration(self, not disableFlag)
+            if Super_onDisabled then
+                Super_onDisabled(self, disableFlag)
+            end
+        end
+        
+    end
+)
 
 function processHotKeyRegistration(self, registrateFlag)
     if registrateFlag then
@@ -104,7 +105,7 @@ function HotkeyListener:isHotkeyEnabled(hotkey)
     return hotkeys and hotkeys[hotkey]
 end
 
-function HotkeyListener:onHotkeyEnabled(hotkey)
+function HotkeyListener.implement:onHotkeyEnabled(hotkey)
     local hotkeys = getHotkeys[self]
     if not hotkeys[hotkey] then
         hotkeys[hotkey] = true

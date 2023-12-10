@@ -94,7 +94,8 @@ end
 
 
 local function collectOldFrames(widget, oldFrames)
-    for _, c in ipairs(widget) do
+    for i = 1, #widget do
+        local c = widget[i]
         oldFrames[c] = { c.x, c.y, c.w, c.h }
         c._isRelayouting = true
         collectOldFrames(c, oldFrames)

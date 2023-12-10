@@ -2,6 +2,17 @@ local lwtk = require"lwtk"
 
 local FontInfo = lwtk.newClass("lwtk.FontInfo")
 
+FontInfo:declare(
+    "ascent",
+    "descent",
+    "family",
+    "height",
+    "layoutContext",
+    "size",
+    "slant",
+    "weight"
+)
+
 function FontInfo:new(layoutContext, family, slant, weight, size)
     self.layoutContext = layoutContext
     self.family        = family

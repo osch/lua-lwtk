@@ -3,14 +3,21 @@ local lwtk = require"lwtk"
 local match       = string.match
 local getActions  = lwtk.get.actions
 
-local Super          = lwtk.Object
-local Actionable     = lwtk.newClass("lwtk.Actionable", Super)
+local Actionable = lwtk.newMixin("lwtk.Actionable",
 
-function Actionable:new(initParams)
-    if initParams then
-        self:setInitParams(initParams)
+    function(Actionable, Super)
+
+        function Actionable:new(initParams)
+            if initParams then
+                self:setInitParams(initParams)
+            end
+        end
+        
+        function Actionable:handleRemainingInitParams(initParams)
+            Super.setAttributes(self, initParams)
+        end
     end
-end
+)
 
 function Actionable:setInitParams(initParams)
     if initParams then
@@ -18,7 +25,9 @@ function Actionable:setInitParams(initParams)
         local hasRemaining = false
         for k, v in pairs(initParams) do
             if type(k) == "string" and match(k, "^onAction") then
-                if not objectActions then objectActions = {} end
+                if not objectActions then 
+                    objectActions = {} 
+                end
                 objectActions[k] = v
                 initParams[k] = nil
             else
@@ -29,12 +38,7 @@ function Actionable:setInitParams(initParams)
             getActions[self] = objectActions
         end
         if hasRemaining then
-            local handleRemainingInitParams = self.handleRemainingInitParams
-            if handleRemainingInitParams then
-                handleRemainingInitParams(self, initParams)
-            else
-                Super.setAttributes(self, initParams)
-            end
+            self:handleRemainingInitParams(initParams)
         end
     end
 end
@@ -49,7 +53,7 @@ function Actionable:hasActionMethod(actionMethodName)
 end
 
 function Actionable:invokeActionMethod(actionMethodName)
-    local method = self[actionMethodName]
+    local method = self:getMember(actionMethodName)
     if method then
         return method(self)
     else

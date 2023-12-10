@@ -6,26 +6,27 @@ local getVisibilityChanges = lwtk.get.visibilityChanges
 
 local callOnLayout = lwtk.layout.callOnLayout
 
-local Styleable  = lwtk.Styleable
-local Animatable = lwtk.newMixin("lwtk.Animatable", Styleable, Styleable.NO_STYLE_SELECTOR)
-
 local getParamTransitions = lwtk.WeakKeysTable()
 local getStateTransitions = lwtk.WeakKeysTable()
 local getCurrentValues    = lwtk.WeakKeysTable()
 
-function Animatable.initClass(Animatable, Super)  -- luacheck: ignore 431/Animatable
+local Styleable  = lwtk.Styleable
+local Animatable = lwtk.newMixin("lwtk.Animatable", Styleable, Styleable.NO_STYLE_SELECTOR,
 
-    function Animatable:new(initParams)
-        getParamTransitions[self] = {}
-        getStateTransitions[self] = {}
-        getCurrentValues[self]    = {}
-        
-        self._animationActive     = false
-        self._animationTriggered  = false
-        self._animationUpdated    = false
-        Super.new(self, initParams)
+    function(Animatable, Super)
+
+        Animatable:declare(
+            "_animationUpdated"
+        )
+
+        function Animatable.override:new(initParams)
+            getParamTransitions[self] = {}
+            getStateTransitions[self] = {}
+            getCurrentValues[self]    = {}
+            Super.new(self, initParams)
+        end
     end
-end
+)
 
 local getStyleParam = Styleable.getStyleParam
 
@@ -34,7 +35,7 @@ local function addToAnimations(self)
     app._animations:add(self)
 end
 
-function Animatable:animateFrame(newX, newY, newW, newH, isLayoutTransition)
+function Animatable.override:animateFrame(newX, newY, newW, newH, isLayoutTransition)
     if    self.x ~= newX or self.y ~= newY 
        or self.w ~= newW or self.h ~= newH
     then
@@ -242,7 +243,7 @@ function Animatable:setVisible(shouldBeVisible)
     end
 end
 
-function Animatable:setState(name, flag)
+function Animatable.override:setState(name, flag)
     _setState(self, name, flag)
 end
 
@@ -252,29 +253,29 @@ function Animatable:setStates(stateNames)
     end
 end
 
-function Animatable:_setStyleFromParent(parentStyle)
+function Animatable.override:_setStyleFromParent(parentStyle)
     getCurrentValues[self] = {}
     Styleable._setStyleFromParent(self, parentStyle)
 end
 
-function Animatable:setStyle(style)
+function Animatable.override:setStyle(style)
     getCurrentValues[self] = {}
     Styleable.setStyle(self, style)
 end
 
 local function clearCaches(self)
     getCurrentValues[self] = {}
-    for _, c in ipairs(self) do
-        clearCaches(c)
+    for i = 1, #self do
+        clearCaches(self[i])
     end
 end
 
-function Animatable:getStyle()
+function Animatable.override:getStyle()
     clearCaches(self)
     return Styleable.getStyle(self)
 end
 
-function Animatable:getStyleParam(paramName)
+function Animatable.override:getStyleParam(paramName)
     local value = getCurrentValues[self][paramName]
     if value == nil then
         value = getStyleParam(self, paramName)
@@ -291,15 +292,7 @@ function Animatable:getStyleParam(paramName)
     return value
 end
 
-function Animatable:getMandatoryStyleParam(paramName)
-    local p = self:getStyleParam(paramName)
-    if not p then
-        lwtk.errorf("Missing StyleParam %q", paramName)
-    end
-    return p
-end
-
-function Animatable:updateAnimation()
+function Animatable.override:updateAnimation()
     if self._animationUpdated then
         return
     end
