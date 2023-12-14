@@ -1,0 +1,95 @@
+name: test-windows
+
+on: [push, workflow_dispatch]
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        luaVersion: ["5.4"]
+
+    runs-on: ${{ matrix.os }}
+
+    defaults:
+      run:
+        shell: msys2 {0}
+
+    steps:
+    - shell: cmd
+      run: git config --global core.autocrlf input
+
+    - uses: actions/checkout@master
+
+    - uses: msys2/setup-msys2@v2
+      with:
+        msystem: mingw64
+        pacboy: >-
+          binutils:
+          patch:
+          zip:
+          unzip:
+          cc:p
+          libltdl:p
+          libtool:p
+          pkgconf:p
+          autotools:p
+          lua:p
+          cairo:p
+    
+    - name: setup-luarocks 
+      shell: msys2 {0}
+      run: |
+        uname -a
+        pwd
+        echo "-----------------------------------------------------------"
+        echo "-- Workaround for msys2-luarocks bug,                      "
+        echo "-- see: https://github.com/msys2/MINGW-packages/pull/12002 "
+        echo "-----------------------------------------------------------"
+        cd .github/workflows/mingw-w64-lua-luarocks
+        makepkg-mingw -isCf --noconfirm
+        cd -
+        echo "-----------------------------------------------------------"
+        type lua
+        type luarocks
+        lua -v
+        luarocks
+        luarocks install luafilesystem
+
+    - name: setup-lwtk 
+      shell: msys2 {0}
+      run: |
+        luarocks install lpath
+        luarocks install oocairo
+        luarocks install https://luarocks.org/manifests/xavier-wang/luautf8-0.1.5-2.rockspec
+        luarocks --server=https://luarocks.org/dev install lpugl
+        luarocks --server=https://luarocks.org/dev install lpugl_cairo
+        luarocks --server=https://luarocks.org/dev install lpugl_opengl
+        echo "-----------------------------------------------------------"
+        luarocks make lwtk-scm-0.rockspec
+        echo "-----------------------------------------------------------"
+        
+    - name: alltests 
+      shell: msys2 {0}
+      run: |
+        set -e
+        lua -v
+        echo "-----------------------------------------------------------"
+        lua src/alltests.lua src/tests
+        echo "-----------------------------------------------------------"
+
+    - name: doctest 
+      shell: msys2 {0}
+      run: |
+        set -e
+        lua -v
+        cd src
+        lua -e 'print("package.path=", package.path)'
+        export LUA_PATH='.\?.lua;.\?\init.lua;'"$(lua -e 'print(package.path)')"
+        echo "LUA_PATH=$LUA_PATH"
+        lua -e 'print("package.path=", package.path)'
+        echo "-----------------------------------------------------------"
+        lua doctest.lua 
+        echo "-----------------------------------------------------------"
+     

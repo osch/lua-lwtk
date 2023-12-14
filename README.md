@@ -1,6 +1,6 @@
 # lwtk - Lua Widget Toolkit
 [![Licence](http://img.shields.io/badge/Licence-MIT-brightgreen.svg)](LICENSE)
-[![build status](https://github.com/osch/lua-lwtk/workflows/test/badge.svg)](https://github.com/osch/lua-lwtk/actions/workflows/test.yml)
+[![build status](https://github.com/osch/lua-lwtk/workflows/test/badge.svg)](https://github.com/osch/lua-lwtk/actions)
 [![Install](https://img.shields.io/badge/Install-LuaRocks-brightgreen.svg)](https://luarocks.org/modules/osch/lwtk)
 
 This toolkit provides a foundation for building cross platform GUI widgets in pure [Lua] 

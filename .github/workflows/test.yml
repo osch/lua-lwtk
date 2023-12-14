@@ -44,15 +44,23 @@ jobs:
         luarocks --server=https://luarocks.org/dev install lpugl_opengl
         luarocks make lwtk-scm-0.rockspec
 
-    - name: test
-      #uses: GabrielBB/xvfb-action@v1.5
-      #with:
+    - name: alltests
       run: |
         set -e
         lua -v
+        echo "-----------------------------------------------------------"
         lua src/alltests.lua src/tests
+        echo "-----------------------------------------------------------"
+
+
+    - name: doctest 
+      run: |
+        set -e
+        lua -v
         cd src
-        export LUA_PATH='./?.lua;./?/init.lua;'$LUA_PATH
-        echo "LUA_PATH=$LUA_PATH"
+        export LUA_PATH='./?.lua;./?/init.lua;'"$(lua -e 'print(package.path)')"
+        lua -e 'print("package.path =", package.path)'
+        echo "-----------------------------------------------------------"
         lua doctest.lua 
+        echo "-----------------------------------------------------------"
         

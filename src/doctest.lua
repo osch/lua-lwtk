@@ -5,11 +5,15 @@ os.setlocale("C")
 local args = {...}
 
 if #args == 0 then
-    local path = require("path")     -- https://luarocks.org/modules/xavier-wang/lpath
-    local fs   = require("path.fs")  -- https://luarocks.org/modules/xavier-wang/lpath
-
-    for n, t in fs.scandir("../doc") do
-        if n:match("%.md$") and not n:match("/gen/") and t == "file" and path.isfile(n) then
+    local isfile  = require("path").isfile     -- https://luarocks.org/modules/xavier-wang/lpath
+    local scandir = require("path.fs").scandir -- https://luarocks.org/modules/xavier-wang/lpath
+    local sep     = require("path.info").sep
+    local function path(p)
+        return p:gsub("/", sep)
+    end
+    local genDir = path("/gen/")
+    for n, t in scandir(path("../doc")) do
+        if n:match("%.md$") and not n:match(genDir) and t == "file" and isfile(n) then
             args[#args + 1] = n
         end
     end

@@ -1,0 +1,45 @@
+#
+# Modified PKGBUILD, see https://github.com/msys2/MINGW-packages/pull/12002
+#
+# Maintainer: Ricky Wu <rickleaf.wu@gmail.com>
+# Contributor: ImperatorS79 <fevrier.simon@gmail.com>
+# Contributoor: Ray Donnelly <mingw.android@gmail.com>
+
+_realname=luarocks
+pkgbase=mingw-w64-lua-${_realname}
+pkgname=("${MINGW_PACKAGE_PREFIX}-lua-${_realname}")
+pkgver=3.9.0
+pkgrel=2
+pkgdesc="the package manager for Lua modules (mingw-w64)"
+arch=('any')
+mingw_arch=('mingw32' 'mingw64' 'ucrt64' 'clang64' 'clang32')
+install=${_realname}-${MSYSTEM}.install
+url="https://luarocks.org"
+license=("MIT")
+depends=("${MINGW_PACKAGE_PREFIX}-lua"
+		 "unzip"
+	     "zip")
+makedepends=("${MINGW_PACKAGE_PREFIX}-cc" "${MINGW_PACKAGE_PREFIX}-autotools")
+options=('staticlibs' 'strip')
+source=("https://luarocks.org/releases/${_realname}-${pkgver}.tar.gz"
+		"0001-luarocks_msys2_mingw_w64.patch")
+sha256sums=('5e840f0224891de96be4139e9475d3b1de7af3a32b95c1bdf05394563c60175f'
+            '4ac1ec6372899693548d2d7d575f312d704b6883b50c8d4d3740f47a8e08eef3')
+
+prepare() {
+  cd "${srcdir}/${_realname}-${pkgver}"
+  patch -p1 -i "${srcdir}"/0001-luarocks_msys2_mingw_w64.patch
+}
+
+build() {
+  cd "${srcdir}/${_realname}-${pkgver}"
+  ./configure --prefix=${MINGW_PREFIX} --lua-version=5.4 --with-lua-interpreter=lua.exe
+  make ./build/luarocks ./build/luarocks-admin ./build/config-5.4.lua
+  make LUA_VERSION=5.1 LUA_INTERPRETER=lua5.1.exe LUA_INCDIR=${MINGW_PREFIX}/include/lua5.1 ./build/config-5.1.lua
+}
+
+package() {
+  cd "${srcdir}/${_realname}-${pkgver}"
+  make DESTDIR="${pkgdir}" install
+  make DESTDIR="$pkgdir" LUA_VERSION=5.1 install-config
+}

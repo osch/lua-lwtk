@@ -7,6 +7,14 @@ os.setlocale("C")
 
 local args = {...}
 
+local isfile  = require("path").isfile     -- https://luarocks.org/modules/xavier-wang/lpath
+local scandir = require("path.fs").scandir -- https://luarocks.org/modules/xavier-wang/lpath
+local sep     = require("path.info").sep
+
+local function path(p)
+    return p:gsub("/", sep)
+end
+
 if #args == 1 or #args == 0 then
     local dirName
     if #args == 0 then
@@ -14,8 +22,9 @@ if #args == 1 or #args == 0 then
     else
         dirName = args[1]
     end
-    for n, t in fs.scandir(dirName) do
-        if n:match("/test.*%.lua$") and t == "file" and path.isfile(n) then
+    local pattern = path("/test.*%.lua$")
+    for n, t in scandir(path(dirName)) do
+        if n:match(pattern) and t == "file" and isfile(n) then
             args[#args + 1] = n
         end
     end
