@@ -4,8 +4,8 @@ local format    = string.format
 local floor     = math.floor
 local type      = lwtk.type
 
-local outerMargins = lwtk.WeakKeysTable()
-local measureCache = lwtk.WeakKeysTable()
+local outerMargins = lwtk.WeakKeysTable("lwtk.layout.outerMargins")
+local measureCache = lwtk.WeakKeysTable("lwtk.layout.measureCache")
 
 local isInLayout = false
 local layoutCounter = 0

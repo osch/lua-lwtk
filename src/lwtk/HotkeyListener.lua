@@ -1,8 +1,8 @@
 local lwtk = require("lwtk")
 
 local getFocusHandler   = lwtk.get.focusHandler
-local getHotkeys        = lwtk.WeakKeysTable()
-local registeredHotkeys = lwtk.WeakKeysTable()
+local getHotkeys        = lwtk.WeakKeysTable("lwtk.HotkeyListener.getHotkeys")
+local registeredHotkeys = lwtk.WeakKeysTable("lwtk.HotkeyListener.registeredHotkeys")
 
 local processHotKeyRegistration
 
@@ -28,6 +28,18 @@ local HotkeyListener = lwtk.newMixin("lwtk.HotkeyListener", lwtk.Styleable.NO_ST
             if hotkeys and not self._hidden then
                 focusHandler:registerHotkeys(self, hotkeys)
                 registeredHotkeys[self] = hotkeys
+            end
+        end
+        
+        function HotkeyListener.implement:_handleRemovedFocusHandler(focusHandler)
+            local superCall = Super._handleRemovedFocusHandler
+            if superCall then
+                superCall(self, focusHandler)
+            end
+            local hotkeys = getHotkeys[self]
+            if hotkeys then
+                focusHandler:deregisterHotkeys(self, hotkeys)
+                registeredHotkeys[self] = nil
             end
         end
         

@@ -110,16 +110,19 @@ do
 end
 PRINT("----------------------------------------------------------------------------------")
 do
-    local T = setmetatable({}, { __mode = "v" })
-    T.C1 = lwtk.newClass("C1")
+    local ref = setmetatable({}, { __mode = "v" })
+    ref.C1 = lwtk.newClass("C1")
     collectgarbage()
     if isLua51 then
-        assert(T.C1 ~= nil)
-        lwtk.undef(T.C1)
+        assert(ref.C1 ~= nil)
+        lwtk.discard(ref.C1)
         collectgarbage()
-        assert(T.C1 == nil)
+        collectgarbage()
+        collectgarbage()
+        collectgarbage()
+        assert(ref.C1 == nil)
     else
-        assert(T.C1 == nil)
+        assert(ref.C1 == nil)
     end
 end
 PRINT("----------------------------------------------------------------------------------")
@@ -156,10 +159,6 @@ do
     assert(C3.extra.c == "c3")
     assert(not pcall(function() return c3.extra end))
 end
-if isLua51 then
-    lwtk.undef("C1") -- for Lua 5.1
-    lwtk.undef("C2") -- for Lua 5.1
-end
 collectgarbage()
 PRINT("----------------------------------------------------------------------------------")
 do
@@ -183,10 +182,6 @@ do
     assertEq(tostring(getSuperClass(C2)), "lwtk.Class<M2(M1(C1))>")
     assertEq(tostring(getSuperClass(getSuperClass(C2))), "lwtk.Class<M1(C1)>")
     assertEq(tostring(getSuperClass(getSuperClass(getSuperClass(C2)))), "lwtk.Class<C1>")
-end
-if isLua51 then
-    lwtk.undef("C1") -- for Lua 5.1
-    lwtk.undef("C2") -- for Lua 5.1
 end
 collectgarbage()
 PRINT("----------------------------------------------------------------------------------")
@@ -552,6 +547,191 @@ do
     
     assert(s:getStyleParam(w2, "TextSize") == 100 * s:getStyleParam(w1, "TextSize"))
 
+end
+PRINT("----------------------------------------------------------------------------------")
+do
+    local g= lwtk.Group {
+        style = { {"FooSize", 999} },
+        lwtk.PushButton { text = "text1"},
+        lwtk.PushButton { text = "text2"},
+        lwtk.PushButton { text = "text3"},
+    }
+    assert(g[1]:getStyleParam("FooSize") == 999)
+    assert(g[2]:getStyleParam("FooSize") == 999)
+    assert(g[3]:getStyleParam("FooSize") == 999)
+    local c = g:removeChild(g[2])
+    assert(g[1]:getStyleParam("FooSize") == 999)
+    assert(g[2]:getStyleParam("FooSize") == 999)
+    assert(c  :getStyleParam("FooSize") == nil)
+    g:addChild(c)
+    assert(g[1]:getStyleParam("FooSize") == 999)
+    assert(g[2]:getStyleParam("FooSize") == 999)
+    assert(g[3]:getStyleParam("FooSize") == 999)
+    assert(g[1].text == "text1")
+    assert(g[2].text == "text3")
+    assert(g[3].text == "text2")
+end
+PRINT("----------------------------------------------------------------------------------")
+do
+    local g= lwtk.Group {
+        style = { {"FooSize", 999} },
+        lwtk.PushButton { text = "text1"},
+        lwtk.PushButton { text = "text2"},
+        lwtk.PushButton { text = "text3"},
+    }
+    assert(g[1]:getStyleParam("FooSize") == 999)
+    assert(g[2]:getStyleParam("FooSize") == 999)
+    assert(g[3]:getStyleParam("FooSize") == 999)
+    local c = g:removeChild(2)
+    assert(g[1]:getStyleParam("FooSize") == 999)
+    assert(g[2]:getStyleParam("FooSize") == 999)
+    assert(c   :getStyleParam("FooSize") == nil)
+    g:addChild(c)
+    assert(g[1]:getStyleParam("FooSize") == 999)
+    assert(g[2]:getStyleParam("FooSize") == 999)
+    assert(g[3]:getStyleParam("FooSize") == 999)
+    assert(g[1].text == "text1")
+    assert(g[2].text == "text3")
+    assert(g[3].text == "text2")
+end
+PRINT("----------------------------------------------------------------------------------")
+do
+    local g= lwtk.Group {
+        style = { {"FooSize", 999} },
+        lwtk.PushButton { text = "text1"},
+        lwtk.PushButton { text = "text2"},
+        lwtk.PushButton { text = "text3"},
+    }
+    assert(g[1]:getStyleParam("FooSize") == 999)
+    assert(g[2]:getStyleParam("FooSize") == 999)
+    assert(g[3]:getStyleParam("FooSize") == 999)
+    local c = g:removeChild(3)
+    assert(g[1]:getStyleParam("FooSize") == 999)
+    assert(g[2]:getStyleParam("FooSize") == 999)
+    assert(c  :getStyleParam("FooSize") == nil)
+    g:addChild(c)
+    assert(g[1]:getStyleParam("FooSize") == 999)
+    assert(g[2]:getStyleParam("FooSize") == 999)
+    assert(g[3]:getStyleParam("FooSize") == 999)
+    assert(g[1].text == "text1")
+    assert(g[2].text == "text2")
+    assert(g[3].text == "text3")
+end
+PRINT("----------------------------------------------------------------------------------")
+do
+    local g= lwtk.Group {
+        style = { {"FooSize", 999} },
+        lwtk.PushButton { text = "text1"},
+        lwtk.PushButton { text = "text2"},
+        lwtk.PushButton { text = "text3"},
+    }
+    assert(g[1]:getStyleParam("FooSize") == 999)
+    assert(g[2]:getStyleParam("FooSize") == 999)
+    assert(g[3]:getStyleParam("FooSize") == 999)
+    local c = g:removeChild(1)
+    assert(g[1]:getStyleParam("FooSize") == 999)
+    assert(g[2]:getStyleParam("FooSize") == 999)
+    assert(c  :getStyleParam("FooSize") == nil)
+    g:addChild(c)
+    assert(g[1]:getStyleParam("FooSize") == 999)
+    assert(g[2]:getStyleParam("FooSize") == 999)
+    assert(g[3]:getStyleParam("FooSize") == 999)
+    assert(g[1].text == "text2")
+    assert(g[2].text == "text3")
+    assert(g[3].text == "text1")
+end
+PRINT("----------------------------------------------------------------------------------")
+do
+    local g= lwtk.Group {
+        style = { {"FooSize", 999} },
+        lwtk.PushButton { text = "text1"},
+        lwtk.PushButton { text = "text2"},
+        lwtk.PushButton { text = "text3"},
+    }
+    assert(g[1]:getStyleParam("FooSize") == 999)
+    assert(g[2]:getStyleParam("FooSize") == 999)
+    assert(g[3]:getStyleParam("FooSize") == 999)
+    local ref = setmetatable({}, { __mode = "v" })
+    ref.c = g:removeChild(g[2])
+    assert(ref.c.text == "text2")
+    collectgarbage()
+    collectgarbage()
+    collectgarbage()
+    collectgarbage()
+    if isLua51 then
+        -- Lua 5.1 does not have ephemeron tables
+        assert(ref.c ~= nil)
+        ref.c:discard()
+        collectgarbage()
+        collectgarbage()
+        assert(ref.c == nil)
+    else
+        assert(ref.c == nil)
+    end
+end
+PRINT("----------------------------------------------------------------------------------")
+do
+    local g1 = lwtk.Group {
+        lwtk.PushButton { text = "text11"},
+    }
+    local g2 = lwtk.Group {
+        lwtk.PushButton { text = "text12"},
+    }
+    local g0 = lwtk.Group {
+        style = { {"FooSize", 999} },
+        g1,
+        g2
+    }
+    assert(g2[1]:getStyleParam("FooSize") == 999)
+    assert(#g0 == 2)
+    assert(g0:removeChild(2) == g2)
+    assert(#g0 == 1)
+    assert(g2[1]:getStyleParam("FooSize") == nil)
+    local ref = setmetatable({}, { __mode = "v" })
+    ref.c = g2
+    g2 = nil
+    collectgarbage()
+    collectgarbage()
+    collectgarbage()
+    collectgarbage()
+    if isLua51 then
+        -- Lua 5.1 does not have ephemeron tables
+        assert(ref.c ~= nil)
+        lwtk.discard(ref.c)
+        collectgarbage()
+        collectgarbage()
+        assert(ref.c == nil)
+    else
+        assert(ref.c == nil)
+    end
+end
+PRINT("----------------------------------------------------------------------------------")
+do
+    local g1 = lwtk.Group {
+        lwtk.PushButton { text = "text11"},
+    }
+    local g2 = lwtk.Group {
+        lwtk.PushButton { text = "text12"},
+    }
+    local g0 = lwtk.Group {
+        style = { {"FooSize", 999} },
+        g1,
+        g2
+    }
+    assert(g2[1]:getStyleParam("FooSize") == 999)
+    assert(#g0 == 2)
+    assert(g0:discardChild(2) == g2)
+    assert(#g0 == 1)
+    assert(g0[1] == g1)
+    assert(g2[1] == nil)
+    local ref = setmetatable({}, { __mode = "v" })
+    ref.c = g2
+    g2 = nil
+    collectgarbage()
+    collectgarbage()
+    collectgarbage()
+    collectgarbage()
+    assert(ref.c == nil)
 end
 PRINT("----------------------------------------------------------------------------------")
 print("OK.")

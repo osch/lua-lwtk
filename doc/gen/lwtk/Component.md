@@ -129,6 +129,8 @@
 ## Inherited Methods
    * [Drawable](../lwtk/Drawable.md):
       * [getMandatoryStyleParam()](../lwtk/Drawable.md#.getMandatoryStyleParam), [getStyleParam()](../lwtk/Drawable.md#.getStyleParam), [_processMouseDown()](../lwtk/Drawable.md#._processMouseDown), [_processMouseEnter()](../lwtk/Drawable.md#._processMouseEnter), [_processMouseLeave()](../lwtk/Drawable.md#._processMouseLeave), [_processMouseMove()](../lwtk/Drawable.md#._processMouseMove), [_processMouseScroll()](../lwtk/Drawable.md#._processMouseScroll), [_processMouseUp()](../lwtk/Drawable.md#._processMouseUp)
+   * [Node](../lwtk/Node.md):
+      * [discard()](../lwtk/Node.md#.discard)
    * [Actionable](../lwtk/Actionable.md):
       * [hasActionMethod()](../lwtk/Actionable.md#.hasActionMethod), [invokeActionMethod()](../lwtk/Actionable.md#.invokeActionMethod)
    * **[Object](../lwtk/Object.md)**:

@@ -10,9 +10,9 @@ local getFocusedChild       = lwtk.get.focusedChild
 local getApp                = lwtk.get.app
 local Callback              = lwtk.Callback
 
-local getDefault            = lwtk.WeakKeysTable()
-local getHotkeys            = lwtk.WeakKeysTable()
-local registeredWidgets     = lwtk.WeakKeysTable()
+local getDefault            = lwtk.WeakKeysTable("lwtk.FocusHandler.getDefault")
+local getHotkeys            = lwtk.WeakKeysTable("lwtk.FocusHandler.getHotkeys")
+local registeredWidgets     = lwtk.WeakKeysTable("lwtk.FocusHandler.registeredWidgets")
 
 local Super        = lwtk.Actionable()
 local FocusHandler = lwtk.newClass("lwtk.FocusHandler", Super)
@@ -701,6 +701,47 @@ function FocusHandler:onActionCloseWindow()
         root:requestClose()
         return true
     end
+end
+
+
+function FocusHandler:_addFocusableChild(child)
+    local focusableChildren = getFocusableChildren[self]
+    focusableChildren[#focusableChildren + 1] = child
+    call("_handleHasFocusHandler", child, self)
+end
+
+local function removeChildren2(self, child, focusableChildren)
+    local found = false
+    for i = 1, #focusableChildren do
+        if not found and focusableChildren[i] == child then
+            found = i
+        end
+        if found then
+            focusableChildren[i] = focusableChildren[i+1]
+        end
+    end
+    if found then
+        call("_handleRemovedFocusHandler", child, self)
+        if getFocusedChild[self] == child then
+            local found = findNextFocusableChild2(self, child, "next", isFocusableChild)
+            if not found then
+                found = findNextFocusableChild2(self, child, "prev", isFocusableChild)
+            end
+            self:setFocusTo(found)
+        end
+        if getDefault[self] == child then
+            self:setDefault(child, false)
+        end
+    end
+    for i = 1, #child do
+        local cchild = rawget(child, i)
+        removeChildren2(self, cchild, focusableChildren)
+    end
+end
+
+function FocusHandler:_removeFocusableChildren(child)
+    local focusableChildren = getFocusableChildren[self]
+    removeChildren2(self, child, focusableChildren)
 end
 
 

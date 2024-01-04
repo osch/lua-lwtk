@@ -62,7 +62,7 @@ function ViewSwitcher.implement:getMeasures()
     end
 end
 
-function ViewSwitcher.override:addChild(child)
+function ViewSwitcher.override:addChild(child, index)
     local childVisible = child.visible
     if childVisible then
         for i = 1, #self do
@@ -75,7 +75,7 @@ function ViewSwitcher.override:addChild(child)
     end
     local topMargin, rightMargin, bottomMargin, leftMargin = getOuterMargins(self)
     setOuterMargins(child, topMargin, rightMargin, bottomMargin, leftMargin)
-    Super.addChild(self, child)
+    Super.addChild(self, child, index)
     child:setFrame(0, 0, self.w, self.h)
     if childVisible then
         child:setVisible(true)

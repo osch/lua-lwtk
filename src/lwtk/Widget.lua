@@ -49,7 +49,7 @@ function Widget.override:_setApp(app)
     end
     Super._setApp(self, app)
     local onRealize = self.onRealize
-    if onRealize then
+    if onRealize and app then
         app:deferChanges(Callback(onRealize, self))
     end
 end

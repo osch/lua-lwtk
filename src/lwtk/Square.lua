@@ -6,8 +6,8 @@ local setOuterMargins = lwtk.layout.setOuterMargins
 local Super  = lwtk.Group
 local Square = lwtk.newClass("lwtk.Square", Super)
 
-function Square.override:addChild(child)
-    if self[1] then
+function Square.override:addChild(child, index)
+    if self[1] or index then
         lwtk.errorf("object of type %s can only have one child", lwtk.type(self))
     end
     return Super.addChild(self, child)

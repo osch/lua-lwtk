@@ -29,7 +29,7 @@ local isModifier = {
     Super_R = "Super"
 }
 
-local getState = lwtk.WeakKeysTable()
+local getState = lwtk.WeakKeysTable("lwtk.KeyHandler.getState")
 
 local KeyHandler = lwtk.newMixin("lwtk.KeyHandler",
 

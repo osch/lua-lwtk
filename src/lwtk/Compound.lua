@@ -3,6 +3,9 @@ local lwtk = require"lwtk"
 local Rect                = lwtk.Rect
 local intersectRects      = Rect.intersectRects
 
+--[[
+    Base for components that can have children.
+]]
 local Compound = lwtk.newMixin("lwtk.Compound", lwtk.Styleable.NO_STYLE_SELECTOR,
 
     function(Compound, Super)
@@ -24,9 +27,79 @@ local Compound = lwtk.newMixin("lwtk.Compound", lwtk.Styleable.NO_STYLE_SELECTOR
 )
 
 
-function Compound.implement:addChild(child)
-    rawset(self, #self + 1, child)
+--[[
+    Adds child.
+
+    * *child*  - child object
+    * *index*  - optional integer
+    
+    The *index* denotes the position where the child is inserted in the list.
+    Negative values are possible, 1 means the last position of the current list.
+
+    If *index* is not given or 0, the child is inserted at the end of the list.
+    
+    Returns the removed child object.
+]]
+function Compound.implement:addChild(child, index)
+    if index then
+        if index <= 0 then
+            index = #self + index + 1
+        end
+        for i = #self, index, -1 do
+            rawset(self, i + 1, rawget(self, i))
+        end
+    else
+        index = #self + 1
+    end
+    rawset(self, index, child)
     child:_setParent(self)
+    return child
+end
+
+--[[
+    Removes child.
+
+    * *child*  - child object or child index.
+    
+    Returns the removed child object.
+]]
+function Compound.implement:removeChild(child)
+    if type(child) == "number" then
+        local n = child
+        if n <= 0 then
+            n = #self + n + 1
+        end
+        child = rawget(self, n)
+        for i = n, #self do
+            rawset(self, i, rawget(self, i + 1))
+        end
+    else
+        local found = false
+        for i = 1, #self do
+            if not found and rawget(self, i) == child then
+                found = i
+            end
+            if found then
+                rawset(self, i, rawget(self, i + 1))
+            end
+        end
+    end
+    if child then        
+        child:_setParent(nil)
+    end
+    return child
+end
+
+--[[
+    Discard child that should no longer be used.
+    
+    This function could be useful under Lua 5.1 which does not have ephemeron tables.
+]]
+function Compound.implement:discardChild(child)
+    child = self:removeChild(child)
+    if child then
+        child:discard()
+    end
     return child
 end
 

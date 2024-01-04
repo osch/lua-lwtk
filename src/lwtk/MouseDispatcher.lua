@@ -18,6 +18,20 @@ local MouseDispatcher = lwtk.newMixin("lwtk.MouseDispatcher", lwtk.Styleable.NO_
             self.mouseChildButtons = {}
             Super.new(self, initParams)
         end
+        
+        function MouseDispatcher.override:removeChild(child)
+            if Super.removeChild then
+                local removedChild = Super.removeChild(self, child)
+                if self.mouseHoverChild ==  removedChild then
+                    self.mouseHoverChild = false
+                end
+                if self.mouseButtonChild ==  removedChild then
+                    self.mouseButtonChild = false
+                end
+                return removedChild
+            end
+        end
+        
     end
 )
 

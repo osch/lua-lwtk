@@ -11,7 +11,7 @@ local getStylePath   = lwtk.get.stylePath
 local getSuperClass  = lwtk.get.superClass
 local isInstanceOf   = lwtk.isInstanceOf
 
-local getStateStylePath = lwtk.WeakKeysTable()
+local getStateStylePath = lwtk.WeakKeysTable("lwtk.Styleable.getStateStylePath")
 
 local NO_STYLE_SELECTOR = {}
 

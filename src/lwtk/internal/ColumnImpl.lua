@@ -9,8 +9,8 @@ local calculateTBMeasures = lwtk.internal.LayoutImpl.calculateTBMeasures
 local applyLRLayout       = lwtk.internal.LayoutImpl.applyLRLayout
 local applyTBLayout       = lwtk.internal.LayoutImpl.applyTBLayout
 
-local lr4Caches = lwtk.WeakKeysTable()
-local tb4Caches = lwtk.WeakKeysTable()
+local lr4Caches = lwtk.WeakKeysTable("lwtk.internal.ColumnImpl.lr4Caches")
+local tb4Caches = lwtk.WeakKeysTable("lwtk.internal.ColumnImpl.tb4Caches")
 
 -------------------------------------------------------------------------------------------------
 

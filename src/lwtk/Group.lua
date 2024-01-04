@@ -14,8 +14,6 @@ Group:declare(
     "_handleChildRequestsFocus"
 )
 
-local Super_addChild = Super.addChild
-
 function Group.override:new(initParams)
     Super.new(self)
     getChildLookup[self] = ChildLookup(self)
@@ -52,12 +50,23 @@ function Group:childById(id)
     end
 end
 
-function Group.override:addChild(child)
-    Super_addChild(self, child)
+function Group.override:addChild(child, index)
+    Super.addChild(self, child, index)
     self:_clearChildLookup()
     local style = getStyle[self]
     if style then
         call("_setStyleFromParent", child, style)
+    end
+    self:triggerLayout()
+    return child
+end
+
+function Group.override:removeChild(child)
+    child = Super.removeChild(self, child)
+    self:_clearChildLookup()
+    local style = getStyle[self]
+    if style and child then
+        call("_setStyleFromParent", child, nil)
     end
     self:triggerLayout()
     return child

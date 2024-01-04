@@ -4,7 +4,6 @@ local getApp                = lwtk.get.app
 local getParent             = lwtk.get.parent
 local getFocusHandler       = lwtk.get.focusHandler
 local getParentFocusHandler = lwtk.get.parentFocusHandler
-local getFocusableChildren  = lwtk.get.focusableChildren
 local FocusHandler          = lwtk.FocusHandler
 
 local Super      = lwtk.Focusable(lwtk.Box)
@@ -22,14 +21,15 @@ end
 function FocusGroup.override:_setApp(app)
     getApp[getFocusHandler[self]] = app
     Super._setApp(self, app)
-    local parentHandler = getParent[self]:getFocusHandler()
-    getParentFocusHandler[self] = parentHandler
-    local focusableChildren = getFocusableChildren[parentHandler]
-    focusableChildren[#focusableChildren + 1] = self    
-    getFocusHandler[self]:_setParentFocusHandler(parentHandler)
-    if self._wantsFocus then
-        getParentFocusHandler[self]:setFocusTo(self)
-        self._wantsFocus = false
+    if app then
+        local parentHandler = getParent[self]:getFocusHandler()
+        getParentFocusHandler[self] = parentHandler
+        parentHandler:_addFocusableChild(self)
+        getFocusHandler[self]:_setParentFocusHandler(parentHandler)
+        if self._wantsFocus then
+            getParentFocusHandler[self]:setFocusTo(self)
+            self._wantsFocus = false
+        end
     end
 end
 

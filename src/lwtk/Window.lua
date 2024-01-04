@@ -53,7 +53,7 @@ local getFontInfos    = lwtk.get.fontInfos
 local getChildLookup  = lwtk.get.childLookup
 local extract         = lwtk.extract
 
-local childSizes      = lwtk.WeakKeysTable()
+local childSizes      = lwtk.WeakKeysTable("lwtk.Window.childSizes")
 
 function Window.override:new(app, initParams)
     Super.new(self)

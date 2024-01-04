@@ -17,8 +17,8 @@ function Space:setUnlimited(unlimited)
     self.unlimited = unlimited
 end
 
-function Space.override:addChild(child)
-    if rawget(self, 1) then
+function Space.override:addChild(child, index)
+    if rawget(self, 1) or index then
         lwtk.errorf("object of type %s can only have one child", lwtk.type(self))
     end
     return Super.addChild(self, child)

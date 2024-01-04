@@ -40,7 +40,8 @@
 
    * <span id="._setApp">**`Widget:_setApp(app)`**</span>
 
-        * Overrides: [Component:_setApp()](../lwtk/Component.md#._setApp)
+        * Overrides: [Animatable:_setApp()](../lwtk/Animatable.md#._setApp)
+             * Overrides: [Component:_setApp()](../lwtk/Component.md#._setApp)
 
 
    * <span id="._setParent">**`Widget:_setParent(parent)`**</span>
@@ -58,6 +59,8 @@
       * [byId()](../lwtk/Component.md#.byId), [getCurrentTime()](../lwtk/Component.md#.getCurrentTime), [getFocusHandler()](../lwtk/Component.md#.getFocusHandler), [getFontInfo()](../lwtk/Component.md#.getFontInfo), [getFrame()](../lwtk/Component.md#.getFrame), [getLayoutContext()](../lwtk/Component.md#.getLayoutContext), [getParent()](../lwtk/Component.md#.getParent), [getRoot()](../lwtk/Component.md#.getRoot), [getSize()](../lwtk/Component.md#.getSize), [handleRemainingInitParams()](../lwtk/Component.md#.handleRemainingInitParams), [parentById()](../lwtk/Component.md#.parentById), [setFrame()](../lwtk/Component.md#.setFrame), [setInitParams()](../lwtk/Component.md#.setInitParams), [setTimer()](../lwtk/Component.md#.setTimer), [transformXY()](../lwtk/Component.md#.transformXY), [triggerLayout()](../lwtk/Component.md#.triggerLayout), [triggerRedraw()](../lwtk/Component.md#.triggerRedraw), [updateFrameTransition()](../lwtk/Component.md#.updateFrameTransition), [_processChanges()](../lwtk/Component.md#._processChanges), [_processDraw()](../lwtk/Component.md#._processDraw), [_setFrame()](../lwtk/Component.md#._setFrame)
    * [Drawable](../lwtk/Drawable.md):
       * [getMandatoryStyleParam()](../lwtk/Drawable.md#.getMandatoryStyleParam), [_processMouseDown()](../lwtk/Drawable.md#._processMouseDown), [_processMouseEnter()](../lwtk/Drawable.md#._processMouseEnter), [_processMouseLeave()](../lwtk/Drawable.md#._processMouseLeave), [_processMouseMove()](../lwtk/Drawable.md#._processMouseMove), [_processMouseScroll()](../lwtk/Drawable.md#._processMouseScroll), [_processMouseUp()](../lwtk/Drawable.md#._processMouseUp)
+   * [Node](../lwtk/Node.md):
+      * [discard()](../lwtk/Node.md#.discard)
    * [Actionable](../lwtk/Actionable.md):
       * [hasActionMethod()](../lwtk/Actionable.md#.hasActionMethod), [invokeActionMethod()](../lwtk/Actionable.md#.invokeActionMethod)
    * **[Object](../lwtk/Object.md)**:

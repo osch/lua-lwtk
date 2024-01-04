@@ -1,5 +1,6 @@
 # Mixin lwtk.Compound
 
+Base for components that can have children.
 
 ## Contents
 

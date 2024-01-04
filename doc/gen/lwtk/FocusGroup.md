@@ -89,7 +89,8 @@
    * <span id="._setApp">**`FocusGroup:_setApp(app)`**</span>
 
         * Overrides: [Widget:_setApp()](../lwtk/Widget.md#._setApp)
-             * Overrides: [Component:_setApp()](../lwtk/Component.md#._setApp)
+             * Overrides: [Animatable:_setApp()](../lwtk/Animatable.md#._setApp)
+                  * Overrides: [Component:_setApp()](../lwtk/Component.md#._setApp)
 
 
 
@@ -101,11 +102,11 @@
    * [LayoutFrame](../lwtk/LayoutFrame.md):
       * [addChild()](../lwtk/LayoutFrame.md#.addChild), [onDraw()](../lwtk/LayoutFrame.md#.onDraw), [onLayout()](../lwtk/LayoutFrame.md#.onLayout)
    * **[Group](../lwtk/Group.md)**:
-      * [childById()](../lwtk/Group.md#.childById), [_clearChildLookup()](../lwtk/Group.md#._clearChildLookup)
+      * [childById()](../lwtk/Group.md#.childById), [removeChild()](../lwtk/Group.md#.removeChild), [_clearChildLookup()](../lwtk/Group.md#._clearChildLookup)
    * [MouseDispatcher](../lwtk/MouseDispatcher.md):
       * [_processMouseEnter()](../lwtk/MouseDispatcher.md#._processMouseEnter), [_processMouseLeave()](../lwtk/MouseDispatcher.md#._processMouseLeave), [_processMouseMove()](../lwtk/MouseDispatcher.md#._processMouseMove), [_processMouseScroll()](../lwtk/MouseDispatcher.md#._processMouseScroll), [_processMouseUp()](../lwtk/MouseDispatcher.md#._processMouseUp)
    * [Compound](../lwtk/Compound.md):
-      * [_processChanges()](../lwtk/Compound.md#._processChanges), [_processDraw()](../lwtk/Compound.md#._processDraw)
+      * [discardChild()](../lwtk/Compound.md#.discardChild), [_processChanges()](../lwtk/Compound.md#._processChanges), [_processDraw()](../lwtk/Compound.md#._processDraw)
    * **[Widget](../lwtk/Widget.md)**:
       * [notifyInputChanged()](../lwtk/Widget.md#.notifyInputChanged), [setOnInputChanged()](../lwtk/Widget.md#.setOnInputChanged), [setOnRealize()](../lwtk/Widget.md#.setOnRealize), [_setParent()](../lwtk/Widget.md#._setParent)
    * [Animatable](../lwtk/Animatable.md):
@@ -116,6 +117,8 @@
       * [byId()](../lwtk/Component.md#.byId), [getCurrentTime()](../lwtk/Component.md#.getCurrentTime), [getFocusHandler()](../lwtk/Component.md#.getFocusHandler), [getFontInfo()](../lwtk/Component.md#.getFontInfo), [getFrame()](../lwtk/Component.md#.getFrame), [getLayoutContext()](../lwtk/Component.md#.getLayoutContext), [getParent()](../lwtk/Component.md#.getParent), [getRoot()](../lwtk/Component.md#.getRoot), [getSize()](../lwtk/Component.md#.getSize), [handleRemainingInitParams()](../lwtk/Component.md#.handleRemainingInitParams), [parentById()](../lwtk/Component.md#.parentById), [setFrame()](../lwtk/Component.md#.setFrame), [setInitParams()](../lwtk/Component.md#.setInitParams), [setTimer()](../lwtk/Component.md#.setTimer), [transformXY()](../lwtk/Component.md#.transformXY), [triggerLayout()](../lwtk/Component.md#.triggerLayout), [triggerRedraw()](../lwtk/Component.md#.triggerRedraw), [updateFrameTransition()](../lwtk/Component.md#.updateFrameTransition), [_setFrame()](../lwtk/Component.md#._setFrame)
    * [Drawable](../lwtk/Drawable.md):
       * [getMandatoryStyleParam()](../lwtk/Drawable.md#.getMandatoryStyleParam)
+   * [Node](../lwtk/Node.md):
+      * [discard()](../lwtk/Node.md#.discard)
    * [Actionable](../lwtk/Actionable.md):
       * [hasActionMethod()](../lwtk/Actionable.md#.hasActionMethod)
    * **[Object](../lwtk/Object.md)**:

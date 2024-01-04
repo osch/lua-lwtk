@@ -11,12 +11,12 @@ local Animatable  = lwtk.Animatable
 local intersectRects      = Rect.intersectRects
 local roundRect           = Rect.round
 
+local WeakKeysTable        = lwtk.WeakKeysTable
 local extract              = lwtk.extract
 local getApp               = lwtk.get.app
 local getRoot              = lwtk.get.root
 local getParent            = lwtk.get.parent
 local getFocusHandler      = lwtk.get.focusHandler
-local getFocusableChildren = lwtk.get.focusableChildren
 local callOnLayout         = lwtk.layout.callOnLayout
 local getFontInfos         = lwtk.get.fontInfos
 local getChildLookup       = lwtk.get.childLookup
@@ -29,6 +29,7 @@ Component:declare(
     "_animationTriggered",
     "_handleFocusIn", 
     "_handleHasFocusHandler", 
+    "_handleRemovedFocusHandler",
     "_hasChanges", 
     "_isRelayouting", 
     "_needsRedraw", 
@@ -122,7 +123,9 @@ function Component:getLayoutContext()
 end
 
 function Component:_setApp(app)
-    assert(not getApp[self], "Component was already added to Application")
+    if app then
+        assert(not getApp[self], "Component was already added to Application")
+    end
     getApp[self] = app
     getFontInfos[self] = getFontInfos[app]
 end
@@ -159,20 +162,18 @@ local function setAppAndRoot(self, app, root)
         oldRoot._positionsChanged = nil
     end
     getRoot[self] = root
-    if app then
+    if app or getApp[self] then
         self:_setApp(app)
     end
     for i = 1, #self do
         local child = rawget(self, i)
         setAppAndRoot(child, app, root)
     end 
-    if (self._handleFocusIn or self.onHotkeyEnabled) and not getFocusHandler[self] then
+    if app and (self._handleFocusIn or self.onHotkeyEnabled) and not getFocusHandler[self] then
         local handler = self:getFocusHandler()
         if handler then
             getFocusHandler[self] = handler
-            local focusableChildren = getFocusableChildren[handler]
-            focusableChildren[#focusableChildren + 1] = self
-            call("_handleHasFocusHandler", self, handler)
+            handler:_addFocusableChild(self)
         end
     end
     local w, h = self.w, self.h
@@ -199,26 +200,53 @@ local function setAppAndRoot(self, app, root)
     end
 end
 
+local function removeFocusHandler(self, handler)
+    if getFocusHandler[self] == handler then
+        getFocusHandler[self] = nil
+    end
+    for i = 1, #self do
+        removeFocusHandler(rawget(self, i), handler)
+    end
+end
+
 function Component:_setParent(parent)
-    assert(not getParent[self], "Component was already added to parent")
-    getParent[self] = parent
-    local app = getApp[parent]
-    setAppAndRoot(self, app,
-                        getRoot[parent])
-    local _needsRelayout = self._needsRelayout
-    if self._hasChanges then
-        local w = parent
-        repeat
-            if w._hasChanges and w._needsRelayout == _needsRelayout then
-                break
-            end
-            w._hasChanges    = true
-            w._needsRelayout = _needsRelayout
-            w = getParent[w]
-            if not w and app then
-                app._hasChanges = true
-            end
-        until not w
+    if parent then
+        assert(not getParent[self], "Component was already added to parent")
+        getParent[self] = parent
+        local app = getApp[parent]
+        setAppAndRoot(self, app,
+                            getRoot[parent])
+        local _needsRelayout = self._needsRelayout
+        if self._hasChanges then
+            local w = parent
+            repeat
+                if w._hasChanges and w._needsRelayout == _needsRelayout then
+                    break
+                end
+                w._hasChanges    = true
+                w._needsRelayout = _needsRelayout
+                w = getParent[w]
+                if not w and app then
+                    app._hasChanges = true
+                end
+            until not w
+        end
+    else
+        local oldParent = getParent[self]
+        if oldParent then
+            local handler = getFocusHandler[oldParent]
+            if handler then
+                handler:_removeFocusableChildren(self)
+                removeFocusHandler(self, handler)
+            end        
+        end
+        getParent[self] = nil
+        getRoot[self] = nil
+        self:_setApp(nil)
+        for i = 1, #self do
+            local child = rawget(self, i)
+            setAppAndRoot(child, nil, self)
+        end
     end
 end
 

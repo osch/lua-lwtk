@@ -43,7 +43,7 @@
    * [lwtk.Actionable](lwtk/Actionable.md)
    * [lwtk.Animatable](lwtk/Animatable.md)
    * [lwtk.Colored](lwtk/Colored.md)
-   * [lwtk.Compound](lwtk/Compound.md)
+   * [lwtk.Compound](lwtk/Compound.md) - Base for components that can have children.
    * [lwtk.Control](lwtk/Control.md)
    * [lwtk.Drawable](lwtk/Drawable.md)
    * [lwtk.Focusable](lwtk/Focusable.md)
@@ -63,6 +63,7 @@
    * [lwtk.DefaultKeyBinding](lwtk/DefaultKeyBinding.md) - Returns new [lwtk.KeyBinding](lwtk/KeyBinding.md) object with default settings.
    * [lwtk.btest](lwtk/btest.md) - Returns *true* if bitwise AND of its operands is different from zero.
    * [lwtk.call](lwtk/call.md)
+   * [lwtk.discard](lwtk/discard.md) - Discard object that should no longer be used.
    * [lwtk.errorf](lwtk/errorf.md)
    * [lwtk.extract](lwtk/extract.md)
    * [lwtk.getSuperClass](lwtk/getSuperClass.md)
@@ -72,7 +73,6 @@
    * [lwtk.newMixin](lwtk/newMixin.md) - Creates new mixin object.
    * [lwtk.tryrequire](lwtk/tryrequire.md)
    * [lwtk.type](lwtk/type.md) - Returns the type name.
-   * [lwtk.undef](lwtk/undef.md)
 ### Other
    * [lwtk.Class](lwtk/Class.md) - Metatable for objects created by [lwtk.newClass](lwtk/newClass.md)().
    * [lwtk.Meta](lwtk/Meta.md) - Metatable for objects created by [lwtk.newMeta](lwtk/newMeta.md)().
@@ -83,6 +83,7 @@
    * [lwtk.get](lwtk/get.md)
    * [lwtk.layout](lwtk/layout.md)
    * [lwtk.utf8](lwtk/utf8.md)
+   * [lwtk.util](lwtk/util.md)
 
 ## lwtk.love
 

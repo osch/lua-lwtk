@@ -30,8 +30,10 @@
       * [setFocusTo()](#.setFocusTo)
       * [setFocusToNextInput()](#.setFocusToNextInput)
       * [setFocusToPrevInput()](#.setFocusToPrevInput)
+      * [_addFocusableChild()](#._addFocusableChild)
       * [_handleFocusIn()](#._handleFocusIn)
       * [_handleFocusOut()](#._handleFocusOut)
+      * [_removeFocusableChildren()](#._removeFocusableChildren)
       * [_setParentFocusHandler()](#._setParentFocusHandler)
    * [Inherited Methods](#inherited-methods)
 
@@ -123,10 +125,16 @@
    * <span id=".setFocusToPrevInput">**`FocusHandler:setFocusToPrevInput(child)`**</span>
 
 
+   * <span id="._addFocusableChild">**`FocusHandler:_addFocusableChild(child)`**</span>
+
+
    * <span id="._handleFocusIn">**`FocusHandler:_handleFocusIn()`**</span>
 
 
    * <span id="._handleFocusOut">**`FocusHandler:_handleFocusOut()`**</span>
+
+
+   * <span id="._removeFocusableChildren">**`FocusHandler:_removeFocusableChildren(child)`**</span>
 
 
    * <span id="._setParentFocusHandler">**`FocusHandler:_setParentFocusHandler(parentFocusHandler)`**</span>

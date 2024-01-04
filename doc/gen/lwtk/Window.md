@@ -68,7 +68,7 @@
 ## Methods
    * <span id=".addChild">**`Window:addChild(child)`**</span>
 
-        * Implements: [Drawable:addChild()](../lwtk/Drawable.md#.addChild)
+        * Implements: [Node:addChild()](../lwtk/Node.md#.addChild)
 
 
    * <span id=".byId">**`Window:byId(id)`**</span>
@@ -204,13 +204,15 @@
 
 ## Inherited Methods
    * [MouseDispatcher](../lwtk/MouseDispatcher.md):
-      * [_processMouseDown()](../lwtk/MouseDispatcher.md#._processMouseDown), [_processMouseEnter()](../lwtk/MouseDispatcher.md#._processMouseEnter), [_processMouseLeave()](../lwtk/MouseDispatcher.md#._processMouseLeave), [_processMouseMove()](../lwtk/MouseDispatcher.md#._processMouseMove), [_processMouseScroll()](../lwtk/MouseDispatcher.md#._processMouseScroll), [_processMouseUp()](../lwtk/MouseDispatcher.md#._processMouseUp)
+      * [removeChild()](../lwtk/MouseDispatcher.md#.removeChild), [_processMouseDown()](../lwtk/MouseDispatcher.md#._processMouseDown), [_processMouseEnter()](../lwtk/MouseDispatcher.md#._processMouseEnter), [_processMouseLeave()](../lwtk/MouseDispatcher.md#._processMouseLeave), [_processMouseMove()](../lwtk/MouseDispatcher.md#._processMouseMove), [_processMouseScroll()](../lwtk/MouseDispatcher.md#._processMouseScroll), [_processMouseUp()](../lwtk/MouseDispatcher.md#._processMouseUp)
    * [KeyHandler](../lwtk/KeyHandler.md):
       * [resetKeyHandling()](../lwtk/KeyHandler.md#.resetKeyHandling), [_handleKeyDown()](../lwtk/KeyHandler.md#._handleKeyDown), [_handleKeyUp()](../lwtk/KeyHandler.md#._handleKeyUp)
    * [Styleable](../lwtk/Styleable.md):
       * [clearStyleCache()](../lwtk/Styleable.md#.clearStyleCache), [getStateString()](../lwtk/Styleable.md#.getStateString), [getStyle()](../lwtk/Styleable.md#.getStyle), [getStyleParam()](../lwtk/Styleable.md#.getStyleParam), [setState()](../lwtk/Styleable.md#.setState), [setStyle()](../lwtk/Styleable.md#.setStyle), [_getStyleParam()](../lwtk/Styleable.md#._getStyleParam), [_setStyleFromParent()](../lwtk/Styleable.md#._setStyleFromParent)
    * [Drawable](../lwtk/Drawable.md):
       * [getMandatoryStyleParam()](../lwtk/Drawable.md#.getMandatoryStyleParam)
+   * [Node](../lwtk/Node.md):
+      * [discard()](../lwtk/Node.md#.discard)
    * [Actionable](../lwtk/Actionable.md):
       * [handleRemainingInitParams()](../lwtk/Actionable.md#.handleRemainingInitParams), [hasActionMethod()](../lwtk/Actionable.md#.hasActionMethod), [invokeActionMethod()](../lwtk/Actionable.md#.invokeActionMethod), [setInitParams()](../lwtk/Actionable.md#.setInitParams)
    * **[Object](../lwtk/Object.md)**:

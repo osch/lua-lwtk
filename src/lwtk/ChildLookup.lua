@@ -40,12 +40,13 @@ function ChildLookup:__index(id)
 end
 
 function ChildLookup.clear(self)
-    if self[0] then
+    if self and self[0] then
         for k,v in pairs(self) do
             if type(k) == "string" then
                 self[k] = nil
             end
         end
+        self[0] = false
     end
 end
 

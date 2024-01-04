@@ -22,21 +22,12 @@ local lua_version = _VERSION:match("[%d%.]*$")
 local isOldLua = (#lua_version == 3 and lua_version < "5.3")
 
 if isOldLua then
-    if pcall(function() string.format("%p", {}) end) then
-
-        Meta.fallbackToString = function(self)
-            local mt = getmetatable(self)
-            return string.format("%s: %p", mt.__name, self) -- luajit
-        end
-    else
-        Meta.fallbackToString = function(self)
-            local mt = debug.getmetatable(self)
-            local tmp = rawget(mt, "__tostring")
-            rawset(mt, "__tostring", nil)
-            local hash = tostring(self):match("([^ :]*)$")
-            rawset(mt, "__tostring", tmp)
-            return string.format("%s: %s", rawget(mt, "__name"), hash) -- lua5.1, lua5.2
-        end
+    local getHashString = lwtk.util.getHashString
+    local format, getmt, rawget = string.format, debug.getmetatable, rawget
+    Meta.fallbackToString = function(self)
+        local mt   = getmt(self)
+        local hash = getHashString(self)
+        return format("%s: %s", rawget(mt, "__name"), hash)
     end
 end
 

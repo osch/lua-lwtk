@@ -16,7 +16,7 @@ local getVisibilityChanges = lwtk.get.visibilityChanges
 local getDeferredChanges   = lwtk.get.deferredChanges
 local isInstanceOf         = lwtk.isInstanceOf
 
-local isClosed = lwtk.WeakKeysTable()
+local isClosed = lwtk.WeakKeysTable("lwtk.Application.isClosed")
 
 --[[
     Default application implementation.
@@ -90,7 +90,7 @@ function Application:new(arg1, arg2)
         style = lwtk.DefaultStyle(initParams)
     end
     
-    getVisibilityChanges[self] = lwtk.WeakKeysTable()
+    getVisibilityChanges[self] = lwtk.WeakKeysTable("lwtk.Application.getVisibilityChanges")
     getDeferredChanges[self]   = {}
 
     if getApp[style] then

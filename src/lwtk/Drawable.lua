@@ -9,7 +9,6 @@ Drawable:declare(
     "visible",
     "x",  "y",  "w",  "h",
     "id",
-    "addChild",
     "_setStyleFromParent"
 )
 

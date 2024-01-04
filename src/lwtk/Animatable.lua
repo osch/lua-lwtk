@@ -6,9 +6,9 @@ local getVisibilityChanges = lwtk.get.visibilityChanges
 
 local callOnLayout = lwtk.layout.callOnLayout
 
-local getParamTransitions = lwtk.WeakKeysTable()
-local getStateTransitions = lwtk.WeakKeysTable()
-local getCurrentValues    = lwtk.WeakKeysTable()
+local getParamTransitions = lwtk.WeakKeysTable("lwtk.Animatable.getParamTransitions")
+local getStateTransitions = lwtk.WeakKeysTable("lwtk.Animatable.getStateTransitions")
+local getCurrentValues    = lwtk.WeakKeysTable("lwtk.Animatable.getCurrentValues")
 
 local Styleable  = lwtk.Styleable
 local Animatable = lwtk.newMixin("lwtk.Animatable", Styleable, Styleable.NO_STYLE_SELECTOR,
@@ -25,6 +25,16 @@ local Animatable = lwtk.newMixin("lwtk.Animatable", Styleable, Styleable.NO_STYL
             getCurrentValues[self]    = {}
             Super.new(self, initParams)
         end
+        
+        function Animatable.override:_setApp(app)
+            if not app then
+                local app = getApp[self]
+                if app then
+                    app._animations:removeAnimation(self)
+                end
+            end
+            Super._setApp(self, app)
+        end
     end
 )
 
@@ -32,7 +42,7 @@ local getStyleParam = Styleable.getStyleParam
 
 local function addToAnimations(self)
     local app = assert(getApp[self], "widget not connected to application")
-    app._animations:add(self)
+    app._animations:addAnimation(self)
 end
 
 function Animatable.override:animateFrame(newX, newY, newW, newH, isLayoutTransition)

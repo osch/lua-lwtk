@@ -163,7 +163,9 @@ function Color.__add(color1, color2)
 end
 
 function Color.__eq(color1, color2) 
-    return color1.r and color2.r
+    return getmetatable(color1) == Color
+       and getmetatable(color2) == Color
+       and color1.r and color2.r
        and color1.g and color2.g
        and color1.b and color2.b
        and floor(color1.r * 0xff) == floor(color2.r * 0xff)

@@ -83,6 +83,7 @@ build = {
         ["lwtk._VERSION"]                  = "src/lwtk/_VERSION.lua",
         ["lwtk.btest"]                     = "src/lwtk/btest.lua",
         ["lwtk.call"]                      = "src/lwtk/call.lua",
+        ["lwtk.discard"]                   = "src/lwtk/discard.lua",
         ["lwtk.errorf"]                    = "src/lwtk/errorf.lua",
         ["lwtk.extract"]                   = "src/lwtk/extract.lua",
         ["lwtk.get"]                       = "src/lwtk/get.lua",
@@ -98,8 +99,8 @@ build = {
         ["lwtk.newMixin"]                  = "src/lwtk/newMixin.lua",
         ["lwtk.tryrequire"]                = "src/lwtk/tryrequire.lua",
         ["lwtk.type"]                      = "src/lwtk/type.lua",
-        ["lwtk.undef"]                     = "src/lwtk/undef.lua",
         ["lwtk.utf8"]                      = "src/lwtk/utf8.lua",
+        ["lwtk.util"]                      = "src/lwtk/util.lua",
         --
         ["lwtk.internal"]                  = "src/lwtk/internal/init.lua",
         ["lwtk.internal.ColumnImpl"]       = "src/lwtk/internal/ColumnImpl.lua",

@@ -8,13 +8,11 @@ local LayoutFrame = lwtk.newMixin("lwtk.LayoutFrame", lwtk.Styleable.NO_STYLE_SE
 
     function(LayoutFrame, Super)
 
-        local Super_addChild = Super.addChild
-    
-        function LayoutFrame.override:addChild(child)
-            if rawget(self, 1) then
+        function LayoutFrame.override:addChild(child, index)
+            if rawget(self, 1) or index then
                 lwtk.errorf("object of type %s can only have one child", lwtk.type(self))
             end
-            return Super_addChild(self, child)
+            return Super.addChild(self, child)
         end
     end
 )

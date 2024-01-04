@@ -7,6 +7,8 @@ local getObjectMeta = lwtk.get.objectMeta
 local getSuperClass = lwtk.get.superClass
 local getClass      = lwtk.get.class
 
+local WeakKeysTable = lwtk.WeakKeysTable
+
 local DO_CHECKS = not _G.LWTK_DISABLE_CHECKS
 
 --[[
@@ -242,6 +244,20 @@ function implementMeta:__newindex(k, v)
         -- accessible from object and class
         index[k] = v
         objMeta[k] = v
+    end
+end
+
+function Class.discard(class)
+    local objectMeta = getObjectMeta[class]
+    if objectMeta then
+        WeakKeysTable.discard(objectMeta)
+        for k, v in next, objectMeta do
+            objectMeta[k] = nil
+        end
+    end
+    WeakKeysTable.discard(class)
+    for k, v in next, class do
+        class[k] = nil
     end
 end
 

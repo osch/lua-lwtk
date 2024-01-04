@@ -7,8 +7,8 @@ local getSuperClass  = lwtk.get.superClass
 local getObjectMeta  = lwtk.get.objectMeta
 local getMixinBase   = lwtk.get.mixinBase
 
-local caches     = lwtk.WeakKeysTable()
-local mixins     = lwtk.WeakKeysTable()
+local caches     = lwtk.WeakKeysTable("lwtk.newMixin.caches")
+local mixins     = lwtk.WeakKeysTable("lwtk.newMixin.mixins")
 
 local Mixin = lwtk.Mixin
 

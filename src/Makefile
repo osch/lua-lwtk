@@ -1,11 +1,14 @@
-.PHONY: default doc test doctest
+.PHONY: default all doc doctest alltests
 
 default: doc doctest
+
+all: doc doctest alltests
 
 doc:
 	lua mkdoc/main.lua
 
-test: doctest
-
 doctest:
-	lua doctest.lua $(sort $(wildcard ../doc/*.md))
+	lua doctest.lua
+
+alltests:
+	lua alltests.lua

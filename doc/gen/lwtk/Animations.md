@@ -6,8 +6,9 @@
    * [Inheritance](#inheritance)
    * [Constructor](#constructor)
    * [Methods](#methods)
-      * [add()](#.add)
+      * [addAnimation()](#.addAnimation)
       * [hasActive()](#.hasActive)
+      * [removeAnimation()](#.removeAnimation)
    * [Inherited Methods](#inherited-methods)
 
 
@@ -20,10 +21,13 @@
 
 
 ## Methods
-   * <span id=".add">**`Animations:add(animatable)`**</span>
+   * <span id=".addAnimation">**`Animations:addAnimation(animatable)`**</span>
 
 
    * <span id=".hasActive">**`Animations:hasActive()`**</span>
+
+
+   * <span id=".removeAnimation">**`Animations:removeAnimation(animatable)`**</span>
 
 
 

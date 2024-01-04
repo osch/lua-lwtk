@@ -111,11 +111,11 @@
    * [Focusable](../lwtk/Focusable.md):
       * [onDisabled()](../lwtk/Focusable.md#.onDisabled), [onEffectiveVisibilityChanged()](../lwtk/Focusable.md#.onEffectiveVisibilityChanged), [setFocus()](../lwtk/Focusable.md#.setFocus), [_handleFocusIn()](../lwtk/Focusable.md#._handleFocusIn), [_handleFocusOut()](../lwtk/Focusable.md#._handleFocusOut), [_handleHasFocusHandler()](../lwtk/Focusable.md#._handleHasFocusHandler)
    * [HotkeyListener](../lwtk/HotkeyListener.md):
-      * [isHotkeyEnabled()](../lwtk/HotkeyListener.md#.isHotkeyEnabled), [setHotkey()](../lwtk/HotkeyListener.md#.setHotkey)
+      * [isHotkeyEnabled()](../lwtk/HotkeyListener.md#.isHotkeyEnabled), [setHotkey()](../lwtk/HotkeyListener.md#.setHotkey), [_handleRemovedFocusHandler()](../lwtk/HotkeyListener.md#._handleRemovedFocusHandler)
    * [LayoutFrame](../lwtk/LayoutFrame.md):
       * [addChild()](../lwtk/LayoutFrame.md#.addChild), [onDraw()](../lwtk/LayoutFrame.md#.onDraw)
    * [Compound](../lwtk/Compound.md):
-      * [_processChanges()](../lwtk/Compound.md#._processChanges), [_processDraw()](../lwtk/Compound.md#._processDraw)
+      * [discardChild()](../lwtk/Compound.md#.discardChild), [removeChild()](../lwtk/Compound.md#.removeChild), [_processChanges()](../lwtk/Compound.md#._processChanges), [_processDraw()](../lwtk/Compound.md#._processDraw)
    * **[Widget](../lwtk/Widget.md)**:
       * [notifyInputChanged()](../lwtk/Widget.md#.notifyInputChanged), [setOnInputChanged()](../lwtk/Widget.md#.setOnInputChanged), [setOnRealize()](../lwtk/Widget.md#.setOnRealize), [_setApp()](../lwtk/Widget.md#._setApp), [_setParent()](../lwtk/Widget.md#._setParent)
    * [Animatable](../lwtk/Animatable.md):
@@ -126,6 +126,8 @@
       * [byId()](../lwtk/Component.md#.byId), [getCurrentTime()](../lwtk/Component.md#.getCurrentTime), [getFocusHandler()](../lwtk/Component.md#.getFocusHandler), [getFontInfo()](../lwtk/Component.md#.getFontInfo), [getFrame()](../lwtk/Component.md#.getFrame), [getLayoutContext()](../lwtk/Component.md#.getLayoutContext), [getParent()](../lwtk/Component.md#.getParent), [getRoot()](../lwtk/Component.md#.getRoot), [getSize()](../lwtk/Component.md#.getSize), [handleRemainingInitParams()](../lwtk/Component.md#.handleRemainingInitParams), [parentById()](../lwtk/Component.md#.parentById), [setFrame()](../lwtk/Component.md#.setFrame), [setInitParams()](../lwtk/Component.md#.setInitParams), [setTimer()](../lwtk/Component.md#.setTimer), [transformXY()](../lwtk/Component.md#.transformXY), [triggerLayout()](../lwtk/Component.md#.triggerLayout), [triggerRedraw()](../lwtk/Component.md#.triggerRedraw), [updateFrameTransition()](../lwtk/Component.md#.updateFrameTransition), [_setFrame()](../lwtk/Component.md#._setFrame)
    * [Drawable](../lwtk/Drawable.md):
       * [getMandatoryStyleParam()](../lwtk/Drawable.md#.getMandatoryStyleParam), [_processMouseDown()](../lwtk/Drawable.md#._processMouseDown), [_processMouseEnter()](../lwtk/Drawable.md#._processMouseEnter), [_processMouseLeave()](../lwtk/Drawable.md#._processMouseLeave), [_processMouseMove()](../lwtk/Drawable.md#._processMouseMove), [_processMouseScroll()](../lwtk/Drawable.md#._processMouseScroll), [_processMouseUp()](../lwtk/Drawable.md#._processMouseUp)
+   * [Node](../lwtk/Node.md):
+      * [discard()](../lwtk/Node.md#.discard)
    * [Actionable](../lwtk/Actionable.md):
       * [hasActionMethod()](../lwtk/Actionable.md#.hasActionMethod), [invokeActionMethod()](../lwtk/Actionable.md#.invokeActionMethod)
    * **[Object](../lwtk/Object.md)**:

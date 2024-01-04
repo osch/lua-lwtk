@@ -2,6 +2,9 @@ local lwtk = require("lwtk")
 
 local remove = table.remove
 local rawset = rawset
+local rawget = rawget
+
+local getApp = lwtk.get.app
 
 local UPDATE_INTERVAL = 0.015 -- seconds
 local processAnimations
@@ -9,23 +12,30 @@ local processAnimations
 local Animations = lwtk.newClass("lwtk.Animations")
 
 Animations:declare(
-    "app",
     "timer"
 )
 
 function Animations:new(app)
-    self.app      = app
+    getApp[self] = app
     self.timer    = lwtk.Timer(processAnimations, self)
 end
 
-function Animations:add(animatable)
+function Animations:addAnimation(animatable)
     rawset(self, #self + 1, animatable)
     local timer = self.timer
     if not timer.time then
-        self.app:setTimer(UPDATE_INTERVAL, timer)
+        getApp[self]:setTimer(UPDATE_INTERVAL, timer)
     end
 end
 
+function Animations:removeAnimation(animatable)
+    local found = 0
+    for i = #self, 1, -1 do
+        if rawget(self, i) == animatable then
+            remove(self, i)
+        end
+    end
+end
 
 function Animations:hasActive()
     return #self > 0
@@ -53,7 +63,7 @@ processAnimations = function(self)
     if #self > 0 then
         local timer = self.timer
         if not timer.time then
-            self.app:setTimer(UPDATE_INTERVAL, timer)
+            getApp[self]:setTimer(UPDATE_INTERVAL, timer)
         end
     end
 end

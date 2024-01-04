@@ -13,7 +13,7 @@ local StyleRuleContext = lwtk.internal.StyleRuleContext
 
 local Style = lwtk.newClass("lwtk.Style", lwtk.Object)
 
-local childStyles = WeakKeysTable()
+local childStyles = WeakKeysTable("lwtk.Style.childStyles")
 
 local toTypePattern  = TypeRule.toPattern
 local toStylePattern = StyleRule.toPattern
@@ -78,7 +78,7 @@ end
 local function addChildStyle(parent, child)
     local children = childStyles[parent]
     if not children then
-        children = WeakKeysTable()
+        children = WeakKeysTable("lwtk.Style.children")
         childStyles[parent] = children
     end
     children[child] = true
