@@ -35,26 +35,23 @@ jobs:
           libtool:p
           pkgconf:p
           autotools:p
-          lua:p
           cairo:p
     
-    - name: setup-luarocks 
+    - name: setup-lua-luarocks 
       shell: msys2 {0}
       run: |
         uname -a
         pwd
         echo "-----------------------------------------------------------"
-        echo "-- Workaround for msys2-luarocks bug,                      "
-        echo "-- see: https://github.com/msys2/MINGW-packages/pull/12002 "
-        echo "-----------------------------------------------------------"
-        cd .github/workflows/mingw-w64-lua-luarocks
-        makepkg-mingw -isCf --noconfirm
-        cd -
+        pacboy --noconfirm -Sy lua:p lua-luarocks:p
         echo "-----------------------------------------------------------"
         type lua
         type luarocks
+        echo "-----------------------------------------------------------"
         lua -v
-        luarocks
+        echo "-----------------------------------------------------------"
+        luarocks --version
+        echo "-----------------------------------------------------------"
         luarocks install luafilesystem
 
     - name: setup-lwtk 
