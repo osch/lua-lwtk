@@ -1,5 +1,7 @@
 local lwtk = require"lwtk"
 
+local lower    = string.lower
+local upper    = string.upper
 local Color    = lwtk.Color
 local get      = lwtk.StyleRef.get
 local scale    = lwtk.StyleRef.scale
@@ -9,102 +11,115 @@ local DefaultStyle = lwtk.newClass("lwtk.DefaultStyle", Super)
 
 function DefaultStyle.override:new(initParams)
     
-    local function par(name)
-        local rslt = initParams and initParams[name]
-        if rslt ~= nil then
-            initParams[name] = nil
-            return rslt
+    local function par(name, defaultValue)
+        if initParams then
+            local rslt = initParams[name]
+            if rslt ~= nil then
+                initParams[name] = nil
+                return rslt
+            end
+            local name2 = lower(name:sub(1,1))..name:sub(2)
+            rslt = initParams[name2]
+            if rslt ~= nil then
+                initParams[name2] = nil
+                return rslt
+            end
+            name2 = upper(name:sub(1,1))..name:sub(2)
+            rslt = initParams[name2]
+            if rslt ~= nil then
+                initParams[name2] = nil
+                return rslt
+            end
         end
+        return defaultValue
     end
     
-    local scaleFactor     = par"scaleFactor"       or 1
-    local screenScale     = par"screenScale"       or 1
-    local backgroundColor = par"backgroundColor"   or Color"f9f9fa"
-    local textColor       = par"textColor"         or Color"000000"
-    local accentColor     = par"accentColor"       or Color"006fc7" --"0078d7"
-
+    local function parRule(name, defaultValue)
+        return { name, par(name, defaultValue) }
+    end
+        
     local ruleList = {
         
-        scaleFactor = scaleFactor * screenScale,
+        scaleFactor = par("ScaleFactor", 1) * par("ScreenScale", 1),
         
-        { "*TransitionSeconds",                    0.05 },
-        { "VisibilityTransitionSeconds",           0.05 },
-        { "VisibilityTransitionSeconds:invisible", 0.10 },
-        { "FrameTransitionSeconds",                0.05 },
-        { "HoverTransitionSeconds",                0.20 },
-        { "PressedTransitionSeconds",              0.05 },
-        { "SimulateButtonClickSeconds",            0.10 },
+        parRule( "*TransitionSeconds",                    0.05 ),
+        parRule( "VisibilityTransitionSeconds",           0.05 ),
+        parRule( "VisibilityTransitionSeconds:invisible", 0.10 ),
+        parRule( "FrameTransitionSeconds",                0.05 ),
+        parRule( "HoverTransitionSeconds",                0.20 ),
+        parRule( "PressedTransitionSeconds",              0.05 ),
+        parRule( "SimulateButtonClickSeconds",            0.10 ),
 
-        { "TextSize",                            12 },
-        { "FontFamily",                "sans-serif" },
-        { "ScrollBarSize",                       12 },
+        parRule( "TextSize",                            12 ),
+        parRule( "FontFamily",                "sans-serif" ),
+        parRule( "ScrollBarSize",                       12 ),
 
-        { "BackgroundColor",           backgroundColor },
-        { "TextColor",                 textColor   },
-        { "AccentColor",               accentColor },
+        parRule( "BackgroundColor",           Color"f9f9fa" ),
+        parRule( "TextColor",                 Color"000000"   ),
+        parRule( "AccentColor",               Color"006fc7" ), --"0078d7"
 
-        { "TextOffset",                   0            },
+        parRule( "TextOffset",                   0            ),
         
-        { "CursorColor",                      Color"00000000" }, -- Color"adadad" },
-        { "CursorColor:focused",              Color"000000" },
-        { "CursorWidth",                        2 },
+        parRule( "CursorColor",                      Color"00000000" ), -- Color"adadad" ),
+        parRule( "CursorColor:focused",              Color"000000" ),
+        parRule( "CursorWidth",                        2 ),
 
-        {          "Margin@Control",           8 },
-        {         "*Margin@Control", get"Margin" },
-        {          "Height@Control",          24 },
-        {   "BorderPadding@Control",           3 },
-        { "TextFullVisible@Control",        true },
+        parRule(          "Margin@Control",           8 ),
+        parRule(         "*Margin@Control", get"Margin" ),
+        parRule(          "Height@Control",          24 ),
+        parRule(   "BorderPadding@Control",           3 ),
+        parRule( "TextFullVisible@Control",        true ),
         
-        {    "BorderSize@Box",            1 },
-        { "BorderPadding@Box",            3 },
-        {   "BorderColor@Box",            Color"adadad" },
+        parRule(    "BorderSize@Box",            1 ),
+        parRule( "BorderPadding@Box",            3 ),
+        parRule(   "BorderColor@Box",            Color"adadad" ),
 
-        { "BorderPadding@TextLabel",      0 },
-        {    "BorderSize@TextLabel",      0 },
-        {   "BorderColor@TextLabel",    nil },
+        parRule( "BorderPadding@TextLabel",      0 ),
+        parRule(    "BorderSize@TextLabel",      0 ),
+        parRule(   "BorderColor@TextLabel",    nil ),
         
-        {        "Width@PushButton",                 80   },
-        {   "BorderSize@PushButton",                  1   },
-        {   "BorderSize@PushButton:focused",          2  },
+        parRule(        "Width@PushButton",                 80   ),
+        parRule(   "BorderSize@PushButton",                  1   ),
+        parRule(   "BorderSize@PushButton:focused",          2  ),
         
-        {  "LeftPadding@PushButton",
-          "RightPadding@PushButton",                 10   },
-        {   "TextOffset@PushButton:pressed+hover",    0.3 },
+        parRule(   "LeftPadding@PushButton",                 10),
+        parRule(   "RightPadding@PushButton",                10),
+        parRule(   "TextOffset@PushButton:pressed+hover",    0.3 ),
 
-        { "BackgroundColor@PushButton",                 Color"e1e1e1" },
-        { "BackgroundColor@PushButton:hover",           Color"c9c9ca" },
-        { "BackgroundColor@PushButton:pressed",         Color"c9c9ca" },
-        { "BackgroundColor@PushButton:pressed+hover",   Color"b1b1b2" },
-        { "BackgroundColor@PushButton:default",         Color"e5f1fb" },
-        { "BackgroundColor@PushButton:default+hover",   Color"d5e1eb" },
-        { "BackgroundColor@PushButton:default+pressed", Color"c5d1db" },
-        { "BackgroundColor@PushButton:focused",         Color"e5f1fb" },
-        { "BackgroundColor@PushButton:focused+hover",   Color"d5e1eb" },
-        { "BackgroundColor@PushButton:focused+pressed", Color"c5d1db" },
+        parRule( "BackgroundColor@PushButton",                 Color"e1e1e1" ),
+        parRule( "BackgroundColor@PushButton:hover",           Color"c9c9ca" ),
+        parRule( "BackgroundColor@PushButton:pressed",         Color"c9c9ca" ),
+        parRule( "BackgroundColor@PushButton:pressed+hover",   Color"b1b1b2" ),
+        parRule( "BackgroundColor@PushButton:default",         Color"e5f1fb" ),
+        parRule( "BackgroundColor@PushButton:default+hover",   Color"d5e1eb" ),
+        parRule( "BackgroundColor@PushButton:default+pressed", Color"c5d1db" ),
+        parRule( "BackgroundColor@PushButton:focused",         Color"e5f1fb" ),
+        parRule( "BackgroundColor@PushButton:focused+hover",   Color"d5e1eb" ),
+        parRule( "BackgroundColor@PushButton:focused+pressed", Color"c5d1db" ),
 
-        {       "TextColor@PushButton:disabled",        Color"adadad" },
+        parRule(       "TextColor@PushButton:disabled",        Color"adadad" ),
         
-        {     "BorderColor@PushButton",                 Color"adadad" },
-        {     "BorderColor@PushButton:focused",      get"AccentColor" },
-        {     "BorderColor@PushButton:default",      get"AccentColor" },
+        parRule(     "BorderColor@PushButton",                 Color"adadad" ),
+        parRule(     "BorderColor@PushButton:focused",      get"AccentColor" ),
+        parRule(     "BorderColor@PushButton:default",      get"AccentColor" ),
         
-        {     "MinColumns@TextInput",                        10 },
-        {        "Columns@TextInput",                        20 },
-        {      "MaxColumns@TextInput",                       -1 },
-        {     "BorderColor@TextInput",            Color"adadad" },
-        {     "BorderColor@TextInput:focused", get"AccentColor" },
-        {      "BorderSize@TextInput",                        1 },
-        {      "BorderSize@TextInput:focused",                2 },
-        {      "FontFamily@TextInput",              "monospace" },
-        { "TextFullVisible@TextInput",                    false },
+        parRule(     "MinColumns@TextInput",                        10 ),
+        parRule(        "Columns@TextInput",                        20 ),
+        parRule(      "MaxColumns@TextInput",                       -1 ),
+        parRule(     "BorderColor@TextInput",            Color"adadad" ),
+        parRule(     "BorderColor@TextInput:focused", get"AccentColor" ),
+        parRule(      "BorderSize@TextInput",                        1 ),
+        parRule(      "BorderSize@TextInput:focused",                2 ),
+        parRule(      "FontFamily@TextInput",              "monospace" ),
+        parRule( "TextFullVisible@TextInput",                    false ),
 
-        { "TextSize@TitleText",         scale(2, get"TextSize")},
+        parRule( "TextSize@TitleText",         scale(2, get"TextSize")),
 
-        {     "BorderColor@FocusGroup",            Color"adadad" },
-        {     "BorderColor@FocusGroup:focused", get"AccentColor" },
-        {      "BorderSize@FocusGroup",                        1 },
-        {      "BorderSize@FocusGroup:focused",                2 },
-        {      "BorderSize@FocusGroup:focused+entered",        1 },
+        parRule(     "BorderColor@FocusGroup",            Color"adadad" ),
+        parRule(     "BorderColor@FocusGroup:focused", get"AccentColor" ),
+        parRule(      "BorderSize@FocusGroup",                        1 ),
+        parRule(      "BorderSize@FocusGroup:focused",                2 ),
+        parRule(      "BorderSize@FocusGroup:focused+entered",        1 ),
     }
     
     Super.new(self, ruleList)

@@ -454,4 +454,16 @@ do
     assertEq(g:childById("g2"):getStyleParam("yWidth"), 2000)
 end
 PRINT("----------------------------------------------------------------------------------")
+do
+    local g = lwtk.Group {
+        style = lwtk.DefaultStyle { textSize = 13 },
+        lwtk.Group {
+            id = "g1",
+        },
+        lwtk.TitleText {id = "tt"},
+    }
+    assertEq(g:getStyleParam("TextSize"), 13)
+    assertEq(g:childById("tt"):getStyleParam("TextSize"), 2 * 13)
+end
+PRINT("----------------------------------------------------------------------------------")
 print("OK.")
