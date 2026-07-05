@@ -91,7 +91,7 @@ end
 
 function Class:__newindex(k, v)
     if k == "declared" or k == "static" or k == "override" or k == "implement" then
-        lwtk.errorf("member name %q no allowed", k)
+        lwtk.errorf("member name %q not allowed", k)
     end
     local objMeta = getObjectMeta[self]
     local declared = objMeta.declared
@@ -142,7 +142,7 @@ end
 function staticMeta:__newindex(k, v)
     local objMeta = getObjectMeta[self]
     if k == "declared" or k == "static" or k == "override" or k == "implement" then
-        lwtk.errorf("member name %q no allowed", k)
+        lwtk.errorf("member name %q not allowed", k)
     end
     local declared = objMeta.declared
     if DO_CHECKS and declared[k] then
@@ -162,7 +162,7 @@ end
 
 function overrideMeta:__newindex(k, v)
     if k == "declared" or k == "static" or k == "override" or k == "implement" then
-        lwtk.errorf("member name %q no allowed", k)
+        lwtk.errorf("member name %q not allowed", k)
     end
     local objMeta = getObjectMeta[self]
     local declared = objMeta.declared
@@ -213,7 +213,7 @@ end
 
 function implementMeta:__newindex(k, v)
     if k == "declared" or k == "static" or k == "override" or k == "implement" then
-        lwtk.errorf("member name %q no allowed", k)
+        lwtk.errorf("member name %q not allowed", k)
     end
     local objMeta = getObjectMeta[self]
     local declared = objMeta.declared

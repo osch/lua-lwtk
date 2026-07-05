@@ -92,7 +92,7 @@ local Object = createClass({}, "lwtk.Object", {})
 
 function Object.static.newSubClass(baseClass, className, ...)
     assert(type(baseClass) == "lwtk.Class", "arg 1 must be of type lwtk.Class")
-    assert(type(className) == "string", "arg 2: exptected class name string")
+    assert(type(className) == "string", "arg 2: expected class name string")
     local baseObjMeta = getObjectMeta[baseClass]
     local newObjMeta = {}
     for k, v in pairs(baseObjMeta) do

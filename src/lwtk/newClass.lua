@@ -16,7 +16,7 @@ local ltype = lwtk.type
     and usage examples.
 ]]
 local function newClass(className, superClass, ...)
-    assert(type(className) == "string", "arg 1: exptected class name string")
+    assert(type(className) == "string", "arg 1: expected class name string")
     assert(not className:match("[()<>]"), "arg 1: invalid class name string")
     if superClass then
         assert(ltype(superClass) == "lwtk.Class", "arg 2 must be of type lwtk.Class")

@@ -333,7 +333,7 @@ end
 local Bar = lwtk.newClass("Bar", Foo)
 ```
 
-It's not allowed to simply declare a member in a subclass that is alread declared in the
+It's not allowed to simply declare a member in a subclass that is already declared in the
 superclass:
 
 ```lua

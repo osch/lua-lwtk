@@ -490,4 +490,44 @@ do
     assertEq(tf.hotkey,   "F")
 end
 PRINT("----------------------------------------------------------------------------------")
+do
+    -- "&" edge cases in lwtk.TextFragment:setText(): a "&" at the end of
+    -- the text or before a space character is taken literally (setting
+    -- text "Foo&" even crashed before), "&&" denotes a literal "&"
+    local function fragment(text)
+        local tf = lwtk.TextFragment { considerHotkey = true }
+        tf:setText(text)
+        return tf
+    end
+    local tf = fragment("Foo&")           -- trailing "&" is literal
+    assertEq(tf.label,    "Foo&")
+    assertEq(tf.hotkey,   false)
+
+    tf = fragment("Save & Load")          -- "&" before space is literal
+    assertEq(tf.label,    "Save & Load")
+    assertEq(tf.hotkey,   false)
+
+    tf = fragment("A && B")               -- "&&" denotes literal "&"
+    assertEq(tf.label,    "A & B")
+    assertEq(tf.hotkey,   false)
+
+    tf = fragment("A && &Bx")             -- literal "&" and hotkey combined
+    assertEq(tf.label,     "A & Bx")
+    assertEq(tf.labelLeft, "A & ")
+    assertEq(tf.labelKey,  "B")
+    assertEq(tf.hotkey,    "B")
+
+    tf = fragment("&Left &Right")         -- only the first "&" marks the hotkey
+    assertEq(tf.label,    "Left &Right")
+    assertEq(tf.labelKey, "L")
+    assertEq(tf.hotkey,   "L")
+
+    do                                    -- without considerHotkey: text is unchanged
+        local tf2 = lwtk.TextFragment {}
+        tf2:setText("A && &B")
+        assertEq(tf2.label,  "A && &B")
+        assertEq(tf2.hotkey, false)
+    end
+end
+PRINT("----------------------------------------------------------------------------------")
 print("OK.")

@@ -94,7 +94,7 @@ function Application:new(arg1, arg2)
     getDeferredChanges[self]   = {}
 
     if getApp[style] then
-        error("Style was alread added to app")
+        error("Style was already added to app")
     end
     getApp[style]  = self
     getStyle[self] = style
@@ -244,7 +244,7 @@ end
 
 function Application:setStyle(style) 
     if getApp[style] then
-        error("Style was alread added to app")
+        error("Style was already added to app")
     end
     if isInstanceOf(style, lwtk.Style) then
         style:setScaleFactor(style.scaleFactor * self.driver:getScreenScale())

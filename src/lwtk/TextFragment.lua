@@ -27,21 +27,44 @@ end
 
 function TextFragment:setText(text)
     if self.text ~= text then
-        local a, b, c 
+        local a, b, c
         if self.considerHotkey then
-            a, b = string.match(text, "^([^&]*)&().*$")
+            -- The first "&" before a non-space character marks the hotkey.
+            -- "&&" denotes a literal "&", a "&" at the end of the text or
+            -- before a space character is also taken literally.
+            local parts = {}
+            local p = 1
+            while true do
+                local amp = text:find("&", p, true)
+                if not amp then
+                    parts[#parts + 1] = text:sub(p)
+                    break
+                end
+                parts[#parts + 1] = text:sub(p, amp - 1)
+                local nextChar = text:sub(amp + 1, amp + 1)
+                if nextChar == "&" then
+                    parts[#parts + 1] = "&"
+                    p = amp + 2
+                elseif not b and nextChar ~= "" and not nextChar:match("%s") then
+                    local nextCharPos = utf8.offset(text, 2, amp + 1) or #text + 1
+                    b = text:sub(amp + 1, nextCharPos - 1)
+                    a = table.concat(parts)
+                    parts = {}
+                    p = nextCharPos
+                else
+                    parts[#parts + 1] = "&"
+                    p = amp + 1
+                end
+            end
+            c = table.concat(parts)
         end
-        if not a then
+        if not b then
             a = ""
             b = ""
-            c = text
+            c = c or text
             self.hotkey = nil
         else
-            local nextCharPos = utf8.offset(text, 2, b)
-            b = text:sub(b, nextCharPos - 1)
-            c = text:sub(nextCharPos)
-            local B = utf8.upper(b)
-            self.hotkey = B
+            self.hotkey = utf8.upper(b)
         end
         self.labelLeft  = a
         self.labelKey   = b
@@ -49,7 +72,7 @@ function TextFragment:setText(text)
         self.label      = a..b..c
         self.text       = text
         self.textWidth  = false
-        
+
         self:triggerRedraw()
     end
 end
