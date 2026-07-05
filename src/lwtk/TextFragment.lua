@@ -61,7 +61,7 @@ function TextFragment:setConsiderHotkey(flag)
         local text = self.text
         if text then
             self.text = nil
-            self:setText(self.text)
+            self:setText(text)
         end
     end
 end

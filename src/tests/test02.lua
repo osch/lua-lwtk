@@ -466,4 +466,28 @@ do
     assertEq(g:childById("tt"):getStyleParam("TextSize"), 2 * 13)
 end
 PRINT("----------------------------------------------------------------------------------")
+do
+    -- setConsiderHotkey() must re-evaluate the current text: the text
+    -- was lost and the label was not re-split before (setText was
+    -- called with the already cleared self.text instead of the local)
+    local tf = lwtk.TextFragment { considerHotkey = true }
+    tf:setText("&File")
+    assertEq(tf.text,     "&File")
+    assertEq(tf.label,    "File")
+    assertEq(tf.labelKey, "F")
+    assertEq(tf.hotkey,   "F")
+
+    tf:setConsiderHotkey(false)
+    assertEq(tf.text,     "&File")   -- text must be kept
+    assertEq(tf.label,    "&File")   -- label re-split without hotkey handling
+    assertEq(tf.labelKey, "")
+    assertEq(tf.hotkey,   false)
+
+    tf:setConsiderHotkey(true)
+    assertEq(tf.text,     "&File")
+    assertEq(tf.label,    "File")    -- hotkey handling active again
+    assertEq(tf.labelKey, "F")
+    assertEq(tf.hotkey,   "F")
+end
+PRINT("----------------------------------------------------------------------------------")
 print("OK.")
