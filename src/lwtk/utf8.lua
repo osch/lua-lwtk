@@ -16,14 +16,9 @@ if not luautf8 then
 end
 
 if not builtin_utf8 then
-    local lua_version = _VERSION:match("[%d%.]*$")
-    
-    if #lua_version == 3 and lua_version < "5.3" then
-        builtin_utf8 = require("compat53.utf8")
-        if lua_version == "5.1" then
-            builtin_utf8.charpattern = "[%z\1-\127\194-\244][\128-\191]*"
-        end
-    end
+    -- Lua < 5.3: luautf8 also provides all functions of the builtin
+    -- Lua 5.3 utf8 library, including a Lua 5.1 compatible charpattern
+    builtin_utf8 = luautf8
 end
 
 local utf8 = {}
@@ -35,5 +30,7 @@ end
 for k, v in pairs(builtin_utf8) do
     utf8[k] = v
 end
+
+utf8.version = nil -- luautf8's own version field is not part of this API
 
 return utf8

@@ -1,4 +1,4 @@
-LUA ?= lua5.4
+LUA ?= lua
 
 .PHONY: default all doc doctest alltests
 

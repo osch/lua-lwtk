@@ -8,7 +8,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-latest]
-        luaVersion: ["5.4"]
+        luaVersion: ["5.4", "5.5"]
 
     runs-on: ${{ matrix.os }}
 
@@ -43,18 +43,23 @@ jobs:
         uname -a
         pwd
         echo "-----------------------------------------------------------"
-        # MSYS2's default "lua" package is Lua 5.5 now, but the rockspecs
-        # require lua <= 5.4: install lua54 and switch luarocks to it
-        # (there is no separate lua54-luarocks package)
-        pacboy --noconfirm -Sy lua54:p lua-luarocks:p
-        echo "-----------------------------------------------------------"
-        luarocks config lua_version 5.4
-        luarocks config variables.LUA /mingw64/bin/lua5.4.exe
-        luarocks config variables.LUA_INCDIR /mingw64/include/lua5.4
-        luarocks config variables.LUA_LIBDIR /mingw64/bin
-        luarocks config variables.LUALIB lua54.dll
-        # let plain "lua" invoke lua 5.4 in the following steps
-        cp -f /mingw64/bin/lua5.4.exe /mingw64/bin/lua.exe
+        # MSYS2's default "lua" package is Lua 5.5; older versions are
+        # packaged as lua54, lua53, ... with versioned file names and need
+        # a manual luarocks setup (there are no luaXY-luarocks packages)
+        V="${{ matrix.luaVersion }}"
+        if [ "$V" = "5.5" ]; then
+          pacboy --noconfirm -Sy lua:p lua-luarocks:p
+        else
+          pacboy --noconfirm -Sy "lua${V/./}:p" lua-luarocks:p
+          echo "-----------------------------------------------------------"
+          luarocks config lua_version "$V"
+          luarocks config variables.LUA "/mingw64/bin/lua$V.exe"
+          luarocks config variables.LUA_INCDIR "/mingw64/include/lua$V"
+          luarocks config variables.LUA_LIBDIR /mingw64/bin
+          luarocks config variables.LUALIB "lua${V/./}.dll"
+          # let plain "lua" invoke the requested version in later steps
+          cp -f "/mingw64/bin/lua$V.exe" /mingw64/bin/lua.exe
+        fi
         echo "-----------------------------------------------------------"
         type lua
         type luarocks
@@ -71,7 +76,7 @@ jobs:
       run: |
         luarocks install lpath
         luarocks install oocairo
-        luarocks install https://luarocks.org/manifests/xavier-wang/luautf8-0.1.5-2.rockspec
+        luarocks install luautf8
         luarocks --server=https://luarocks.org/dev install lpugl
         luarocks --server=https://luarocks.org/dev install lpugl_cairo
         luarocks --server=https://luarocks.org/dev install lpugl_opengl
