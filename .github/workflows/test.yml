@@ -22,7 +22,7 @@ jobs:
     - name: setup linux
       if: matrix.os == 'ubuntu-latest'
       run: |
-        sudo apt-get install xvfb libglu1-mesa-dev freeglut3-dev mesa-common-dev x11-utils
+        sudo apt-get install xvfb libglu1-mesa-dev freeglut3-dev mesa-common-dev x11-utils libcairo2-dev
 
         Xvfb :19 -screen 0 1024x768x16 &
         echo "DISPLAY=:19" >> $GITHUB_ENV
@@ -34,6 +34,7 @@ jobs:
       if: matrix.os == 'macos-latest'
       run: |
         brew install cairo glew glfw
+        luarocks config variables.CAIRO_DIR "$(brew --prefix cairo)"
 
     - name: setup common
       run: |

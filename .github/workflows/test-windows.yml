@@ -43,7 +43,18 @@ jobs:
         uname -a
         pwd
         echo "-----------------------------------------------------------"
-        pacboy --noconfirm -Sy lua:p lua-luarocks:p
+        # MSYS2's default "lua" package is Lua 5.5 now, but the rockspecs
+        # require lua <= 5.4: install lua54 and switch luarocks to it
+        # (there is no separate lua54-luarocks package)
+        pacboy --noconfirm -Sy lua54:p lua-luarocks:p
+        echo "-----------------------------------------------------------"
+        luarocks config lua_version 5.4
+        luarocks config variables.LUA /mingw64/bin/lua5.4.exe
+        luarocks config variables.LUA_INCDIR /mingw64/include/lua5.4
+        luarocks config variables.LUA_LIBDIR /mingw64/bin
+        luarocks config variables.LUALIB lua54.dll
+        # let plain "lua" invoke lua 5.4 in the following steps
+        cp -f /mingw64/bin/lua5.4.exe /mingw64/bin/lua.exe
         echo "-----------------------------------------------------------"
         type lua
         type luarocks
@@ -51,6 +62,7 @@ jobs:
         lua -v
         echo "-----------------------------------------------------------"
         luarocks --version
+        luarocks config | head -60
         echo "-----------------------------------------------------------"
         luarocks install luafilesystem
 
