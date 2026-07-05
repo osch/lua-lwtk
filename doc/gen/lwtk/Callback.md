@@ -8,7 +8,7 @@ be called.
    * [Constructor](#constructor)
 
 
-## Constructor
+## <a id="constructor"></a>Constructor
    * <span id=".new">**`Callback(func, ...)`**</span>
 
 

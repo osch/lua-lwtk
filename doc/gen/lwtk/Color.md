@@ -9,6 +9,11 @@ Contains the float values *r (red)*, *g (green)*, *b (blue)* and optional
 
    * [Inheritance](#inheritance)
    * [Constructor](#constructor)
+   * [Attributes](#attributes)
+      * [r](#.r) - red color float value (0 <= r <= 1)
+      * [g](#.g) - green color float value (0 <= g <= 1)
+      * [b](#.b) - blue color float value (0 <= b <= 1)
+      * [a](#.a) - alpha float value (0 <= a <= 1) or nil
    * [Methods](#methods)
       * [lighten()](#.lighten)
       * [saturate()](#.saturate)
@@ -16,12 +21,13 @@ Contains the float values *r (red)*, *g (green)*, *b (blue)* and optional
       * [toRGB()](#.toRGB)
       * [toRGBA()](#.toRGBA)
    * [Inherited Methods](#inherited-methods)
+   * [Inherited Static Members](#inherited-static-members)
 
 
-## Inheritance
+## <a id="inheritance"></a>Inheritance
    *  / **[Object](../lwtk/Object.md#inheritance)** / _**`Color`**_
 
-## Constructor
+## <a id="constructor"></a>Constructor
    * <span id=".new">**`Color(...)`**</span>
 
      Creates a new RGBA color value.
@@ -52,7 +58,21 @@ Contains the float values *r (red)*, *g (green)*, *b (blue)* and optional
                     *00 <= value <= ff*, alpha value is optional.
 
 
-## Methods
+## <a id="attributes"></a>Attributes
+   * <span id=".r">**`r`**</span> : `number`
+
+      red color float value (0 <= r <= 1)
+   * <span id=".g">**`g`**</span> : `number`
+
+      green color float value (0 <= g <= 1)
+   * <span id=".b">**`b`**</span> : `number`
+
+      blue color float value (0 <= b <= 1)
+   * <span id=".a">**`a`**</span>
+
+      alpha float value (0 <= a <= 1) or nil
+
+## <a id="methods"></a>Methods
    * <span id=".lighten">**`Color:lighten(amount)`**</span>
 
 
@@ -69,6 +89,10 @@ Contains the float values *r (red)*, *g (green)*, *b (blue)* and optional
 
 
 
-## Inherited Methods
+## <a id="inherited-methods"></a>Inherited Methods
    * **[Object](../lwtk/Object.md)**:
       * [getClass()](../lwtk/Object.md#.getClass), [getClassPath()](../lwtk/Object.md#.getClassPath), [getMember()](../lwtk/Object.md#.getMember), [getReverseClassPath()](../lwtk/Object.md#.getReverseClassPath), [getSuperClass()](../lwtk/Object.md#.getSuperClass), [isInstanceOf()](../lwtk/Object.md#.isInstanceOf), [setAttributes()](../lwtk/Object.md#.setAttributes)
+
+## <a id="inherited-static-members"></a>Inherited Static Members
+   * **[Object](../lwtk/Object.md)**:
+      * [declare()](../lwtk/Object.md#.declare), [getMixinBase()](../lwtk/Object.md#.getMixinBase), [newSubClass()](../lwtk/Object.md#.newSubClass)

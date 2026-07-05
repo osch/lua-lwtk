@@ -4,6 +4,7 @@
 ## Contents
 
    * [Inheritance](#inheritance)
+   * [Constructor](#constructor)
    * [Methods](#methods)
       * [handleRemainingInitParams()](#.handleRemainingInitParams)
       * [hasActionMethod()](#.hasActionMethod)
@@ -12,10 +13,15 @@
    * [Subclasses](#subclasses)
 
 
-## Inheritance
+## <a id="inheritance"></a>Inheritance
    * / **[Object](../lwtk/Object.md#inheritance)** / _`Actionable`_
 
-## Methods
+## <a id="constructor"></a>Constructor
+   * <span id=".new">**`Actionable:new(initParams)`**</span>
+
+
+
+## <a id="methods"></a>Methods
    * <span id=".handleRemainingInitParams">**`Actionable:handleRemainingInitParams(initParams)`**</span>
 
 
@@ -29,7 +35,7 @@
 
 
 
-## Subclasses
+## <a id="subclasses"></a>Subclasses
    * / **[Object](../lwtk/Object.md#subclasses)** / _`Actionable`_ /
         * **[FocusHandler](../lwtk/FocusHandler.md#inheritance)**
         * [Node](../lwtk/Node.md#subclasses) / [Drawable](../lwtk/Drawable.md#subclasses) /

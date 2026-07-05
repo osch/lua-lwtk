@@ -30,13 +30,13 @@ Application:declare(
     "_animations",
     "_eventFunc",
     "_hasChanges",
+    "_processingDeferredChanges",
     "animationTimer",
     "appName",
     "driver",
     "postprocessNeeded",
-    "procssingDeferedChanges",
     "scale",
-    "timers"
+    "timers" -- list of timers
 )    
 
 local function unpack2(t, i, n)
@@ -101,7 +101,17 @@ function Application:new(arg1, arg2)
     getKeyBinding[self]  = lwtk.DefaultKeyBinding()
     do
         local s = self.driver:getScreenScale()
-        self.scale = function(a, a2, a3, a4)
+        --[[
+            Multiplies the arguments with the *screenScale* factor.
+            
+            Possible invocations:
+            
+            * *scale(x, y)*         - returns the multiplied values
+            * *scale(x, y, w, h)*   - returns the multiplied values
+            * *scale({x, y})*       - multiplies the values in the given table and returns table
+            * *scale({x, y, w, y})* - multiplies the values in the given table and returns table
+        ]]
+        function self.scale(a, a2, a3, a4)
             if type(a) == "table" then
                 a[1] = a[1] * s
                 a[2] = a[2] * s
@@ -218,6 +228,9 @@ function Application:getFontInfo(family, slant, weight, size)
     return getFontInfos[self]:getFontInfo(family, slant, weight, size)
 end
 
+--[[
+    Returns the *screenScale* factor.
+]]
 function Application:getScreenScale()
     return self.driver:getScreenScale()
 end
@@ -323,7 +336,7 @@ function Application:getCurrentTime()
 end
 
 function Application:deferChanges(callback)
-    assert(not self.procssingDeferedChanges)
+    assert(not self._processingDeferredChanges)
     local deferredChanges = getDeferredChanges[self]
     deferredChanges[#deferredChanges + 1] = callback
     self._hasChanges = true
@@ -337,13 +350,13 @@ function Application:_processAllChanges()
             widget:onEffectiveVisibilityChanged(hidden)
             visibilityChanges[widget] = nil
         end
-        self.procssingDeferedChanges = true
+        self._processingDeferredChanges = true
         local deferredChanges = getDeferredChanges[self]
         for i = 1, #deferredChanges do 
             deferredChanges[i]()
             deferredChanges[i] = nil
         end
-        self.procssingDeferedChanges = false
+        self._processingDeferredChanges = false
         self._hasChanges = false
         for i = 1, #self do
             local w = self[i]

@@ -4,6 +4,9 @@
 ## Contents
 
    * [Inheritance](#inheritance)
+   * [Constructor](#constructor)
+   * [Attributes](#attributes)
+      * [_animationUpdated](#._animationUpdated)
    * [Methods](#methods)
       * [animateFrame()](#.animateFrame)
       * [getStyle()](#.getStyle)
@@ -16,13 +19,23 @@
       * [updateAnimation()](#.updateAnimation)
       * [_setApp()](#._setApp)
       * [_setStyleFromParent()](#._setStyleFromParent)
+   * [Used Style Parameters](#used-style-parameters)
    * [Subclasses](#subclasses)
 
 
-## Inheritance
+## <a id="inheritance"></a>Inheritance
    * / **[Object](../lwtk/Object.md#inheritance)** / [Actionable](../lwtk/Actionable.md#inheritance) / [Node](../lwtk/Node.md#inheritance) / [Drawable](../lwtk/Drawable.md#inheritance) / **[Component](../lwtk/Component.md#inheritance)** / [Styleable](../lwtk/Styleable.md#inheritance) / _`Animatable`_
 
-## Methods
+## <a id="constructor"></a>Constructor
+   * <span id=".new">**`Animatable:new(initParams)`**</span>
+
+
+
+## <a id="attributes"></a>Attributes
+   * <span id="._animationUpdated">**`_animationUpdated`**</span> : `boolean`
+
+
+## <a id="methods"></a>Methods
    * <span id=".animateFrame">**`Animatable:animateFrame(newX, newY, newW, newH, isLayoutTransition)`**</span>
 
 
@@ -57,7 +70,20 @@
 
 
 
-## Subclasses
+## <a id="used-style-parameters"></a>Used Style Parameters
+
+See also [lwtk.Style](../lwtk/Style.md), [lwtk.DefaultStyle](../lwtk/DefaultStyle.md) and [lwtk.BuiltinStyleTypes](../lwtk/BuiltinStyleTypes.md) for more information about style parameters.
+The [Style Parameter Index](../styleparams.md) lists all style parameters.
+
+The implementation uses the following style parameters:
+
+   * `FrameTransitionSeconds`
+
+Style parameters used in super classes:
+
+   * **[Component](../lwtk/Component.md#used-style-parameters)**: `Opacity`
+
+## <a id="subclasses"></a>Subclasses
    * / **[Object](../lwtk/Object.md#subclasses)** / [Actionable](../lwtk/Actionable.md#subclasses) / [Node](../lwtk/Node.md#subclasses) / [Drawable](../lwtk/Drawable.md#subclasses) / **[Component](../lwtk/Component.md#subclasses)** / [Styleable](../lwtk/Styleable.md#subclasses) / _`Animatable`_ / **[Widget](../lwtk/Widget.md#subclasses)** / [Compound](../lwtk/Compound.md#subclasses) /
         * [LayoutFrame](../lwtk/LayoutFrame.md#subclasses) / [Control](../lwtk/Control.md#subclasses) /
              * [Focusable](../lwtk/Focusable.md#subclasses) / **[TextInput](../lwtk/TextInput.md#inheritance)**

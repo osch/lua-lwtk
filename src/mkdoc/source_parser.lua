@@ -17,10 +17,147 @@ local lwtk = require("lwtk")
 
 local source_parser = {}
 
+local numberOps  = { add  = true, sub = true, mul = true, div = true, idiv = true,
+                     mod  = true, pow = true, unm = true, len = true,
+                     band = true, bor = true, bxor = true, shl = true, shr = true, bnot = true }
+local booleanOps = { eq = true, lt = true, le = true, gt = true, ge = true, ne = true,
+                     ["not"] = true }
+
+-- Returns the Lua type of an expression node if it can be statically
+-- inferred from literals and operators, otherwise nil.
+-- Literal false is ignored: declared attributes are initialized with
+-- false as placeholder for "not set", so a false assignment carries
+-- no type information.
+-- The optional callType callback may infer a type for Call nodes
+-- (e.g. constructor calls of lwtk classes).
+local function literalTypeOfExp(e, callType)
+    local tag = e.tag
+    if tag == "Number" then
+        return "number"
+    elseif tag == "String" then
+        return "string"
+    elseif tag == "Boolean" then
+        return e[1] == true and "boolean" or nil
+    elseif tag == "Table" then
+        return "table"
+    elseif tag == "Function" then
+        return "function"
+    elseif tag == "Paren" then
+        return literalTypeOfExp(e[1], callType)
+    elseif tag == "Call" then
+        return callType and callType(e)
+    elseif tag == "Invoke" then
+        -- lwtk idiom: addChild returns the added child
+        if e[2].tag == "String" and e[2][1] == "addChild" and e[3] then
+            return literalTypeOfExp(e[3], callType)
+        end
+    elseif tag == "Op" then
+        local op = e[1]
+        if op == "concat" then
+            return "string"
+        elseif numberOps[op] then
+            return "number"
+        elseif booleanOps[op] then
+            return "boolean"
+        elseif op == "or" then
+            -- pattern: self.x = arg or default
+            return literalTypeOfExp(e[3], callType) or literalTypeOfExp(e[2], callType)
+        elseif op == "and" then
+            return literalTypeOfExp(e[3], callType)
+        end
+    end
+end
+
+-- Walks the complete AST (including function bodies) and collects
+-- statically inferrable types of assignments "self.<name> = <exp>"
+-- for all declared attribute names in declList.
+-- For function assignments (e.g. "function self.scale(...)") also
+-- the preceding doc comment and the argument list are collected,
+-- unless the attribute is already documented at its declare() call.
+-- Other assignments are not considered for documentation: comments
+-- before plain value assignments are usually implementation notes.
+local function collectAttributeTypes(ast, declList, callType)
+    local function walk(node)
+        if type(node) ~= "table" then
+            return
+        end
+        if node.tag == "Set" then
+            local lhsl, expl = node[1], node[2]
+            for i = 1, #lhsl do
+                local lhs = lhsl[i]
+                if lhs.tag == "Index"
+                   and lhs[1].tag == "Id" and lhs[1][1] == "self"
+                   and lhs[2].tag == "String"
+                then
+                    local entry = declList[lhs[2][1]]
+                    local exp = entry and expl and expl[i]
+                    local inferredType = exp and literalTypeOfExp(exp, callType)
+                    if inferredType then
+                        local types = entry.types
+                        if not types then
+                            types = {}
+                            entry.types = types
+                        end
+                        if not types[inferredType] then
+                            types[inferredType] = true
+                            types[#types + 1] = inferredType
+                        end
+                    end
+                    if exp and exp.tag == "Function" then
+                        local fullDoc, argListDoc
+                        if entry.fullDoc == nil then
+                            fullDoc, argListDoc = comments.stripArgListDoc(comments.getBefore(node.pos))
+                            if fullDoc then
+                                entry.fullDoc  = fullDoc
+                                entry.shortDoc = comments.getShortDoc(fullDoc)
+                            end
+                        end
+                        if not entry.argListString then
+                            local argListString = class_util.getArgListString(exp)
+                            if not argListString and argListDoc then
+                                argListString = comments.argListDocToMethod(argListDoc)
+                            end
+                            entry.argListString = argListString
+                        end
+                    end
+                end
+            end
+        end
+        for i = 1, #node do
+            walk(node[i])
+        end
+    end
+    walk(ast)
+end
+
 function source_parser.parseAllModules(TRACE, depOrderedModuleNames, moduleInfos, modules,
                                        classMixinInfos, mixinInfos)
 
     perf.start"totalparse"
+
+    -- Infers the instance type of constructor calls for
+    -- collectAttributeTypes: callees of the form lwtk.Foo(...) or
+    -- Foo(...) (the usual alias "local Foo = lwtk.Foo") are matched
+    -- against the known class and meta modules. Mixin calls are not
+    -- constructor calls and yield no type.
+    local function constructorTypeOf(callExp)
+        local callee = callExp[1]
+        local name
+        if callee.tag == "Id" then
+            name = callee[1]
+        elseif callee.tag == "Index"
+           and callee[1].tag == "Id" and callee[1][1] == "lwtk"
+           and callee[2].tag == "String"
+        then
+            name = callee[2][1]
+        end
+        if name then
+            local info = moduleInfos["lwtk."..name]
+            if info and (info.isClass or info.isMeta) then
+                return "lwtk."..name
+            end
+        end
+    end
 
     local parseModule
     do
@@ -130,7 +267,68 @@ function source_parser.parseAllModules(TRACE, depOrderedModuleNames, moduleInfos
                 local file = assert(io.open(moduleFileName, "r"), moduleFileName)
                 local content = file:read("*a")
                 file:close()
-        
+
+                if not thisModuleInfo.isInternal then
+                    -- getStyleParam calls are expression level and not visited by
+                    -- processBlock below, therefore scan the raw source text.
+                    -- Only literal string arguments can be collected this way.
+                    local seen, names
+                    for _, pat in ipairs {
+                        ':getStyleParam%s*%(%s*"([%w_%*]+)"',
+                        ':getMandatoryStyleParam%s*%(%s*"([%w_%*]+)"',
+                        '%f[%w_]getStyleParam%s*%(%s*[%a_][%w_%.]*%s*,%s*"([%w_%*]+)"',
+                        '%f[%w_]getMandatoryStyleParam%s*%(%s*[%a_][%w_%.]*%s*,%s*"([%w_%*]+)"',
+                    } do
+                        for name in content:gmatch(pat) do
+                            if not seen then
+                                seen  = {}
+                                names = {}
+                            end
+                            if not seen[name] then
+                                seen[name] = true
+                                names[#names + 1] = name
+                            end
+                        end
+                    end
+                    if names then
+                        table.sort(names)
+                        thisModuleInfo.usedStyleParams = names
+                    end
+
+                    -- default style rules: one parRule( "Selector", <value> )
+                    -- per line (see lwtk/DefaultStyle.lua)
+                    local rules
+                    for line in content:gmatch("[^\n]+") do
+                        local selector, valueText = line:match('parRule%(%s*"([^"]+)"%s*,%s*(.*)$')
+                        if selector then
+                            valueText = valueText:gsub("%-%-.*$", "")
+                            valueText = valueText:gsub("%s*%),?%s*$", "")
+                            rules = rules or {}
+                            rules[#rules + 1] = { selector = selector, valueText = valueText }
+                        end
+                    end
+                    thisModuleInfo.defaultStyleRules = rules
+
+                    -- key bindings: lwtk.KeyBinding { { "Key", ..., "ActionName" }, ... }
+                    -- (see lwtk/DefaultKeyBinding.lua)
+                    local bindingTable = content:match("lwtk%.KeyBinding%s*(%b{})")
+                    if bindingTable then
+                        local bindings
+                        for entry in bindingTable:sub(2, -2):gmatch("%b{}") do
+                            local strings = {}
+                            for s in entry:gmatch('"([^"]*)"') do
+                                strings[#strings + 1] = s
+                            end
+                            if #strings >= 2 then
+                                local action = table.remove(strings)
+                                bindings = bindings or {}
+                                bindings[#bindings + 1] = { keys = strings, action = action }
+                            end
+                        end
+                        thisModuleInfo.keyBindings = bindings
+                    end
+                end
+
                 comments.init(content, trace)
                 perf.start"parse"
                 local ast, err = parser.parse(content, moduleFileName, comments)
@@ -283,6 +481,26 @@ function source_parser.parseAllModules(TRACE, depOrderedModuleNames, moduleInfos
                                     break
                                 end
                             end
+                            if not memberInfo then
+                                -- memberInfos is keyed by member value which only works
+                                -- for functions and tables: look up value members
+                                -- (e.g. constants) by member name.
+                                for i = 1, #lhsl do
+                                    local lhsExp = lhsl[i]
+                                    if lhsExp.tag == "Index" then
+                                        local base = processExp(env, lhsExp[1])
+                                        local key  = processExp(env, lhsExp[2])
+                                        if base == thisModule and type(key) == "string" then
+                                            local valueInfo = thisModuleInfo.memberInfos[key]
+                                            if valueInfo and valueInfo.isValue then
+                                                assert(#lhsl == 1)
+                                                memberInfo = valueInfo
+                                                break
+                                            end
+                                        end
+                                    end
+                                end
+                            end
                             if memberInfo then
                                 local exp = expl[1]
                                 local argListString, isMethod = class_util.getArgListString(exp)
@@ -299,16 +517,20 @@ function source_parser.parseAllModules(TRACE, depOrderedModuleNames, moduleInfos
                                 local lhs = lhsl[1]
                                 local memberName
                                 local isMixinMember = false
+                                local isStaticMember = false
                                 if lhs.tag == "Index" and lhs[1].tag == "Index" then
-                                    -- Pattern: Mixin.override:foo(args) or Mixin.implement:foo(args)
+                                    -- Pattern: Mixin.override:foo(args), Mixin.implement:foo(args),
+                                    --          Mixin.extra:foo(args) or Mixin.static.foo(args)
                                     local base = processExp(env, lhs[1][1])
                                     local subTableName = processExp(env, lhs[1][2])
                                     memberName = processExp(env, lhs[2])
                                     if base == thisModule
-                                       and (subTableName == "override" or subTableName == "implement" or subTableName == "extra")
+                                       and (subTableName == "override" or subTableName == "implement"
+                                            or subTableName == "extra" or subTableName == "static")
                                        and type(memberName) == "string"
                                     then
                                         isMixinMember = true
+                                        isStaticMember = (subTableName == "static")
                                     end
                                 elseif lhs.tag == "Index" then
                                     -- Pattern: Mixin:foo(args) or Mixin.foo = function(...)
@@ -331,20 +553,20 @@ function source_parser.parseAllModules(TRACE, depOrderedModuleNames, moduleInfos
                                         shortDoc      = comments.getShortDoc(fullDoc),
                                         argListString = argListString,
                                         isMethod      = isMethod,
+                                        isStatic      = isStaticMember,
                                     }
                                 end
                             end
                         elseif tag == "Invoke" then
                             local e1 = processExp(env, s[1])
                             local m  = processExp(env, s[2])
-                            if isClass and e1 == thisModule then
+                            if (isClass or isMixin) and e1 == thisModule then
                                 trace("CCCCCCCCCCCCCCCCCCCC", e1)
                                 if m == "declare" then
                                     for i = 3, #s do
                                         local arg = processExp(env, s[i])
                                         trace("DDDDDDDDDDDDDDDDD", arg)
                                         assert(type(arg) == "string")
-                                        --declared[arg] = declDoc
                                         local nextPos
                                         if i < #s then
                                             nextPos = s[i + 1].pos
@@ -362,6 +584,18 @@ function source_parser.parseAllModules(TRACE, depOrderedModuleNames, moduleInfos
                                         if doca and docb then
                                             lwtk.errorf("Ambiguous comment for declaration in line %d of file %q", re.calcline(content, s[i].pos), moduleFileName)
                                         end
+                                        local fullDoc, argListDoc = comments.stripArgListDoc(doca or docb)
+                                        local declList = thisModuleInfo.declaredAttributes
+                                        if not declList then
+                                            declList = {}
+                                            thisModuleInfo.declaredAttributes = declList
+                                        end
+                                        addSetKey(declList, arg, {
+                                            memberName    = arg,
+                                            fullDoc       = fullDoc,
+                                            shortDoc      = comments.getShortDoc(fullDoc),
+                                            argListString = argListDoc,
+                                        })
                                     end
                                 end
                             end
@@ -381,6 +615,10 @@ function source_parser.parseAllModules(TRACE, depOrderedModuleNames, moduleInfos
                 end
                 local env = setmetatable({}, { __index = _G })
                 processBlock(ast, env)
+                -- declaredAttributes is filled during processBlock above
+                if thisModuleInfo.declaredAttributes then
+                    collectAttributeTypes(ast, thisModuleInfo.declaredAttributes, constructorTypeOf)
+                end
             end
             if traceOut then
                 traceOut:close()
@@ -403,6 +641,8 @@ function source_parser.parseAllModules(TRACE, depOrderedModuleNames, moduleInfos
             if not thisModuleInfo.isInternal and (thisModuleInfo.isClass or thisModuleInfo.isMixin) then
                 local methods = {}
                 local functions = {}
+                local extraMethods = {}
+                local staticMethods = {}
                 if not thisModuleInfo.memberFunctions then
                     error(require"inspect"{thisModuleName})
                 end
@@ -432,7 +672,13 @@ function source_parser.parseAllModules(TRACE, depOrderedModuleNames, moduleInfos
                     -- First pass: classify members from memberFunctions
                     -- (these have source-parsed info: argListString, isMethod, fullDoc)
                     for _, f in ipairs(thisModuleInfo.memberFunctions) do
-                        if rawget(indexTable, f.memberName) then
+                        if f.isExtra then
+                            -- extra members are not part of the realised
+                            -- classes, subclasses adopt them explicitly
+                            addSetKey(extraMethods, f.memberName, f)
+                        elseif f.isStatic then
+                            addSetKey(staticMethods, f.memberName, f)
+                        elseif rawget(indexTable, f.memberName) then
                             local isMethod = f.isMethod
                             if isMethod == nil then
                                 if not f.originalMemberInfo then
@@ -491,8 +737,32 @@ function source_parser.parseAllModules(TRACE, depOrderedModuleNames, moduleInfos
                         end
                     end
                 end
+                -- static members of mixins are defined per realisation in
+                -- the initMixin callback (e.g. Styleable.static.newSubClass):
+                -- they were collected from the source into mixinMemberDocs
+                if thisModuleInfo.isMixin and thisModuleInfo.mixinMemberDocs then
+                    for name, docs in pairs(thisModuleInfo.mixinMemberDocs) do
+                        if docs.isStatic and not staticMethods[name] then
+                            addSetKey(staticMethods, name, {
+                                moduleName    = thisModuleInfo.moduleName,
+                                memberName    = name,
+                                memberType    = "function",
+                                isMethod      = docs.isMethod,
+                                argListString = docs.argListString,
+                                fullDoc       = docs.fullDoc,
+                                shortDoc      = docs.shortDoc,
+                            })
+                        end
+                    end
+                end
                 thisModuleInfo.methods   = methods
                 thisModuleInfo.functions = functions
+                if #extraMethods > 0 then
+                    thisModuleInfo.extraMethods = extraMethods
+                end
+                if #staticMethods > 0 then
+                    thisModuleInfo.staticMethods = staticMethods
+                end
             end
         end
     end

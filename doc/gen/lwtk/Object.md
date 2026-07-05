@@ -4,6 +4,7 @@ Superclass for all classes created by [lwtk.newClass](../lwtk/newClass.md)().
 
 ## Contents
 
+   * [Inheritance](#inheritance)
    * [Methods](#methods)
       * [getClass()](#.getClass)
       * [getClassPath()](#.getClassPath)
@@ -12,10 +13,17 @@ Superclass for all classes created by [lwtk.newClass](../lwtk/newClass.md)().
       * [getSuperClass()](#.getSuperClass) - Returns the superclass of this object.
       * [isInstanceOf()](#.isInstanceOf) - Determines if object is instance of the given class.
       * [setAttributes()](#.setAttributes)
+   * [Static Members](#static-members)
+      * [declare()](#.declare)
+      * [getMixinBase()](#.getMixinBase)
+      * [newSubClass()](#.newSubClass)
    * [Subclasses](#subclasses)
 
 
-## Methods
+## <a id="inheritance"></a>Inheritance
+   *  / _**`Object`**_
+
+## <a id="methods"></a>Methods
    * <span id=".getClass">**`Object:getClass()`**</span>
 
 
@@ -50,7 +58,19 @@ Superclass for all classes created by [lwtk.newClass](../lwtk/newClass.md)().
 
 
 
-## Subclasses
+## <a id="static-members"></a>Static Members
+
+Static members are only available in the class object,
+not in the derived objects:
+
+   * <span id=".declare">**`Object:declare(...)`**</span>
+
+   * <span id=".getMixinBase">**`Object:getMixinBase()`**</span>
+
+   * <span id=".newSubClass">**`Object.newSubClass(baseClass, className, ...)`**</span>
+
+
+## <a id="subclasses"></a>Subclasses
    * / _**`Object`**_ /
         * [Actionable](../lwtk/Actionable.md#subclasses) /
              * **[FocusHandler](../lwtk/FocusHandler.md#inheritance)**

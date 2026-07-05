@@ -11,15 +11,16 @@ Base for components that can have children.
       * [removeChild()](#.removeChild) - Removes child.
       * [_processChanges()](#._processChanges)
       * [_processDraw()](#._processDraw)
+   * [Used Style Parameters](#used-style-parameters)
    * [Subclasses](#subclasses)
 
 
-## Inheritance
+## <a id="inheritance"></a>Inheritance
    * / **[Object](../lwtk/Object.md#inheritance)** / [Actionable](../lwtk/Actionable.md#inheritance) / [Node](../lwtk/Node.md#inheritance) / [Drawable](../lwtk/Drawable.md#inheritance) / **[Component](../lwtk/Component.md#inheritance)** /
         * _`Compound`_
         * [Styleable](../lwtk/Styleable.md#inheritance) / [Animatable](../lwtk/Animatable.md#inheritance) / **[Widget](../lwtk/Widget.md#inheritance)** / _`Compound`_
 
-## Methods
+## <a id="methods"></a>Methods
    * <span id=".addChild">**`Compound:addChild(child, index)`**</span>
 
      Adds child.
@@ -55,7 +56,20 @@ Base for components that can have children.
 
 
 
-## Subclasses
+## <a id="used-style-parameters"></a>Used Style Parameters
+
+See also [lwtk.Style](../lwtk/Style.md), [lwtk.DefaultStyle](../lwtk/DefaultStyle.md) and [lwtk.BuiltinStyleTypes](../lwtk/BuiltinStyleTypes.md) for more information about style parameters.
+The [Style Parameter Index](../styleparams.md) lists all style parameters.
+
+The implementation uses the following style parameters:
+
+   * `Opacity`
+
+Style parameters used in super classes:
+
+   * [Animatable](../lwtk/Animatable.md#used-style-parameters): `FrameTransitionSeconds`
+
+## <a id="subclasses"></a>Subclasses
    * / **[Object](../lwtk/Object.md#subclasses)** / [Actionable](../lwtk/Actionable.md#subclasses) / [Node](../lwtk/Node.md#subclasses) / [Drawable](../lwtk/Drawable.md#subclasses) / **[Component](../lwtk/Component.md#subclasses)** /
         * _`Compound`_ / **[InnerCompound](../lwtk/InnerCompound.md#inheritance)**
         * [Styleable](../lwtk/Styleable.md#subclasses) / [Animatable](../lwtk/Animatable.md#subclasses) / **[Widget](../lwtk/Widget.md#subclasses)** / _`Compound`_ /

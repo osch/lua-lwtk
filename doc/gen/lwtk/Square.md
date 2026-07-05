@@ -5,23 +5,42 @@
 
    * [Inheritance](#inheritance)
    * [Constructor](#constructor)
+   * [Init Parameters](#init-parameters)
    * [Methods](#methods)
       * [addChild()](#.addChild)
       * [getMeasures()](#.getMeasures)
       * [onLayout()](#.onLayout)
+   * [Used Style Parameters](#used-style-parameters)
    * [Inherited Methods](#inherited-methods)
+   * [Inherited Static Members](#inherited-static-members)
 
 
-## Inheritance
+## <a id="inheritance"></a>Inheritance
    *  / **[Object](../lwtk/Object.md#inheritance)** / [Actionable](../lwtk/Actionable.md#inheritance) / [Node](../lwtk/Node.md#inheritance) / [Drawable](../lwtk/Drawable.md#inheritance) / **[Component](../lwtk/Component.md#inheritance)** / [Styleable](../lwtk/Styleable.md#inheritance) / [Animatable](../lwtk/Animatable.md#inheritance) / **[Widget](../lwtk/Widget.md#inheritance)** / [Compound](../lwtk/Compound.md#inheritance) / [MouseDispatcher](../lwtk/MouseDispatcher.md#inheritance) / **[Group](../lwtk/Group.md#inheritance)** / _**`Square`**_
 
-## Constructor
+## <a id="constructor"></a>Constructor
    * <span id=".new">**`Square(initParams)`**</span>
 
         * Inherited from: **[Group()](../lwtk/Group.md#constructor)**
 
 
-## Methods
+## <a id="init-parameters"></a>Init Parameters
+
+The following parameters can be given to the constructor; each parameter
+is handled by the corresponding setter method:
+
+   * `frame` - **[Component:setFrame()](../lwtk/Component.md#.setFrame)**
+   * `onInputChanged` - **[Widget:setOnInputChanged()](../lwtk/Widget.md#.setOnInputChanged)**
+   * `onRealize` - **[Widget:setOnRealize()](../lwtk/Widget.md#.setOnRealize)**
+   * `state` - [Animatable:setState()](../lwtk/Animatable.md#.setState)
+   * `states` - [Animatable:setStates()](../lwtk/Animatable.md#.setStates)
+   * `style` - [Animatable:setStyle()](../lwtk/Animatable.md#.setStyle)
+   * `timer` - **[Component:setTimer()](../lwtk/Component.md#.setTimer)**
+   * `visible` - [Animatable:setVisible()](../lwtk/Animatable.md#.setVisible)
+
+Additionally parameters matching `onAction<ActionName>` register action methods, see [lwtk.Actionable](../lwtk/Actionable.md) for details.
+
+## <a id="methods"></a>Methods
    * <span id=".addChild">**`Square:addChild(child, index)`**</span>
 
         * Overrides: [Group:addChild()](../lwtk/Group.md#.addChild)
@@ -40,7 +59,27 @@
 
 
 
-## Inherited Methods
+## <a id="used-style-parameters"></a>Used Style Parameters
+
+See also [lwtk.Style](../lwtk/Style.md), [lwtk.DefaultStyle](../lwtk/DefaultStyle.md) and [lwtk.BuiltinStyleTypes](../lwtk/BuiltinStyleTypes.md) for more information about style parameters.
+The [Style Parameter Index](../styleparams.md) lists all style parameters.
+
+The implementation uses the following style parameters:
+
+   * `MaxSize`
+   * `MinSize`
+   * `Size`
+   * `bottomMargin`
+   * `leftMargin`
+   * `rightMargin`
+   * `topMargin`
+
+Style parameters used in super classes:
+
+   * [Compound](../lwtk/Compound.md#used-style-parameters): `Opacity`
+   * [Animatable](../lwtk/Animatable.md#used-style-parameters): `FrameTransitionSeconds`
+
+## <a id="inherited-methods"></a>Inherited Methods
    * **[Group](../lwtk/Group.md)**:
       * [childById()](../lwtk/Group.md#.childById), [removeChild()](../lwtk/Group.md#.removeChild), [_clearChildLookup()](../lwtk/Group.md#._clearChildLookup)
    * [MouseDispatcher](../lwtk/MouseDispatcher.md):
@@ -63,3 +102,9 @@
       * [hasActionMethod()](../lwtk/Actionable.md#.hasActionMethod), [invokeActionMethod()](../lwtk/Actionable.md#.invokeActionMethod)
    * **[Object](../lwtk/Object.md)**:
       * [getClass()](../lwtk/Object.md#.getClass), [getClassPath()](../lwtk/Object.md#.getClassPath), [getMember()](../lwtk/Object.md#.getMember), [getReverseClassPath()](../lwtk/Object.md#.getReverseClassPath), [getSuperClass()](../lwtk/Object.md#.getSuperClass), [isInstanceOf()](../lwtk/Object.md#.isInstanceOf), [setAttributes()](../lwtk/Object.md#.setAttributes)
+
+## <a id="inherited-static-members"></a>Inherited Static Members
+   * [Styleable](../lwtk/Styleable.md):
+      * [newSubClass()](../lwtk/Styleable.md#.newSubClass)
+   * **[Object](../lwtk/Object.md)**:
+      * [declare()](../lwtk/Object.md#.declare), [getMixinBase()](../lwtk/Object.md#.getMixinBase)

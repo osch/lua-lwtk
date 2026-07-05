@@ -5,20 +5,26 @@
 
    * [Inheritance](#inheritance)
    * [Constructor](#constructor)
+   * [Init Parameters](#init-parameters)
+   * [Attributes](#attributes)
+      * [default](#.default)
+      * [_isInput](#._isInput)
    * [Methods](#methods)
       * [notifyInputChanged()](#.notifyInputChanged)
       * [setOnInputChanged()](#.setOnInputChanged)
       * [setOnRealize()](#.setOnRealize)
       * [_setApp()](#._setApp)
       * [_setParent()](#._setParent)
+   * [Used Style Parameters](#used-style-parameters)
    * [Inherited Methods](#inherited-methods)
+   * [Inherited Static Members](#inherited-static-members)
    * [Subclasses](#subclasses)
 
 
-## Inheritance
+## <a id="inheritance"></a>Inheritance
    *  / **[Object](../lwtk/Object.md#inheritance)** / [Actionable](../lwtk/Actionable.md#inheritance) / [Node](../lwtk/Node.md#inheritance) / [Drawable](../lwtk/Drawable.md#inheritance) / **[Component](../lwtk/Component.md#inheritance)** / [Styleable](../lwtk/Styleable.md#inheritance) / [Animatable](../lwtk/Animatable.md#inheritance) / _**`Widget`**_
 
-## Constructor
+## <a id="constructor"></a>Constructor
    * <span id=".new">**`Widget(initParams)`**</span>
 
         * Overrides: [Animatable()](../lwtk/Animatable.md#constructor)
@@ -28,7 +34,29 @@
 
 
 
-## Methods
+## <a id="init-parameters"></a>Init Parameters
+
+The following parameters can be given to the constructor; each parameter
+is handled by the corresponding setter method:
+
+   * `frame` - **[Component:setFrame()](../lwtk/Component.md#.setFrame)**
+   * `onInputChanged` - [setOnInputChanged()](#.setOnInputChanged)
+   * `onRealize` - [setOnRealize()](#.setOnRealize)
+   * `state` - [Animatable:setState()](../lwtk/Animatable.md#.setState)
+   * `states` - [Animatable:setStates()](../lwtk/Animatable.md#.setStates)
+   * `style` - [Animatable:setStyle()](../lwtk/Animatable.md#.setStyle)
+   * `timer` - **[Component:setTimer()](../lwtk/Component.md#.setTimer)**
+   * `visible` - [Animatable:setVisible()](../lwtk/Animatable.md#.setVisible)
+
+Additionally parameters matching `onAction<ActionName>` register action methods, see [lwtk.Actionable](../lwtk/Actionable.md) for details.
+
+## <a id="attributes"></a>Attributes
+   * <span id=".default">**`default`**</span>
+
+   * <span id="._isInput">**`_isInput`**</span>
+
+
+## <a id="methods"></a>Methods
    * <span id=".notifyInputChanged">**`Widget:notifyInputChanged()`**</span>
 
 
@@ -50,7 +78,17 @@
 
 
 
-## Inherited Methods
+## <a id="used-style-parameters"></a>Used Style Parameters
+
+See also [lwtk.Style](../lwtk/Style.md), [lwtk.DefaultStyle](../lwtk/DefaultStyle.md) and [lwtk.BuiltinStyleTypes](../lwtk/BuiltinStyleTypes.md) for more information about style parameters.
+The [Style Parameter Index](../styleparams.md) lists all style parameters.
+
+Style parameters used in super classes:
+
+   * [Animatable](../lwtk/Animatable.md#used-style-parameters): `FrameTransitionSeconds`
+   * **[Component](../lwtk/Component.md#used-style-parameters)**: `Opacity`
+
+## <a id="inherited-methods"></a>Inherited Methods
    * [Animatable](../lwtk/Animatable.md):
       * [animateFrame()](../lwtk/Animatable.md#.animateFrame), [getStyle()](../lwtk/Animatable.md#.getStyle), [getStyleParam()](../lwtk/Animatable.md#.getStyleParam), [isVisible()](../lwtk/Animatable.md#.isVisible), [setState()](../lwtk/Animatable.md#.setState), [setStates()](../lwtk/Animatable.md#.setStates), [setStyle()](../lwtk/Animatable.md#.setStyle), [setVisible()](../lwtk/Animatable.md#.setVisible), [updateAnimation()](../lwtk/Animatable.md#.updateAnimation), [_setStyleFromParent()](../lwtk/Animatable.md#._setStyleFromParent)
    * [Styleable](../lwtk/Styleable.md):
@@ -66,7 +104,13 @@
    * **[Object](../lwtk/Object.md)**:
       * [getClass()](../lwtk/Object.md#.getClass), [getClassPath()](../lwtk/Object.md#.getClassPath), [getMember()](../lwtk/Object.md#.getMember), [getReverseClassPath()](../lwtk/Object.md#.getReverseClassPath), [getSuperClass()](../lwtk/Object.md#.getSuperClass), [isInstanceOf()](../lwtk/Object.md#.isInstanceOf), [setAttributes()](../lwtk/Object.md#.setAttributes)
 
-## Subclasses
+## <a id="inherited-static-members"></a>Inherited Static Members
+   * [Styleable](../lwtk/Styleable.md):
+      * [newSubClass()](../lwtk/Styleable.md#.newSubClass)
+   * **[Object](../lwtk/Object.md)**:
+      * [declare()](../lwtk/Object.md#.declare), [getMixinBase()](../lwtk/Object.md#.getMixinBase)
+
+## <a id="subclasses"></a>Subclasses
    * / **[Object](../lwtk/Object.md#subclasses)** / [Actionable](../lwtk/Actionable.md#subclasses) / [Node](../lwtk/Node.md#subclasses) / [Drawable](../lwtk/Drawable.md#subclasses) / **[Component](../lwtk/Component.md#subclasses)** / [Styleable](../lwtk/Styleable.md#subclasses) / [Animatable](../lwtk/Animatable.md#subclasses) / _**`Widget`**_ / [Compound](../lwtk/Compound.md#subclasses) /
         * [LayoutFrame](../lwtk/LayoutFrame.md#subclasses) / [Control](../lwtk/Control.md#subclasses) /
              * [Focusable](../lwtk/Focusable.md#subclasses) / **[TextInput](../lwtk/TextInput.md#inheritance)**

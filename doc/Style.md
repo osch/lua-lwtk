@@ -7,6 +7,9 @@ objects of type [lwtk.Style].
 
 *Style* objects contain rule sets for determining the values of named parameters
 for a widget according to the widget's class name and the widget's state.
+All known style parameters are listed in the
+[Style Parameter Index](./gen/styleparams.md) with their default rules and
+using classes.
 
 <!-- ---------------------------------------------------------------------------------------- -->
 ##   Contents

@@ -6,6 +6,8 @@ A list of rectangle coordinates forming an area.
 
    * [Inheritance](#inheritance)
    * [Constructor](#constructor)
+   * [Attributes](#attributes)
+      * [count](#.count) - number of rectangles in the area
    * [Methods](#methods)
       * [addRect()](#.addRect) - Adds the rectangle coordinates to the area.
       * [clear()](#.clear) - Clears all rectangle coordinates.
@@ -15,18 +17,24 @@ A list of rectangle coordinates forming an area.
       * [isWithin()](#.isWithin) - Returns *true* if the given rectangle coordinates are within the area.
       * [iteration()](#.iteration) - Iterate through all rectangle coordinates.
    * [Inherited Methods](#inherited-methods)
+   * [Inherited Static Members](#inherited-static-members)
 
 
-## Inheritance
+## <a id="inheritance"></a>Inheritance
    *  / **[Object](../lwtk/Object.md#inheritance)** / _**`Area`**_
 
-## Constructor
+## <a id="constructor"></a>Constructor
    * <span id=".new">**`Area()`**</span>
 
      Creates an empty area object.
 
 
-## Methods
+## <a id="attributes"></a>Attributes
+   * <span id=".count">**`count`**</span> : `number`
+
+      number of rectangles in the area
+
+## <a id="methods"></a>Methods
    * <span id=".addRect">**`Area:addRect(x, y, w, h)`**</span>
 
      Adds the rectangle coordinates to the area.
@@ -68,6 +76,10 @@ A list of rectangle coordinates forming an area.
      will iterate over all rectangle indices and coordinates.
 
 
-## Inherited Methods
+## <a id="inherited-methods"></a>Inherited Methods
    * **[Object](../lwtk/Object.md)**:
       * [getClass()](../lwtk/Object.md#.getClass), [getClassPath()](../lwtk/Object.md#.getClassPath), [getMember()](../lwtk/Object.md#.getMember), [getReverseClassPath()](../lwtk/Object.md#.getReverseClassPath), [getSuperClass()](../lwtk/Object.md#.getSuperClass), [isInstanceOf()](../lwtk/Object.md#.isInstanceOf), [setAttributes()](../lwtk/Object.md#.setAttributes)
+
+## <a id="inherited-static-members"></a>Inherited Static Members
+   * **[Object](../lwtk/Object.md)**:
+      * [declare()](../lwtk/Object.md#.declare), [getMixinBase()](../lwtk/Object.md#.getMixinBase), [newSubClass()](../lwtk/Object.md#.newSubClass)

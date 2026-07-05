@@ -5,19 +5,24 @@
 
    * [Inheritance](#inheritance)
    * [Constructor](#constructor)
+   * [Init Parameters](#init-parameters)
+   * [Attributes](#attributes)
+      * [_handleChildRequestsFocus](#._handleChildRequestsFocus)
    * [Methods](#methods)
       * [addChild()](#.addChild)
       * [childById()](#.childById)
       * [removeChild()](#.removeChild)
       * [_clearChildLookup()](#._clearChildLookup)
+   * [Used Style Parameters](#used-style-parameters)
    * [Inherited Methods](#inherited-methods)
+   * [Inherited Static Members](#inherited-static-members)
    * [Subclasses](#subclasses)
 
 
-## Inheritance
+## <a id="inheritance"></a>Inheritance
    *  / **[Object](../lwtk/Object.md#inheritance)** / [Actionable](../lwtk/Actionable.md#inheritance) / [Node](../lwtk/Node.md#inheritance) / [Drawable](../lwtk/Drawable.md#inheritance) / **[Component](../lwtk/Component.md#inheritance)** / [Styleable](../lwtk/Styleable.md#inheritance) / [Animatable](../lwtk/Animatable.md#inheritance) / **[Widget](../lwtk/Widget.md#inheritance)** / [Compound](../lwtk/Compound.md#inheritance) / [MouseDispatcher](../lwtk/MouseDispatcher.md#inheritance) / _**`Group`**_
 
-## Constructor
+## <a id="constructor"></a>Constructor
    * <span id=".new">**`Group(initParams)`**</span>
 
         * Overrides: [MouseDispatcher()](../lwtk/MouseDispatcher.md#constructor)
@@ -29,7 +34,27 @@
 
 
 
-## Methods
+## <a id="init-parameters"></a>Init Parameters
+
+The following parameters can be given to the constructor; each parameter
+is handled by the corresponding setter method:
+
+   * `frame` - **[Component:setFrame()](../lwtk/Component.md#.setFrame)**
+   * `onInputChanged` - **[Widget:setOnInputChanged()](../lwtk/Widget.md#.setOnInputChanged)**
+   * `onRealize` - **[Widget:setOnRealize()](../lwtk/Widget.md#.setOnRealize)**
+   * `state` - [Animatable:setState()](../lwtk/Animatable.md#.setState)
+   * `states` - [Animatable:setStates()](../lwtk/Animatable.md#.setStates)
+   * `style` - [Animatable:setStyle()](../lwtk/Animatable.md#.setStyle)
+   * `timer` - **[Component:setTimer()](../lwtk/Component.md#.setTimer)**
+   * `visible` - [Animatable:setVisible()](../lwtk/Animatable.md#.setVisible)
+
+Additionally parameters matching `onAction<ActionName>` register action methods, see [lwtk.Actionable](../lwtk/Actionable.md) for details.
+
+## <a id="attributes"></a>Attributes
+   * <span id="._handleChildRequestsFocus">**`_handleChildRequestsFocus`**</span>
+
+
+## <a id="methods"></a>Methods
    * <span id=".addChild">**`Group:addChild(child, index)`**</span>
 
         * Overrides: [Compound:addChild()](../lwtk/Compound.md#.addChild)
@@ -50,7 +75,17 @@
 
 
 
-## Inherited Methods
+## <a id="used-style-parameters"></a>Used Style Parameters
+
+See also [lwtk.Style](../lwtk/Style.md), [lwtk.DefaultStyle](../lwtk/DefaultStyle.md) and [lwtk.BuiltinStyleTypes](../lwtk/BuiltinStyleTypes.md) for more information about style parameters.
+The [Style Parameter Index](../styleparams.md) lists all style parameters.
+
+Style parameters used in super classes:
+
+   * [Compound](../lwtk/Compound.md#used-style-parameters): `Opacity`
+   * [Animatable](../lwtk/Animatable.md#used-style-parameters): `FrameTransitionSeconds`
+
+## <a id="inherited-methods"></a>Inherited Methods
    * [MouseDispatcher](../lwtk/MouseDispatcher.md):
       * [_processMouseDown()](../lwtk/MouseDispatcher.md#._processMouseDown), [_processMouseEnter()](../lwtk/MouseDispatcher.md#._processMouseEnter), [_processMouseLeave()](../lwtk/MouseDispatcher.md#._processMouseLeave), [_processMouseMove()](../lwtk/MouseDispatcher.md#._processMouseMove), [_processMouseScroll()](../lwtk/MouseDispatcher.md#._processMouseScroll), [_processMouseUp()](../lwtk/MouseDispatcher.md#._processMouseUp)
    * [Compound](../lwtk/Compound.md):
@@ -72,7 +107,13 @@
    * **[Object](../lwtk/Object.md)**:
       * [getClass()](../lwtk/Object.md#.getClass), [getClassPath()](../lwtk/Object.md#.getClassPath), [getMember()](../lwtk/Object.md#.getMember), [getReverseClassPath()](../lwtk/Object.md#.getReverseClassPath), [getSuperClass()](../lwtk/Object.md#.getSuperClass), [isInstanceOf()](../lwtk/Object.md#.isInstanceOf), [setAttributes()](../lwtk/Object.md#.setAttributes)
 
-## Subclasses
+## <a id="inherited-static-members"></a>Inherited Static Members
+   * [Styleable](../lwtk/Styleable.md):
+      * [newSubClass()](../lwtk/Styleable.md#.newSubClass)
+   * **[Object](../lwtk/Object.md)**:
+      * [declare()](../lwtk/Object.md#.declare), [getMixinBase()](../lwtk/Object.md#.getMixinBase)
+
+## <a id="subclasses"></a>Subclasses
    * / **[Object](../lwtk/Object.md#subclasses)** / [Actionable](../lwtk/Actionable.md#subclasses) / [Node](../lwtk/Node.md#subclasses) / [Drawable](../lwtk/Drawable.md#subclasses) / **[Component](../lwtk/Component.md#subclasses)** / [Styleable](../lwtk/Styleable.md#subclasses) / [Animatable](../lwtk/Animatable.md#subclasses) / **[Widget](../lwtk/Widget.md#subclasses)** / [Compound](../lwtk/Compound.md#subclasses) / [MouseDispatcher](../lwtk/MouseDispatcher.md#subclasses) / _**`Group`**_ /
         * [Colored](../lwtk/Colored.md#subclasses) / **[ViewSwitcher](../lwtk/ViewSwitcher.md#inheritance)**
         * **[Column](../lwtk/Column.md#inheritance)**

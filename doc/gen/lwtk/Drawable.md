@@ -4,6 +4,14 @@
 ## Contents
 
    * [Inheritance](#inheritance)
+   * [Attributes](#attributes)
+      * [visible](#.visible)
+      * [x](#.x)
+      * [y](#.y)
+      * [w](#.w)
+      * [h](#.h)
+      * [id](#.id)
+      * [_setStyleFromParent](#._setStyleFromParent)
    * [Methods](#methods)
       * [getMandatoryStyleParam()](#.getMandatoryStyleParam)
       * [getStyleParam()](#.getStyleParam)
@@ -16,10 +24,26 @@
    * [Subclasses](#subclasses)
 
 
-## Inheritance
+## <a id="inheritance"></a>Inheritance
    * / **[Object](../lwtk/Object.md#inheritance)** / [Actionable](../lwtk/Actionable.md#inheritance) / [Node](../lwtk/Node.md#inheritance) / _`Drawable`_
 
-## Methods
+## <a id="attributes"></a>Attributes
+   * <span id=".visible">**`visible`**</span>
+
+   * <span id=".x">**`x`**</span>
+
+   * <span id=".y">**`y`**</span>
+
+   * <span id=".w">**`w`**</span>
+
+   * <span id=".h">**`h`**</span>
+
+   * <span id=".id">**`id`**</span>
+
+   * <span id="._setStyleFromParent">**`_setStyleFromParent`**</span>
+
+
+## <a id="methods"></a>Methods
    * <span id=".getMandatoryStyleParam">**`Drawable:getMandatoryStyleParam(paramName)`**</span>
 
 
@@ -45,7 +69,7 @@
 
 
 
-## Subclasses
+## <a id="subclasses"></a>Subclasses
    * / **[Object](../lwtk/Object.md#subclasses)** / [Actionable](../lwtk/Actionable.md#subclasses) / [Node](../lwtk/Node.md#subclasses) / _`Drawable`_ /
         * **[Component](../lwtk/Component.md#subclasses)** /
              * [Compound](../lwtk/Compound.md#subclasses) / **[InnerCompound](../lwtk/InnerCompound.md#inheritance)**

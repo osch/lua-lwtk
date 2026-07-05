@@ -4,15 +4,27 @@
 ## Contents
 
    * [Inheritance](#inheritance)
+   * [Used Style Parameters](#used-style-parameters)
    * [Subclasses](#subclasses)
 
 
-## Inheritance
+## <a id="inheritance"></a>Inheritance
    * / **[Object](../lwtk/Object.md#inheritance)** / [Actionable](../lwtk/Actionable.md#inheritance) / [Node](../lwtk/Node.md#inheritance) / [Drawable](../lwtk/Drawable.md#inheritance) / **[Component](../lwtk/Component.md#inheritance)** / [Styleable](../lwtk/Styleable.md#inheritance) / [Animatable](../lwtk/Animatable.md#inheritance) / **[Widget](../lwtk/Widget.md#inheritance)** / [Compound](../lwtk/Compound.md#inheritance) /
         * [LayoutFrame](../lwtk/LayoutFrame.md#inheritance) / _`Control`_
         * [MouseDispatcher](../lwtk/MouseDispatcher.md#inheritance) / **[Group](../lwtk/Group.md#inheritance)** / [LayoutFrame](../lwtk/LayoutFrame.md#inheritance) / _`Control`_
 
-## Subclasses
+## <a id="used-style-parameters"></a>Used Style Parameters
+
+See also [lwtk.Style](../lwtk/Style.md), [lwtk.DefaultStyle](../lwtk/DefaultStyle.md) and [lwtk.BuiltinStyleTypes](../lwtk/BuiltinStyleTypes.md) for more information about style parameters.
+The [Style Parameter Index](../styleparams.md) lists all style parameters.
+
+Style parameters used in super classes:
+
+   * [LayoutFrame](../lwtk/LayoutFrame.md#used-style-parameters): `BackgroundColor`, `BorderColor`, `BorderPadding`, `BorderSize`
+   * [Compound](../lwtk/Compound.md#used-style-parameters): `Opacity`
+   * [Animatable](../lwtk/Animatable.md#used-style-parameters): `FrameTransitionSeconds`
+
+## <a id="subclasses"></a>Subclasses
    * / **[Object](../lwtk/Object.md#subclasses)** / [Actionable](../lwtk/Actionable.md#subclasses) / [Node](../lwtk/Node.md#subclasses) / [Drawable](../lwtk/Drawable.md#subclasses) / **[Component](../lwtk/Component.md#subclasses)** / [Styleable](../lwtk/Styleable.md#subclasses) / [Animatable](../lwtk/Animatable.md#subclasses) / **[Widget](../lwtk/Widget.md#subclasses)** / [Compound](../lwtk/Compound.md#subclasses) /
         * [LayoutFrame](../lwtk/LayoutFrame.md#subclasses) / _`Control`_ /
              * [Focusable](../lwtk/Focusable.md#subclasses) / **[TextInput](../lwtk/TextInput.md#inheritance)**

@@ -5,6 +5,11 @@
 
    * [Inheritance](#inheritance)
    * [Constructor](#constructor)
+   * [Init Parameters](#init-parameters)
+   * [Attributes](#attributes)
+      * [baseWidget](#.baseWidget)
+      * [defaultPostponed](#.defaultPostponed)
+      * [_hasFocus](#._hasFocus)
    * [Methods](#methods)
       * [childById()](#.childById)
       * [deregisterHotkeys()](#.deregisterHotkeys)
@@ -36,19 +41,41 @@
       * [_removeFocusableChildren()](#._removeFocusableChildren)
       * [_setParentFocusHandler()](#._setParentFocusHandler)
    * [Inherited Methods](#inherited-methods)
+   * [Inherited Static Members](#inherited-static-members)
 
 
-## Inheritance
+## <a id="inheritance"></a>Inheritance
    *  / **[Object](../lwtk/Object.md#inheritance)** / [Actionable](../lwtk/Actionable.md#inheritance) / _**`FocusHandler`**_
 
-## Constructor
+## <a id="constructor"></a>Constructor
    * <span id=".new">**`FocusHandler(baseWidget)`**</span>
 
         * Overrides: [Actionable()](../lwtk/Actionable.md#constructor)
 
 
 
-## Methods
+## <a id="init-parameters"></a>Init Parameters
+
+The following parameters can be given to the constructor; each parameter
+is handled by the corresponding setter method:
+
+   * `default` - [setDefault()](#.setDefault)
+   * `focusDisabled` - [setFocusDisabled()](#.setFocusDisabled)
+   * `focusTo` - [setFocusTo()](#.setFocusTo)
+   * `focusToNextInput` - [setFocusToNextInput()](#.setFocusToNextInput)
+   * `focusToPrevInput` - [setFocusToPrevInput()](#.setFocusToPrevInput)
+
+Additionally parameters matching `onAction<ActionName>` register action methods, see [lwtk.Actionable](../lwtk/Actionable.md) for details.
+
+## <a id="attributes"></a>Attributes
+   * <span id=".baseWidget">**`baseWidget`**</span>
+
+   * <span id=".defaultPostponed">**`defaultPostponed`**</span> : `boolean`
+
+   * <span id="._hasFocus">**`_hasFocus`**</span> : `boolean`
+
+
+## <a id="methods"></a>Methods
    * <span id=".childById">**`FocusHandler:childById(id)`**</span>
 
 
@@ -141,8 +168,12 @@
 
 
 
-## Inherited Methods
+## <a id="inherited-methods"></a>Inherited Methods
    * [Actionable](../lwtk/Actionable.md):
       * [handleRemainingInitParams()](../lwtk/Actionable.md#.handleRemainingInitParams), [setInitParams()](../lwtk/Actionable.md#.setInitParams)
    * **[Object](../lwtk/Object.md)**:
       * [getClass()](../lwtk/Object.md#.getClass), [getClassPath()](../lwtk/Object.md#.getClassPath), [getMember()](../lwtk/Object.md#.getMember), [getReverseClassPath()](../lwtk/Object.md#.getReverseClassPath), [getSuperClass()](../lwtk/Object.md#.getSuperClass), [isInstanceOf()](../lwtk/Object.md#.isInstanceOf), [setAttributes()](../lwtk/Object.md#.setAttributes)
+
+## <a id="inherited-static-members"></a>Inherited Static Members
+   * **[Object](../lwtk/Object.md)**:
+      * [declare()](../lwtk/Object.md#.declare), [getMixinBase()](../lwtk/Object.md#.getMixinBase), [newSubClass()](../lwtk/Object.md#.newSubClass)

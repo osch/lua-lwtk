@@ -9,6 +9,18 @@ running within the [LÖVE](https://love2d.org/) 2D game engine.
 
    * [Inheritance](#inheritance)
    * [Constructor](#constructor)
+   * [Init Parameters](#init-parameters)
+   * [Attributes](#attributes)
+      * [animationTimer](#.animationTimer)
+      * [appName](#.appName)
+      * [driver](#.driver)
+      * [postprocessNeeded](#.postprocessNeeded)
+      * [scale()](#.scale) - Multiplies the arguments with the *screenScale* factor.
+      * [timers](#.timers) - list of timers
+      * [_animations](#._animations)
+      * [_eventFunc()](#._eventFunc)
+      * [_hasChanges](#._hasChanges)
+      * [_processingDeferredChanges](#._processingDeferredChanges)
    * [Methods](#methods)
       * [addStyle()](#.addStyle)
       * [close()](#.close)
@@ -16,7 +28,7 @@ running within the [LÖVE](https://love2d.org/) 2D game engine.
       * [getCurrentTime()](#.getCurrentTime)
       * [getFontInfo()](#.getFontInfo)
       * [getLayoutContext()](#.getLayoutContext)
-      * [getScreenScale()](#.getScreenScale)
+      * [getScreenScale()](#.getScreenScale) - Returns the *screenScale* factor.
       * [hasWindows()](#.hasWindows)
       * [newWindow()](#.newWindow)
       * [runEventLoop()](#.runEventLoop) - Update by processing events from the window system.
@@ -29,18 +41,60 @@ running within the [LÖVE](https://love2d.org/) 2D game engine.
       * [_processAllChanges()](#._processAllChanges)
       * [_removeWindow()](#._removeWindow)
    * [Inherited Methods](#inherited-methods)
+   * [Inherited Static Members](#inherited-static-members)
    * [Subclasses](#subclasses)
 
 
-## Inheritance
+## <a id="inheritance"></a>Inheritance
    *  / **[Object](../lwtk/Object.md#inheritance)** / _**`Application`**_
 
-## Constructor
+## <a id="constructor"></a>Constructor
    * <span id=".new">**`Application(arg1, arg2)`**</span>
 
 
 
-## Methods
+## <a id="init-parameters"></a>Init Parameters
+
+The following parameters can be given to the constructor; each parameter
+is handled by the corresponding setter method:
+
+   * `errorFunc` - [setErrorFunc()](#.setErrorFunc)
+   * `extensions` - [setExtensions()](#.setExtensions)
+   * `style` - [setStyle()](#.setStyle)
+   * `timer` - [setTimer()](#.setTimer)
+
+## <a id="attributes"></a>Attributes
+   * <span id=".animationTimer">**`animationTimer`**</span>
+
+   * <span id=".appName">**`appName`**</span>
+
+   * <span id=".driver">**`driver`**</span>
+
+   * <span id=".postprocessNeeded">**`postprocessNeeded`**</span> : `table`
+
+   * <span id=".scale">**`scale(a, a2, a3, a4)`**</span>
+
+     Multiplies the arguments with the *screenScale* factor.
+     
+     Possible invocations:
+     
+     * *scale(x, y)*         - returns the multiplied values
+     * *scale(x, y, w, h)*   - returns the multiplied values
+     * *scale({x, y})*       - multiplies the values in the given table and returns table
+     * *scale({x, y, w, y})* - multiplies the values in the given table and returns table
+   * <span id=".timers">**`timers`**</span>
+
+      list of timers
+   * <span id="._animations">**`_animations`**</span> : [lwtk.Animations](../lwtk/Animations.md)
+
+   * <span id="._eventFunc">**`_eventFunc(window, view, event, ...)`**</span>
+
+   * <span id="._hasChanges">**`_hasChanges`**</span> : `boolean`
+
+   * <span id="._processingDeferredChanges">**`_processingDeferredChanges`**</span> : `boolean`
+
+
+## <a id="methods"></a>Methods
    * <span id=".addStyle">**`Application:addStyle(additionalStyle)`**</span>
 
 
@@ -61,6 +115,7 @@ running within the [LÖVE](https://love2d.org/) 2D game engine.
 
    * <span id=".getScreenScale">**`Application:getScreenScale()`**</span>
 
+     Returns the *screenScale* factor.
 
    * <span id=".hasWindows">**`Application:hasWindows()`**</span>
 
@@ -118,10 +173,14 @@ running within the [LÖVE](https://love2d.org/) 2D game engine.
 
 
 
-## Inherited Methods
+## <a id="inherited-methods"></a>Inherited Methods
    * **[Object](../lwtk/Object.md)**:
       * [getClass()](../lwtk/Object.md#.getClass), [getClassPath()](../lwtk/Object.md#.getClassPath), [getMember()](../lwtk/Object.md#.getMember), [getReverseClassPath()](../lwtk/Object.md#.getReverseClassPath), [getSuperClass()](../lwtk/Object.md#.getSuperClass), [isInstanceOf()](../lwtk/Object.md#.isInstanceOf), [setAttributes()](../lwtk/Object.md#.setAttributes)
 
-## Subclasses
+## <a id="inherited-static-members"></a>Inherited Static Members
+   * **[Object](../lwtk/Object.md)**:
+      * [declare()](../lwtk/Object.md#.declare), [getMixinBase()](../lwtk/Object.md#.getMixinBase), [newSubClass()](../lwtk/Object.md#.newSubClass)
+
+## <a id="subclasses"></a>Subclasses
    * / **[Object](../lwtk/Object.md#subclasses)** / _**`Application`**_ / [Node](../lwtk/Node.md#subclasses) / [MouseDispatcher](../lwtk/MouseDispatcher.md#subclasses) / **[love.Application](../lwtk/love/Application.md#inheritance)**
 

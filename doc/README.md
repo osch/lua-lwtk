@@ -11,4 +11,5 @@
 
 ## Reference
    * [Module Index](./gen/modules.md) - list of all lwtk modules
+   * [Style Parameter Index](./gen/styleparams.md) - all style parameters with their default rules and using classes
    

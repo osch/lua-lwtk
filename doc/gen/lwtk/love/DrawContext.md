@@ -5,6 +5,10 @@
 
    * [Inheritance](#inheritance)
    * [Constructor](#constructor)
+   * [Init Parameters](#init-parameters)
+   * [Attributes](#attributes)
+      * [opacityStack](#.opacityStack)
+      * [scissorStack](#.scissorStack)
    * [Methods](#methods)
       * [beginOpacity()](#.beginOpacity)
       * [drawBorder()](#.drawBorder)
@@ -20,19 +24,34 @@
       * [translate()](#.translate)
       * [_reset()](#._reset)
    * [Inherited Methods](#inherited-methods)
+   * [Inherited Static Members](#inherited-static-members)
 
 
-## Inheritance
+## <a id="inheritance"></a>Inheritance
    *  / **[Object](../../lwtk/Object.md#inheritance)** / **[love.LayoutContext](../../lwtk/love/LayoutContext.md#inheritance)** / _**`love.DrawContext`**_
 
-## Constructor
+## <a id="constructor"></a>Constructor
    * <span id=".new">**`love.DrawContext(...)`**</span>
 
         * Overrides: **[love.LayoutContext()](../../lwtk/love/LayoutContext.md#constructor)**
 
 
 
-## Methods
+## <a id="init-parameters"></a>Init Parameters
+
+The following parameters can be given to the constructor; each parameter
+is handled by the corresponding setter method:
+
+   * `color` - [setColor()](#.setColor)
+   * `lineWidth` - [setLineWidth()](#.setLineWidth)
+
+## <a id="attributes"></a>Attributes
+   * <span id=".opacityStack">**`opacityStack`**</span> : `table`
+
+   * <span id=".scissorStack">**`scissorStack`**</span> : `table`
+
+
+## <a id="methods"></a>Methods
    * <span id=".beginOpacity">**`love.DrawContext:beginOpacity(opacity)`**</span>
 
 
@@ -75,8 +94,12 @@
 
 
 
-## Inherited Methods
+## <a id="inherited-methods"></a>Inherited Methods
    * **[love.LayoutContext](../../lwtk/love/LayoutContext.md)**:
       * [getFontHeightMeasures()](../../lwtk/love/LayoutContext.md#.getFontHeightMeasures), [getTextMeasures()](../../lwtk/love/LayoutContext.md#.getTextMeasures), [getTextWidth()](../../lwtk/love/LayoutContext.md#.getTextWidth), [selectFont()](../../lwtk/love/LayoutContext.md#.selectFont)
    * **[Object](../../lwtk/Object.md)**:
       * [getClass()](../../lwtk/Object.md#.getClass), [getClassPath()](../../lwtk/Object.md#.getClassPath), [getMember()](../../lwtk/Object.md#.getMember), [getReverseClassPath()](../../lwtk/Object.md#.getReverseClassPath), [getSuperClass()](../../lwtk/Object.md#.getSuperClass), [isInstanceOf()](../../lwtk/Object.md#.isInstanceOf), [setAttributes()](../../lwtk/Object.md#.setAttributes)
+
+## <a id="inherited-static-members"></a>Inherited Static Members
+   * **[Object](../../lwtk/Object.md)**:
+      * [declare()](../../lwtk/Object.md#.declare), [getMixinBase()](../../lwtk/Object.md#.getMixinBase), [newSubClass()](../../lwtk/Object.md#.newSubClass)

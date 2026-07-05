@@ -5,6 +5,11 @@
 
    * [Inheritance](#inheritance)
    * [Constructor](#constructor)
+   * [Init Parameters](#init-parameters)
+   * [Attributes](#attributes)
+      * [world](#.world)
+      * [layoutContext](#.layoutContext)
+      * [drawContext](#.drawContext)
    * [Methods](#methods)
       * [close()](#.close)
       * [getDrawContext()](#.getDrawContext)
@@ -19,17 +24,35 @@
       * [setNextProcessTime()](#.setNextProcessTime)
       * [setProcessFunc()](#.setProcessFunc)
    * [Inherited Methods](#inherited-methods)
+   * [Inherited Static Members](#inherited-static-members)
 
 
-## Inheritance
+## <a id="inheritance"></a>Inheritance
    *  / **[Object](../../lwtk/Object.md#inheritance)** / _**`lpugl.Driver`**_
 
-## Constructor
+## <a id="constructor"></a>Constructor
    * <span id=".new">**`lpugl.Driver(initParams)`**</span>
 
 
 
-## Methods
+## <a id="init-parameters"></a>Init Parameters
+
+The following parameters can be given to the constructor; each parameter
+is handled by the corresponding setter method:
+
+   * `errorFunc` - [setErrorFunc()](#.setErrorFunc)
+   * `nextProcessTime` - [setNextProcessTime()](#.setNextProcessTime)
+   * `processFunc` - [setProcessFunc()](#.setProcessFunc)
+
+## <a id="attributes"></a>Attributes
+   * <span id=".world">**`world`**</span>
+
+   * <span id=".layoutContext">**`layoutContext`**</span>
+
+   * <span id=".drawContext">**`drawContext`**</span>
+
+
+## <a id="methods"></a>Methods
    * <span id=".close">**`lpugl.Driver:close()`**</span>
 
 
@@ -67,6 +90,10 @@
 
 
 
-## Inherited Methods
+## <a id="inherited-methods"></a>Inherited Methods
    * **[Object](../../lwtk/Object.md)**:
       * [getClass()](../../lwtk/Object.md#.getClass), [getClassPath()](../../lwtk/Object.md#.getClassPath), [getMember()](../../lwtk/Object.md#.getMember), [getReverseClassPath()](../../lwtk/Object.md#.getReverseClassPath), [getSuperClass()](../../lwtk/Object.md#.getSuperClass), [isInstanceOf()](../../lwtk/Object.md#.isInstanceOf), [setAttributes()](../../lwtk/Object.md#.setAttributes)
+
+## <a id="inherited-static-members"></a>Inherited Static Members
+   * **[Object](../../lwtk/Object.md)**:
+      * [declare()](../../lwtk/Object.md#.declare), [getMixinBase()](../../lwtk/Object.md#.getMixinBase), [newSubClass()](../../lwtk/Object.md#.newSubClass)

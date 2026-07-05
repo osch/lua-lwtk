@@ -1,3 +1,5 @@
+LUA ?= lua5.4
+
 .PHONY: default all doc doctest alltests
 
 default: doc doctest
@@ -5,10 +7,10 @@ default: doc doctest
 all: doc doctest alltests
 
 doc:
-	lua mkdoc/main.lua
+	$(LUA) mkdoc/main.lua
 
 doctest:
-	lua doctest.lua
+	$(LUA) doctest.lua
 
 alltests:
-	lua alltests.lua
+	$(LUA) alltests.lua

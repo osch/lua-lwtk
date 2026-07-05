@@ -5,24 +5,37 @@
 
    * [Inheritance](#inheritance)
    * [Constructor](#constructor)
+   * [Attributes](#attributes)
+      * [ctx](#.ctx)
+      * [platform](#.platform)
+      * [adjustFamilyName()](#.adjustFamilyName)
    * [Methods](#methods)
       * [getFontHeightMeasures()](#.getFontHeightMeasures)
       * [getTextMeasures()](#.getTextMeasures)
       * [getTextWidth()](#.getTextWidth)
       * [selectFont()](#.selectFont)
    * [Inherited Methods](#inherited-methods)
+   * [Inherited Static Members](#inherited-static-members)
    * [Subclasses](#subclasses)
 
 
-## Inheritance
+## <a id="inheritance"></a>Inheritance
    *  / **[Object](../../lwtk/Object.md#inheritance)** / _**`lpugl.CairoLayoutContext`**_
 
-## Constructor
+## <a id="constructor"></a>Constructor
    * <span id=".new">**`lpugl.CairoLayoutContext(cairoCtx, platform)`**</span>
 
 
 
-## Methods
+## <a id="attributes"></a>Attributes
+   * <span id=".ctx">**`ctx`**</span>
+
+   * <span id=".platform">**`platform`**</span>
+
+   * <span id=".adjustFamilyName">**`adjustFamilyName(family)`**</span>
+
+
+## <a id="methods"></a>Methods
    * <span id=".getFontHeightMeasures">**`lpugl.CairoLayoutContext:getFontHeightMeasures()`**</span>
 
 
@@ -36,10 +49,14 @@
 
 
 
-## Inherited Methods
+## <a id="inherited-methods"></a>Inherited Methods
    * **[Object](../../lwtk/Object.md)**:
       * [getClass()](../../lwtk/Object.md#.getClass), [getClassPath()](../../lwtk/Object.md#.getClassPath), [getMember()](../../lwtk/Object.md#.getMember), [getReverseClassPath()](../../lwtk/Object.md#.getReverseClassPath), [getSuperClass()](../../lwtk/Object.md#.getSuperClass), [isInstanceOf()](../../lwtk/Object.md#.isInstanceOf), [setAttributes()](../../lwtk/Object.md#.setAttributes)
 
-## Subclasses
+## <a id="inherited-static-members"></a>Inherited Static Members
+   * **[Object](../../lwtk/Object.md)**:
+      * [declare()](../../lwtk/Object.md#.declare), [getMixinBase()](../../lwtk/Object.md#.getMixinBase), [newSubClass()](../../lwtk/Object.md#.newSubClass)
+
+## <a id="subclasses"></a>Subclasses
    * / **[Object](../../lwtk/Object.md#subclasses)** / _**`lpugl.CairoLayoutContext`**_ / **[lpugl.CairoDrawContext](../../lwtk/lpugl/CairoDrawContext.md#inheritance)**
 

@@ -4,6 +4,10 @@
 ## Contents
 
    * [Inheritance](#inheritance)
+   * [Constructor](#constructor)
+   * [Attributes](#attributes)
+      * [state](#.state)
+      * [_hasOwnStyle](#._hasOwnStyle)
    * [Methods](#methods)
       * [clearStyleCache()](#.clearStyleCache)
       * [getStateString()](#.getStateString)
@@ -13,15 +17,29 @@
       * [setStyle()](#.setStyle)
       * [_getStyleParam()](#._getStyleParam)
       * [_setStyleFromParent()](#._setStyleFromParent)
+   * [Static Members](#static-members)
+      * [newSubClass()](#.newSubClass)
+   * [Used Style Parameters](#used-style-parameters)
    * [Subclasses](#subclasses)
 
 
-## Inheritance
+## <a id="inheritance"></a>Inheritance
    * / **[Object](../lwtk/Object.md#inheritance)** / [Actionable](../lwtk/Actionable.md#inheritance) / [Node](../lwtk/Node.md#inheritance) / [Drawable](../lwtk/Drawable.md#inheritance) /
         * **[Component](../lwtk/Component.md#inheritance)** / _`Styleable`_
         * _`Styleable`_
 
-## Methods
+## <a id="constructor"></a>Constructor
+   * <span id=".new">**`Styleable:new(initParams)`**</span>
+
+
+
+## <a id="attributes"></a>Attributes
+   * <span id=".state">**`state`**</span> : `table`
+
+   * <span id="._hasOwnStyle">**`_hasOwnStyle`**</span> : `boolean`
+
+
+## <a id="methods"></a>Methods
    * <span id=".clearStyleCache">**`Styleable:clearStyleCache()`**</span>
 
 
@@ -47,7 +65,24 @@
 
 
 
-## Subclasses
+## <a id="static-members"></a>Static Members
+
+Static members are only available in the class object,
+not in the derived objects:
+
+   * <span id=".newSubClass">**`Styleable.newSubClass(baseClass, className, ...)`**</span>
+
+
+## <a id="used-style-parameters"></a>Used Style Parameters
+
+See also [lwtk.Style](../lwtk/Style.md), [lwtk.DefaultStyle](../lwtk/DefaultStyle.md) and [lwtk.BuiltinStyleTypes](../lwtk/BuiltinStyleTypes.md) for more information about style parameters.
+The [Style Parameter Index](../styleparams.md) lists all style parameters.
+
+Style parameters used in super classes:
+
+   * **[Component](../lwtk/Component.md#used-style-parameters)**: `Opacity`
+
+## <a id="subclasses"></a>Subclasses
    * / **[Object](../lwtk/Object.md#subclasses)** / [Actionable](../lwtk/Actionable.md#subclasses) / [Node](../lwtk/Node.md#subclasses) / [Drawable](../lwtk/Drawable.md#subclasses) /
         * **[Component](../lwtk/Component.md#subclasses)** / _`Styleable`_ / [Animatable](../lwtk/Animatable.md#subclasses) / **[Widget](../lwtk/Widget.md#subclasses)** / [Compound](../lwtk/Compound.md#subclasses) /
              * [LayoutFrame](../lwtk/LayoutFrame.md#subclasses) / [Control](../lwtk/Control.md#subclasses) /

@@ -4,17 +4,71 @@
 ## Contents
 
    * [Inheritance](#inheritance)
+   * [Attributes](#attributes)
+      * [addChild](#.addChild)
+      * [removeChild](#.removeChild)
+      * [discardChild](#.discardChild)
+      * [_processMouseEnter](#._processMouseEnter)
+      * [_processMouseLeave](#._processMouseLeave)
+      * [_processMouseMove](#._processMouseMove)
+      * [_processMouseScroll](#._processMouseScroll)
+      * [_processMouseDown](#._processMouseDown)
+      * [_processMouseUp](#._processMouseUp)
+   * [Event Callbacks](#event-callbacks)
+      * [onMouseEnter()](#.onMouseEnter)
+      * [onMouseLeave()](#.onMouseLeave)
+      * [onMouseMove()](#.onMouseMove)
+      * [onMouseScroll()](#.onMouseScroll)
+      * [onMouseDown()](#.onMouseDown)
+      * [onMouseUp()](#.onMouseUp)
+      * [onInputChanged()](#.onInputChanged)
    * [Methods](#methods)
       * [discard()](#.discard) - Discard Node that should no longer be used.
    * [Subclasses](#subclasses)
 
 
-## Inheritance
+## <a id="inheritance"></a>Inheritance
    * / **[Object](../lwtk/Object.md#inheritance)** /
         * [Actionable](../lwtk/Actionable.md#inheritance) / _`Node`_
         * **[Application](../lwtk/Application.md#inheritance)** / _`Node`_
 
-## Methods
+## <a id="attributes"></a>Attributes
+   * <span id=".addChild">**`addChild`**</span>
+
+   * <span id=".removeChild">**`removeChild`**</span>
+
+   * <span id=".discardChild">**`discardChild`**</span>
+
+   * <span id="._processMouseEnter">**`_processMouseEnter`**</span>
+
+   * <span id="._processMouseLeave">**`_processMouseLeave`**</span>
+
+   * <span id="._processMouseMove">**`_processMouseMove`**</span>
+
+   * <span id="._processMouseScroll">**`_processMouseScroll`**</span>
+
+   * <span id="._processMouseDown">**`_processMouseDown`**</span>
+
+   * <span id="._processMouseUp">**`_processMouseUp`**</span>
+
+
+## <a id="event-callbacks"></a>Event Callbacks
+   * <span id=".onMouseEnter">**`onMouseEnter`**</span>
+
+   * <span id=".onMouseLeave">**`onMouseLeave`**</span>
+
+   * <span id=".onMouseMove">**`onMouseMove`**</span>
+
+   * <span id=".onMouseScroll">**`onMouseScroll`**</span>
+
+   * <span id=".onMouseDown">**`onMouseDown`**</span>
+
+   * <span id=".onMouseUp">**`onMouseUp`**</span>
+
+   * <span id=".onInputChanged">**`onInputChanged`**</span>
+
+
+## <a id="methods"></a>Methods
    * <span id=".discard">**`Node:discard()`**</span>
 
      Discard Node that should no longer be used.
@@ -22,7 +76,7 @@
      This function could be useful under Lua 5.1 which does not have ephemeron tables.
 
 
-## Subclasses
+## <a id="subclasses"></a>Subclasses
    * / **[Object](../lwtk/Object.md#subclasses)** /
         * [Actionable](../lwtk/Actionable.md#subclasses) / _`Node`_ / [Drawable](../lwtk/Drawable.md#subclasses) /
              * **[Component](../lwtk/Component.md#subclasses)** /

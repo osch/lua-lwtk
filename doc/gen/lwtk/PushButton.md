@@ -5,6 +5,15 @@
 
    * [Inheritance](#inheritance)
    * [Constructor](#constructor)
+   * [Init Parameters](#init-parameters)
+   * [Attributes](#attributes)
+      * [textFragment](#.textFragment)
+      * [text](#.text)
+      * [mousePressed](#.mousePressed)
+      * [mouseEntered](#.mouseEntered)
+      * [_mouseDownTime](#._mouseDownTime)
+   * [Event Callbacks](#event-callbacks)
+      * [onClicked()](#.onClicked)
    * [Methods](#methods)
       * [getMeasures()](#.getMeasures)
       * [onActionFocusedButtonClick()](#.onActionFocusedButtonClick)
@@ -21,13 +30,15 @@
       * [setDisabled()](#.setDisabled)
       * [setOnClicked()](#.setOnClicked)
       * [setText()](#.setText)
+   * [Used Style Parameters](#used-style-parameters)
    * [Inherited Methods](#inherited-methods)
+   * [Inherited Static Members](#inherited-static-members)
 
 
-## Inheritance
+## <a id="inheritance"></a>Inheritance
    *  / **[Object](../lwtk/Object.md#inheritance)** / [Actionable](../lwtk/Actionable.md#inheritance) / [Node](../lwtk/Node.md#inheritance) / [Drawable](../lwtk/Drawable.md#inheritance) / **[Component](../lwtk/Component.md#inheritance)** / [Styleable](../lwtk/Styleable.md#inheritance) / [Animatable](../lwtk/Animatable.md#inheritance) / **[Widget](../lwtk/Widget.md#inheritance)** / [Compound](../lwtk/Compound.md#inheritance) / [LayoutFrame](../lwtk/LayoutFrame.md#inheritance) / [Control](../lwtk/Control.md#inheritance) / [HotkeyListener](../lwtk/HotkeyListener.md#inheritance) / **[Button](../lwtk/Button.md#inheritance)** / [Focusable](../lwtk/Focusable.md#inheritance) / _**`PushButton`**_
 
-## Constructor
+## <a id="constructor"></a>Constructor
    * <span id=".new">**`PushButton(initParams)`**</span>
 
         * Overrides: **[Widget()](../lwtk/Widget.md#constructor)**
@@ -38,10 +49,48 @@
 
 
 
-## Methods
+## <a id="init-parameters"></a>Init Parameters
+
+The following parameters can be given to the constructor; each parameter
+is handled by the corresponding setter method:
+
+   * `default` - [setDefault()](#.setDefault)
+   * `disabled` - [setDisabled()](#.setDisabled)
+   * `focus` - [Focusable:setFocus()](../lwtk/Focusable.md#.setFocus)
+   * `frame` - **[Component:setFrame()](../lwtk/Component.md#.setFrame)**
+   * `hotkey` - [HotkeyListener:setHotkey()](../lwtk/HotkeyListener.md#.setHotkey)
+   * `onClicked` - [setOnClicked()](#.setOnClicked)
+   * `onInputChanged` - **[Widget:setOnInputChanged()](../lwtk/Widget.md#.setOnInputChanged)**
+   * `onRealize` - **[Widget:setOnRealize()](../lwtk/Widget.md#.setOnRealize)**
+   * `state` - [Animatable:setState()](../lwtk/Animatable.md#.setState)
+   * `states` - [Animatable:setStates()](../lwtk/Animatable.md#.setStates)
+   * `style` - [Animatable:setStyle()](../lwtk/Animatable.md#.setStyle)
+   * `text` - [setText()](#.setText)
+   * `timer` - **[Component:setTimer()](../lwtk/Component.md#.setTimer)**
+   * `visible` - [Animatable:setVisible()](../lwtk/Animatable.md#.setVisible)
+
+Additionally parameters matching `onAction<ActionName>` register action methods, see [lwtk.Actionable](../lwtk/Actionable.md) for details.
+
+## <a id="attributes"></a>Attributes
+   * <span id=".textFragment">**`textFragment`**</span> : [lwtk.TextFragment](../lwtk/TextFragment.md)
+
+   * <span id=".text">**`text`**</span>
+
+   * <span id=".mousePressed">**`mousePressed`**</span> : `boolean`
+
+   * <span id=".mouseEntered">**`mouseEntered`**</span> : `boolean`
+
+   * <span id="._mouseDownTime">**`_mouseDownTime`**</span>
+
+
+## <a id="event-callbacks"></a>Event Callbacks
+   * <span id=".onClicked">**`onClicked`**</span>
+
+
+## <a id="methods"></a>Methods
    * <span id=".getMeasures">**`PushButton:getMeasures()`**</span>
 
-        * Implementation: [TextLabel:getMeasures()](../lwtk/TextLabel.md#getMeasures)
+        * Implementation: [TextLabel:getMeasures()](../lwtk/TextLabel.md#.getMeasures)
         * Implements: [Component:getMeasures()](../lwtk/Component.md#.getMeasures)
 
 
@@ -95,7 +144,7 @@
 
    * <span id=".setDefault">**`PushButton:setDefault(defaultFlag)`**</span>
 
-        * Implementation: [Focusable:extra.setDefault()](../lwtk/Focusable.md#extra.setDefault)
+        * Implementation: [Focusable.extra:setDefault()](../lwtk/Focusable.md#.setDefault)
 
    * <span id=".setDisabled">**`PushButton:setDisabled(flag)`**</span>
 
@@ -107,7 +156,22 @@
 
 
 
-## Inherited Methods
+## <a id="used-style-parameters"></a>Used Style Parameters
+
+See also [lwtk.Style](../lwtk/Style.md), [lwtk.DefaultStyle](../lwtk/DefaultStyle.md) and [lwtk.BuiltinStyleTypes](../lwtk/BuiltinStyleTypes.md) for more information about style parameters.
+The [Style Parameter Index](../styleparams.md) lists all style parameters.
+
+The implementation uses the following style parameters:
+
+   * `SimulateButtonClickSeconds`
+
+Style parameters used in super classes:
+
+   * [LayoutFrame](../lwtk/LayoutFrame.md#used-style-parameters): `BackgroundColor`, `BorderColor`, `BorderPadding`, `BorderSize`
+   * [Compound](../lwtk/Compound.md#used-style-parameters): `Opacity`
+   * [Animatable](../lwtk/Animatable.md#used-style-parameters): `FrameTransitionSeconds`
+
+## <a id="inherited-methods"></a>Inherited Methods
    * [Focusable](../lwtk/Focusable.md):
       * [onDisabled()](../lwtk/Focusable.md#.onDisabled), [onEffectiveVisibilityChanged()](../lwtk/Focusable.md#.onEffectiveVisibilityChanged), [setFocus()](../lwtk/Focusable.md#.setFocus), [_handleFocusIn()](../lwtk/Focusable.md#._handleFocusIn), [_handleFocusOut()](../lwtk/Focusable.md#._handleFocusOut), [_handleHasFocusHandler()](../lwtk/Focusable.md#._handleHasFocusHandler)
    * [HotkeyListener](../lwtk/HotkeyListener.md):
@@ -132,3 +196,9 @@
       * [hasActionMethod()](../lwtk/Actionable.md#.hasActionMethod), [invokeActionMethod()](../lwtk/Actionable.md#.invokeActionMethod)
    * **[Object](../lwtk/Object.md)**:
       * [getClass()](../lwtk/Object.md#.getClass), [getClassPath()](../lwtk/Object.md#.getClassPath), [getMember()](../lwtk/Object.md#.getMember), [getReverseClassPath()](../lwtk/Object.md#.getReverseClassPath), [getSuperClass()](../lwtk/Object.md#.getSuperClass), [isInstanceOf()](../lwtk/Object.md#.isInstanceOf), [setAttributes()](../lwtk/Object.md#.setAttributes)
+
+## <a id="inherited-static-members"></a>Inherited Static Members
+   * [Styleable](../lwtk/Styleable.md):
+      * [newSubClass()](../lwtk/Styleable.md#.newSubClass)
+   * **[Object](../lwtk/Object.md)**:
+      * [declare()](../lwtk/Object.md#.declare), [getMixinBase()](../lwtk/Object.md#.getMixinBase)
